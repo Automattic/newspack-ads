@@ -53,7 +53,7 @@ final class Newspack_GAM {
 	 * e.g. include_once NEWSPACK_GAM_ABSPATH . 'includes/foo.php';
 	 */
 	private function includes() {
-		// TK: Include Blocks Class file and others.
+		include_once NEWSPACK_GAM_ABSPATH . '/includes/class-newspack-gam-blocks.php';
 	}
 
 	/**
