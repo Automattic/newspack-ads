@@ -10,17 +10,6 @@ const fs = require( 'fs' );
 const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.js' );
 const path = require( 'path' );
 
-/**
- * Internal dependencies
- */
-// const { workerCount } = require( './webpack.common' ); // todo: shard...
-
-/**
- * Internal variables
- */
-const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
-const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
-
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
 		.map( block => path.join( inputDir, 'blocks', block, `${ type }.js` ) )
@@ -36,14 +25,13 @@ const blocks = fs
 const viewBlocksScripts = blocks.reduce( ( viewBlocks, block ) => {
 	const viewScriptPath = path.join( __dirname, 'src', 'blocks', block, 'view.js' );
 	if ( fs.existsSync( viewScriptPath ) ) {
-		viewBlocks[ block + '/view' ] = [ viewSetup, ...[ viewScriptPath ] ];
+		viewBlocks[ block + '/view' ] = [ ...[ viewScriptPath ] ];
 	}
 	return viewBlocks;
 }, {} );
 
 // Combines all the different blocks into one editor.js script
 const editorScript = [
-	editorSetup,
 	...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
 ];
 
