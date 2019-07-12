@@ -4,12 +4,19 @@
  * Plugin URI:      https://newspack.blog
  * Description:     Google Ad Manager integration.
  * Author:          Automattic
- * Author URI:      https://newspack.blog/
  * License:         GPL2
- * Text Domain:     newspack
- * Domain Path:     /languages/
  *
- * @package         Newspack_Gam
+ * @package         Newspack
  */
 
-// Your code starts here.
+defined( 'ABSPATH' ) || exit;
+
+// Define NEWSPACK_GAM_PLUGIN_FILE.
+if ( ! defined( 'NEWSPACK_GAM_PLUGIN_FILE' ) ) {
+	define( 'NEWSPACK_GAM_PLUGIN_FILE', __FILE__ );
+}
+
+// Include the main Newspack Google Ad Manager class.
+if ( ! class_exists( 'Newspack_GAM' ) ) {
+	include_once dirname( __FILE__ ) . '/includes/class-newspack-gam.php';
+}
