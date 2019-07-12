@@ -1,6 +1,6 @@
 {
-  "name": "automattic/newspack-blocks",
-  "description": "Gutenberg blocks for Newspack.",
+  "name": "automattic/newspack-gam",
+  "description": "Google Ad Manager integration.",
   "type": "wordpress-plugin",
   "require": {
     "composer/installers": "~1.6"
