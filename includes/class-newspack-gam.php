@@ -54,6 +54,7 @@ final class Newspack_GAM {
 	 */
 	private function includes() {
 		include_once NEWSPACK_GAM_ABSPATH . '/includes/class-newspack-gam-blocks.php';
+		include_once NEWSPACK_GAM_ABSPATH . '/includes/class-newspack-gam-model.php';
 	}
 
 	/**
