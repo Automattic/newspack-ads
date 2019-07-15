@@ -20,10 +20,11 @@ function newspack_gam_render_block_google_ad_manager( $attributes ) {
 
 	$classes = Newspack_GAM_Blocks::block_classes( 'newspack-gam-google-ad-manager', $attributes );
 
+	$ad_unit = Newspack_GAM_Model::get_ad_unit( $active_ad );
 	$content = sprintf(
 		'<div class="%s">%s</div>',
 		esc_attr( $classes ),
-		get_post_meta( $active_ad, 'newspack_ad_code', true )
+		$ad_unit['code'] /* TODO: escape with wp_kses() */
 	);
 
 	Newspack_GAM_Blocks::enqueue_view_assets( 'google-ad-manager' );
