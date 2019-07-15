@@ -2,8 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Component, Fragment } from '@wordpress/element';
-import { InspectorControls } from '@wordpress/editor';
+import { Component } from '@wordpress/element';
 import { SelectControl, Placeholder } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
@@ -30,12 +29,18 @@ class Edit extends Component {
 	}
 
 	adUnitsForSelect = adUnits => {
-		return Object.values( adUnits ).map( adUnit => {
-			return {
-				label: adUnit.name,
-				value: adUnit.id,
-			};
-		} );
+		return [
+			{
+				label: __( 'Select an ad unit' ),
+				value: null,
+			},
+			...Object.values( adUnits ).map( adUnit => {
+				return {
+					label: adUnit.name,
+					value: adUnit.id,
+				};
+			} ),
+		];
 	};
 
 	dimensionsFromAd = adData => {
@@ -45,8 +50,8 @@ class Edit extends Component {
 		const heightRegex = /height[:=].*?([0-9].*?)(?:px|\s)/i;
 		const height = ( code || '' ).match( heightRegex );
 		return {
-			width: width ? parseInt( width[ 1 ] ) : 0,
-			height: height ? parseInt( height[ 1 ] ) : 0,
+			width: width ? parseInt( width[ 1 ] ) : 450,
+			height: height ? parseInt( height[ 1 ] ) : 100,
 		};
 	};
 
@@ -63,30 +68,19 @@ class Edit extends Component {
 			width: `${ width }px`,
 			height: `${ height }px`,
 		};
-		const dimensions = width && height ? ` (${ width } x ${ height })` : '';
 		return (
-			<Fragment>
-				<InspectorControls>
-					<SelectControl
-						label={ __( 'Ad Unit' ) }
-						value={ activeAd }
-						options={ this.adUnitsForSelect( adUnits ) }
-						onChange={ activeAd => setAttributes( { activeAd } ) }
-					/>
-				</InspectorControls>
-				<div className="wp-block-newspack-blocks-google-ad-manager">
-					{ !! activeAdData && (
-						<div className="newspack-gam-ad" style={ style }>
-							<Placeholder icon={ icon } label={ __( 'Ad Unit' ) + dimensions } />
-						</div>
-					) }
-					{ ! activeAdData && (
-						<div className="newspack-gam-ad">
-							<Placeholder icon={ icon } label={ __( 'Select an Ad Unit' ) } />
-						</div>
-					) }
+			<div className="wp-block-newspack-blocks-google-ad-manager">
+				<div className="newspack-gam-ad" style={ style }>
+					<Placeholder>
+						<SelectControl
+							label={ __( 'Ad Unit' ) }
+							value={ activeAd }
+							options={ this.adUnitsForSelect( adUnits ) }
+							onChange={ activeAd => setAttributes( { activeAd } ) }
+						/>
+					</Placeholder>
 				</div>
-			</Fragment>
+			</div>
 		);
 	}
 }
