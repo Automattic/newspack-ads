@@ -3,7 +3,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { Component, Fragment } from '@wordpress/element';
-import { SelectControl, Placeholder, withNotices } from '@wordpress/components';
+import { ExternalLink, SelectControl, Placeholder, withNotices } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
@@ -18,13 +18,13 @@ class Edit extends Component {
 	constructor() {
 		super( ...arguments );
 		this.state = {
-			adUnits: [],
+			adUnits: null,
 		};
 	}
 
 	componentDidMount() {
 		apiFetch( { path: '/newspack/v1/wizard/adunits' } ).then( adUnits =>
-			this.setState( { adUnits } )
+			this.setState( { adUnits, initialUpdate: true } )
 		);
 	}
 
@@ -58,7 +58,7 @@ class Edit extends Component {
 
 	activeAdDataForActiveAd = activeAd => {
 		const { adUnits } = this.state;
-		const data = adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
+		const data = adUnits && adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
 		return this.dimensionsFromAd( data );
 	};
 
@@ -86,22 +86,35 @@ class Edit extends Component {
 		const { activeAd } = attributes;
 		const { adUnits } = this.state;
 		const { width, height } = this.activeAdDataForActiveAd( activeAd );
-		const style = {
-			width: `${ width || 400 }px`,
-			height: `${ height || 100 }px`,
-		};
+		const style =
+			width && height
+				? {
+						width: `${ width || 400 }px`,
+						height: `${ height || 100 }px`,
+				  }
+				: {};
 		return (
 			<Fragment>
 				{ noticeUI }
 				<div className="wp-block-newspack-blocks-google-ad-manager">
 					<div className="newspack-gam-ad" style={ style }>
 						<Placeholder>
-							<SelectControl
-								label={ __( 'Ad Unit' ) }
-								value={ activeAd }
-								options={ this.adUnitsForSelect( adUnits ) }
-								onChange={ activeAd => setAttributes( { activeAd } ) }
-							/>
+							{ adUnits && !! adUnits.length && (
+								<SelectControl
+									label={ __( 'Ad Unit' ) }
+									value={ activeAd }
+									options={ this.adUnitsForSelect( adUnits ) }
+									onChange={ activeAd => setAttributes( { activeAd } ) }
+								/>
+							) }
+							{ adUnits && ! adUnits.length && (
+								<Fragment>
+									{ __( 'No ad units have been created yet.' ) }
+									<ExternalLink href="/wp-admin/admin.php?page=newspack-google-ad-manager-wizard#/">
+										{ __( 'You can create ad units in the Ad Manager wizard' ) }
+									</ExternalLink>{' '}
+								</Fragment>
+							) }
 						</Placeholder>
 					</div>
 				</div>
