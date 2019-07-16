@@ -2,8 +2,8 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Component } from '@wordpress/element';
-import { SelectControl, Placeholder } from '@wordpress/components';
+import { Component, Fragment } from '@wordpress/element';
+import { SelectControl, Placeholder, withNotices } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
@@ -28,6 +28,19 @@ class Edit extends Component {
 		);
 	}
 
+	componentDidUpdate( prevProps ) {
+		const { attributes, noticeOperations } = this.props;
+		const { activeAd } = attributes;
+		if ( activeAd !== prevProps.attributes.activeAd ) {
+			const { code, width, height } = this.activeAdDataForActiveAd( activeAd );
+			if ( code && ( ! width && ! height ) ) {
+				noticeOperations.createErrorNotice( __( 'Invalid ad unit code. No dimensions available' ) );
+			} else {
+				noticeOperations.removeAllNotices();
+			}
+		}
+	}
+
 	adUnitsForSelect = adUnits => {
 		return [
 			{
@@ -43,15 +56,25 @@ class Edit extends Component {
 		];
 	};
 
+	activeAdDataForActiveAd = activeAd => {
+		const { adUnits } = this.state;
+		const data = adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
+		return this.dimensionsFromAd( data );
+	};
+
 	dimensionsFromAd = adData => {
+		const { noticeOperations } = this.props;
 		const { code } = adData || {};
 		const widthRegex = /width[:=].*?([0-9].*?)(?:px|\s)/i;
-		const width = ( code || '' ).match( widthRegex );
+		const widthMatch = ( code || '' ).match( widthRegex );
 		const heightRegex = /height[:=].*?([0-9].*?)(?:px|\s)/i;
-		const height = ( code || '' ).match( heightRegex );
+		const heightMatch = ( code || '' ).match( heightRegex );
+		const width = widthMatch && parseInt( widthMatch[ 1 ] );
+		const height = heightMatch && parseInt( heightMatch[ 1 ] );
 		return {
-			width: width ? parseInt( width[ 1 ] ) : 450,
-			height: height ? parseInt( height[ 1 ] ) : 100,
+			code,
+			width,
+			height,
 		};
 	};
 
@@ -59,30 +82,32 @@ class Edit extends Component {
 		/**
 		 * Constants
 		 */
-		const { attributes, setAttributes } = this.props;
+		const { attributes, setAttributes, noticeUI } = this.props;
 		const { activeAd } = attributes;
 		const { adUnits } = this.state;
-		const activeAdData = adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
-		const { width, height } = this.dimensionsFromAd( activeAdData );
+		const { width, height } = this.activeAdDataForActiveAd( activeAd );
 		const style = {
-			width: `${ width }px`,
-			height: `${ height }px`,
+			width: `${ width || 400 }px`,
+			height: `${ height || 100 }px`,
 		};
 		return (
-			<div className="wp-block-newspack-blocks-google-ad-manager">
-				<div className="newspack-gam-ad" style={ style }>
-					<Placeholder>
-						<SelectControl
-							label={ __( 'Ad Unit' ) }
-							value={ activeAd }
-							options={ this.adUnitsForSelect( adUnits ) }
-							onChange={ activeAd => setAttributes( { activeAd } ) }
-						/>
-					</Placeholder>
+			<Fragment>
+				{ noticeUI }
+				<div className="wp-block-newspack-blocks-google-ad-manager">
+					<div className="newspack-gam-ad" style={ style }>
+						<Placeholder>
+							<SelectControl
+								label={ __( 'Ad Unit' ) }
+								value={ activeAd }
+								options={ this.adUnitsForSelect( adUnits ) }
+								onChange={ activeAd => setAttributes( { activeAd } ) }
+							/>
+						</Placeholder>
+					</div>
 				</div>
-			</div>
+			</Fragment>
 		);
 	}
 }
 
-export default Edit;
+export default withNotices( Edit );
