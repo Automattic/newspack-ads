@@ -82,7 +82,7 @@ class Newspack_GAM_Model {
 				$query->the_post();
 				$ad_units[] = array(
 					'id'   => \get_the_ID(),
-					'name' => html_entity_decode( \get_the_title() ),
+					'name' => html_entity_decode( \get_the_title(), ENT_QUOTES ),
 					'code' => \get_post_meta( get_the_ID(), self::$custom_post_type, true ),
 				);
 			}
