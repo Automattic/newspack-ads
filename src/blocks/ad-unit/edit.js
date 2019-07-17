@@ -58,13 +58,15 @@ class Edit extends Component {
 
 	activeAdDataForActiveAd = activeAd => {
 		const { adUnits } = this.state;
-		const data = adUnits && adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
+		const data =
+			adUnits && adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
 		return this.dimensionsFromAd( data );
 	};
 
 	dimensionsFromAd = adData => {
 		const { noticeOperations } = this.props;
-		const { code } = adData || {};
+		const { ad_code, amp_ad_code } = adData || {};
+		const code = ad_code ? ad_code : amp_ad_code;
 		const widthRegex = /width[:=].*?([0-9].*?)(?:px|\s)/i;
 		const widthMatch = ( code || '' ).match( widthRegex );
 		const heightRegex = /height[:=].*?([0-9].*?)(?:px|\s)/i;
@@ -72,7 +74,8 @@ class Edit extends Component {
 		const width = widthMatch && parseInt( widthMatch[ 1 ] );
 		const height = heightMatch && parseInt( heightMatch[ 1 ] );
 		return {
-			code,
+			ad_code,
+			amp_ad_code,
 			width,
 			height,
 		};
