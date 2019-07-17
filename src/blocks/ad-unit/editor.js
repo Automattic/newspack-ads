@@ -4,4 +4,4 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { name, settings } from '.';
 
-registerBlockType( `newspack-gam/${ name }`, settings );
+registerBlockType( `newspack-ads/${ name }`, settings );

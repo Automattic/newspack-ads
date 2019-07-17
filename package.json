@@ -1,7 +1,6 @@
 {
-  "name": "newspack-gam",
+  "name": "newspack-ads",
   "version": "0.1.0",
-  "main": "Gruntfile.js",
   "author": "Automattic",
   "private": true,
   "devDependencies": {
@@ -25,10 +24,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Automattic/newspack-gam.git"
+    "url": "git+https://github.com/Automattic/newspack-ads.git"
   },
   "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/Automattic/newspack-gam/issues"
+    "url": "https://github.com/Automattic/newspack-ads/issues"
   }
 }

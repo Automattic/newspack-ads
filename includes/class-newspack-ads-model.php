@@ -1,14 +1,14 @@
 <?php
 /**
- * Newspack Google Ad Manager Custom Post  Type
+ * Newspack Ads Custom Post  Type
  *
  * @package Newspack
  */
 
 /**
- * Newspack Google Ad Manager Blocks Management
+ * Newspack Ads Blocks Management
  */
-class Newspack_GAM_Model {
+class Newspack_Ads_Model {
 
 	/**
 	 * Custom post type
@@ -19,7 +19,7 @@ class Newspack_GAM_Model {
 	public static $custom_post_type = 'newspack_ad_codes';
 
 	/**
-	 * Initialize Google Ad Manager Model
+	 * Initialize Google Ads Model
 	 *
 	 * @return void
 	 */
@@ -225,4 +225,4 @@ class Newspack_GAM_Model {
 		return $sanitised_ad_unit;
 	}
 }
-Newspack_GAM_Model::init();
+Newspack_Ads_Model::init();

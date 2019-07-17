@@ -96,8 +96,8 @@ class Edit extends Component {
 		return (
 			<Fragment>
 				{ noticeUI }
-				<div className="wp-block-newspack-blocks-google-ad-manager">
-					<div className="newspack-gam-ad" style={ style }>
+				<div className="wp-block-newspack-ads-blocks-ad-unit">
+					<div className="newspack-ads-ad-unit" style={ style }>
 						<Placeholder>
 							{ adUnits && !! adUnits.length && (
 								<SelectControl
@@ -111,7 +111,7 @@ class Edit extends Component {
 								<Fragment>
 									{ __( 'No ad units have been created yet.' ) }
 									<ExternalLink href="/wp-admin/admin.php?page=newspack-google-ad-manager-wizard#/">
-										{ __( 'You can create ad units in the Ad Manager wizard' ) }
+										{ __( 'You can create ad units in the Ads wizard' ) }
 									</ExternalLink>{' '}
 								</Fragment>
 							) }

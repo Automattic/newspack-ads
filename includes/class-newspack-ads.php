@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Google Ad Manager Set up
+ * Newspack Ads set up
  *
  * @package Newspack
  */
@@ -8,22 +8,22 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Main Newspack Google Ad Manager Class.
+ * Main Newspack Ads Class.
  */
-final class Newspack_GAM {
+final class Newspack_Ads {
 
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var Newspack_GAM
+	 * @var Newspack_Ads
 	 */
 	protected static $_instance = null;
 
 	/**
-	 * Main Newspack GAM Instance.
-	 * Ensures only one instance of Newspack GAM is loaded or can be loaded.
+	 * Main Newspack Ads Instance.
+	 * Ensures only one instance of Newspack Ads is loaded or can be loaded.
 	 *
-	 * @return Newspack GAM - Main instance.
+	 * @return Newspack Ads - Main instance.
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
@@ -44,21 +44,21 @@ final class Newspack_GAM {
 	 * Define Constants.
 	 */
 	private function define_constants() {
-		define( 'NEWSPACK_GAM_VERSION', '0.0.1' );
-		define( 'NEWSPACK_GAM_ABSPATH', dirname( NEWSPACK_GAM_PLUGIN_FILE ) . '/' );
+		define( 'NEWSPACK_ADS_VERSION', '0.0.1' );
+		define( 'NEWSPACK_ADS_ABSPATH', dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/' );
 	}
 
 	/**
 	 * Include required core files used in admin and on the frontend.
-	 * e.g. include_once NEWSPACK_GAM_ABSPATH . 'includes/foo.php';
+	 * e.g. include_once NEWSPACK_ADS_ABSPATH . 'includes/foo.php';
 	 */
 	private function includes() {
-		include_once NEWSPACK_GAM_ABSPATH . '/includes/class-newspack-gam-blocks.php';
-		include_once NEWSPACK_GAM_ABSPATH . '/includes/class-newspack-gam-model.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-blocks.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-model.php';
 	}
 
 	/**
-	 * Get the URL for the Newspack GAM plugin directory.
+	 * Get the URL for the Newspack Ads plugin directory.
 	 *
 	 * @param string $path Optional path to append.
 	 * @return string URL
@@ -68,7 +68,7 @@ final class Newspack_GAM {
 		if ( $path && strpos( '/', $path ) !== 1 ) {
 			$path = '/' . $path;
 		}
-		return untrailingslashit( plugins_url( '/', NEWSPACK_GAM_PLUGIN_FILE ) ) . $path;
+		return untrailingslashit( plugins_url( '/', NEWSPACK_ADS_PLUGIN_FILE ) ) . $path;
 	}
 }
-Newspack_GAM::instance();
+Newspack_Ads::instance();

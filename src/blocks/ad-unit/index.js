@@ -14,8 +14,8 @@ import edit from './edit';
  */
 import './editor.scss';
 
-export const name = 'google-ad-manager';
-export const title = __( 'Google Ad Manager' );
+export const name = 'ad-unit';
+export const title = __( 'Ad Unit' );
 
 /* From https://material.io/tools/icons */
 export const icon = (
@@ -24,12 +24,13 @@ export const icon = (
 		<Path d="M0 0h24v24H0z" fill="none"/>
 	</SVG>
 );
+console.log( getCategories() );
 export const settings = {
 	title,
 	icon,
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
 	keywords: [ __( 'ad' ), __( 'advert' ), __( 'ads' ) ],
-	description: __( 'A block for displaying ad inventory from Google Ad Manager.' ),
+	description: __( 'A block for displaying ad inventory.' ),
 	attributes: {
 		activeAd: {
 			type: 'string',

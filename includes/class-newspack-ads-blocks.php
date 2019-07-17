@@ -1,14 +1,14 @@
 <?php
 /**
- * Newspack Google Ad Manager Block Management
+ * Newspack Ads Block Management
  *
  * @package Newspack
  */
 
 /**
- * Newspack Google Ad Manager Blocks Management
+ * Newspack Ads Blocks Management
  */
-class Newspack_GAM_Blocks {
+class Newspack_Ads_Blocks {
 
 	/**
 	 * Initialize blocks
@@ -16,7 +16,7 @@ class Newspack_GAM_Blocks {
 	 * @return void
 	 */
 	public static function init() {
-		require_once NEWSPACK_GAM_ABSPATH . 'src/blocks/google-ad-manager/view.php';
+		require_once NEWSPACK_ADS_ABSPATH . 'src/blocks/ad-unit/view.php';
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
 	}
 
@@ -24,18 +24,18 @@ class Newspack_GAM_Blocks {
 	 * Enqueue block scripts and styles for editor.
 	 */
 	public static function enqueue_block_editor_assets() {
-		$editor_script = Newspack_GAM::plugin_url( 'dist/editor.js' );
-		$editor_style  = Newspack_GAM::plugin_url( 'dist/editor.css' );
-		$dependencies  = self::dependencies_from_path( NEWSPACK_GAM_ABSPATH . 'dist/editor.deps.json' );
+		$editor_script = Newspack_Ads::plugin_url( 'dist/editor.js' );
+		$editor_style  = Newspack_Ads::plugin_url( 'dist/editor.css' );
+		$dependencies  = self::dependencies_from_path( NEWSPACK_ADS_ABSPATH . 'dist/editor.deps.json' );
 		wp_enqueue_script(
-			'newspack-gam-editor',
+			'newspack-ads-editor',
 			$editor_script,
 			$dependencies,
 			'0.1.0',
 			true
 		);
 		wp_enqueue_style(
-			'newspack-gam-editor',
+			'newspack-ads-editor',
 			$editor_style,
 			array(),
 			'0.1.0'
@@ -84,26 +84,26 @@ class Newspack_GAM_Blocks {
 	 * @param string $type The block's type.
 	 */
 	public static function enqueue_view_assets( $type ) {
-		$style_path  = Newspack_GAM::plugin_url( 'dist/{$type}/view' . ( is_rtl() ? '.rtl' : '' ) . '.css' );
-		$script_path = Newspack_GAM::plugin_url( 'dist/{$type}/view.js' );
-		if ( file_exists( NEWSPACK_GAM_ABSPATH . $style_path ) ) {
+		$style_path  = Newspack_Ads::plugin_url( 'dist/{$type}/view' . ( is_rtl() ? '.rtl' : '' ) . '.css' );
+		$script_path = Newspack_Ads::plugin_url( 'dist/{$type}/view.js' );
+		if ( file_exists( NEWSPACK_ADS_ABSPATH . $style_path ) ) {
 			wp_enqueue_style(
 				"newspack-blocks-{$type}",
 				plugins_url( $style_path, __FILE__ ),
 				array(),
-				NEWSPACK_GAM_VERSION
+				NEWSPACK_ADS_VERSION
 			);
 		}
-		if ( file_exists( NEWSPACK_GAM_ABSPATH . $script_path ) ) {
-			$dependencies = self::dependencies_from_path( NEWSPACK_BLOCKS__PLUGIN_DIR . "dist/{$type}/view.deps.json" );
+		if ( file_exists( NEWSPACK_ADS_ABSPATH . $script_path ) ) {
+			$dependencies = self::dependencies_from_path( Newspack_Ads::plugin_url( 'dist/{$type}/view.deps.json' ) );
 			wp_enqueue_script(
 				"newspack-blocks-{$type}",
 				plugins_url( $script_path, __FILE__ ),
 				$dependencies,
 				array(),
-				NEWSPACK_GAM_VERSION
+				NEWSPACK_ADS_VERSION
 			);
 		}
 	}
 }
-Newspack_GAM_Blocks::init();
+Newspack_Ads_Blocks::init();

@@ -2,13 +2,13 @@
 /**
  * Loads and prepares everything for unit testing.
  *
- * @package Newspack_GAM\Tests
+ * @package Newspack_Ads\Tests
  */
 
 /**
- * Newspack Unit Tests Bootstrap.
+ * Newspack Ads Unit Tests Bootstrap.
  */
-class Newspack_GAM_Unit_Tests_Bootstrap {
+class Newspack_Ads_Unit_Tests_Bootstrap {
 
 	/**
 	 * The unit tests bootstrap instance.
@@ -62,10 +62,10 @@ class Newspack_GAM_Unit_Tests_Bootstrap {
 		require_once $this->wp_tests_dir . '/includes/functions.php';
 
 		// Load Newspack.
-		tests_add_filter( 'muplugins_loaded', array( $this, 'load_newspack_gam' ) );
+		tests_add_filter( 'muplugins_loaded', array( $this, 'load_newspack_ads' ) );
 
 		// Install Newspack.
-		tests_add_filter( 'setup_theme', array( $this, 'install_newspack_gam' ) );
+		tests_add_filter( 'setup_theme', array( $this, 'install_newspack_ads' ) );
 
 		// Load the WP testing environment.
 		require_once $this->wp_tests_dir . '/includes/bootstrap.php';
@@ -74,14 +74,14 @@ class Newspack_GAM_Unit_Tests_Bootstrap {
 	/**
 	 * Load Newspack.
 	 */
-	public function load_newspack_gam() {
-		require_once $this->plugin_dir . '/newspack-gam.php';
+	public function load_newspack_ads() {
+		require_once $this->plugin_dir . '/newspack-ads.php';
 	}
 
 	/**
 	 * Install Newspack after the test environment and Newspack have been loaded.
 	 */
-	public function install_newspack_gam() {
+	public function install_newspack_ads() {
 
 		// Clean existing install first.
 		// define( 'WP_UNINSTALL_PLUGIN', true );
@@ -92,7 +92,7 @@ class Newspack_GAM_Unit_Tests_Bootstrap {
 		$GLOBALS['wp_roles'] = null; // WPCS: override ok.
 		wp_roles();
 
-		echo esc_html( 'Installing Newspack GAM...' . PHP_EOL );
+		echo esc_html( 'Installing Newspack Ads...' . PHP_EOL );
 	}
 
 	/**
@@ -109,4 +109,4 @@ class Newspack_GAM_Unit_Tests_Bootstrap {
 	}
 }
 
-Newspack_GAM_Unit_Tests_Bootstrap::instance();
+Newspack_Ads_Unit_Tests_Bootstrap::instance();

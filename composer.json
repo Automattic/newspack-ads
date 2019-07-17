@@ -1,6 +1,6 @@
 {
-  "name": "automattic/newspack-gam",
-  "description": "Google Ad Manager integration.",
+  "name": "automattic/newspack-ads",
+  "description": "Newspack Ad integrations.",
   "type": "wordpress-plugin",
   "require": {
     "composer/installers": "~1.6"
