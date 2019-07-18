@@ -11,7 +11,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Define NEWSPACK_GAM_PLUGIN_FILE.
+// Define NEWSPACK_ADS_PLUGIN_FILE.
 if ( ! defined( 'NEWSPACK_ADS_PLUGIN_FILE' ) ) {
 	define( 'NEWSPACK_ADS_PLUGIN_FILE', __FILE__ );
 }
