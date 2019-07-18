@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <phpunit
-	bootstrap="tests/class-newspack-gam-unit-tests-bootstrap.php"
+	bootstrap="tests/class-newspack-ads-unit-tests-bootstrap.php"
 	backupGlobals="false"
 	colors="true"
 	convertErrorsToExceptions="true"
@@ -10,7 +10,7 @@
 	syntaxCheck="true"
 	>
 	<testsuites>
-		<testsuite name="Newspack GAM Test Suite">
+		<testsuite name="Newspack Ads Test Suite">
 			<directory suffix=".php">./tests/unit-tests</directory>
 		</testsuite>
 	</testsuites>
