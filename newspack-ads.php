@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:     Newspack Gds
+ * Plugin Name:     Newspack Ads
  * Plugin URI:      https://newspack.blog
  * Description:     Ad services integration.
  * Author:          Automattic
