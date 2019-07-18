@@ -24,7 +24,6 @@ export const icon = (
 		<Path d="M0 0h24v24H0z" fill="none"/>
 	</SVG>
 );
-console.log( getCategories() );
 export const settings = {
 	title,
 	icon,
