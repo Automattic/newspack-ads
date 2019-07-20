@@ -12,6 +12,7 @@ class Newspack_Ads_Model {
 
 	const AD_CODE     = 'ad_code';
 	const AMP_AD_CODE = 'amp_ad_code';
+	const AD_SERVICE  = 'ad_service';
 
 	/**
 	 * Custom post type
@@ -58,6 +59,7 @@ class Newspack_Ads_Model {
 				'name'            => $ad_unit->post_title,
 				self::AD_CODE     => \get_post_meta( $ad_unit->ID, self::AD_CODE, true ),
 				self::AMP_AD_CODE => \get_post_meta( $ad_unit->ID, self::AMP_AD_CODE, true ),
+				self::AD_SERVICE  => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
 			);
 		} else {
 			return new WP_Error(
@@ -89,6 +91,7 @@ class Newspack_Ads_Model {
 					'name'            => html_entity_decode( \get_the_title(), ENT_QUOTES ),
 					self::AD_CODE     => \get_post_meta( get_the_ID(), self::AD_CODE, true ),
 					self::AMP_AD_CODE => \get_post_meta( get_the_ID(), self::AMP_AD_CODE, true ),
+					self::AD_SERVICE  => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
 		}
@@ -137,6 +140,7 @@ class Newspack_Ads_Model {
 			'name'            => $ad_unit['name'],
 			self::AD_CODE     => $ad_unit[ self::AD_CODE ],
 			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ],
+			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
 
@@ -172,12 +176,14 @@ class Newspack_Ads_Model {
 		);
 		\update_post_meta( $ad_unit['id'], self::AD_CODE, $ad_unit[ self::AD_CODE ] );
 		\update_post_meta( $ad_unit['id'], self::AMP_AD_CODE, $ad_unit[ self::AMP_AD_CODE ] );
+		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
 
 		return array(
 			'id'              => $ad_unit['id'],
 			'name'            => $ad_unit['name'],
 			self::AD_CODE     => $ad_unit[ self::AD_CODE ],
 			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ],
+			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
 
@@ -225,6 +231,7 @@ class Newspack_Ads_Model {
 			'name'            => \esc_html( $ad_unit['name'] ),
 			self::AD_CODE     => $ad_unit[ self::AD_CODE ], // esc_js( $ad_unit['code'] ), @todo If a `script` tag goes here, esc_js is the wrong function to use.
 			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ], // esc_js( $ad_unit['code'] ), @todo If a `script` tag goes here, esc_js is the wrong function to use.
+			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
 
 		);
 
