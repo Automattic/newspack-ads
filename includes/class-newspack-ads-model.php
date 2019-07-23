@@ -14,6 +14,9 @@ class Newspack_Ads_Model {
 	const AMP_AD_CODE = 'amp_ad_code';
 	const AD_SERVICE  = 'ad_service';
 
+	const NEWSPACK_ADS_SERVICE_PREFIX     = '_newspack_ads_service_';
+	const NEWSPACK_ADS_HEADER_CODE_SUFFIX = '_header_code';
+
 	/**
 	 * Custom post type
 	 *
@@ -207,6 +210,29 @@ class Newspack_Ads_Model {
 			return true;
 		}
 	}
+
+	/**
+	 * Update/create the header code for a service.
+	 *
+	 * @param string $service The service.
+	 * @param string $header_code The code.
+	 */
+	public static function set_header_code( $service, $header_code ) {
+		$id = self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX;
+		update_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX, $header_code );
+		return true;
+	}
+
+	/**
+	 * Retrieve the header code for a service.
+	 *
+	 * @param string $service The service.
+	 * @return string $header_code The code.
+	 */
+	public static function get_header_code( $service ) {
+		return get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX, '' );
+	}
+
 
 	/**
 	 * Sanitize an ad unit.
