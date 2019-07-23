@@ -23,8 +23,8 @@ class Edit extends Component {
 	}
 
 	componentDidMount() {
-		apiFetch( { path: '/newspack/v1/wizard/adunits' } ).then( adUnits =>
-			this.setState( { adUnits, initialUpdate: true } )
+		apiFetch( { path: '/newspack/v1/wizard/advertising' } ).then( response =>
+			this.setState( { adUnits: response.ad_units, initialUpdate: true } )
 		);
 	}
 
