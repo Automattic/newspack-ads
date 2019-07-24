@@ -18,6 +18,7 @@ class Newspack_Ads_Blocks {
 	public static function init() {
 		require_once NEWSPACK_ADS_ABSPATH . 'src/blocks/ad-unit/view.php';
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
+		add_action( 'wp_head', array( __CLASS__, 'insert_google_ad_manager_header_code' ), 30 );
 	}
 
 	/**
@@ -103,6 +104,19 @@ class Newspack_Ads_Blocks {
 				array(),
 				NEWSPACK_ADS_VERSION
 			);
+		}
+	}
+
+	/**
+	 * Google Ad Manager header code
+	 */
+	public static function insert_google_ad_manager_header_code() {
+		$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+
+		if ( ! $is_amp ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo Newspack_Ads_Model::get_header_code( 'google_ad_manager' );
+			// phpcs:enable phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 }
