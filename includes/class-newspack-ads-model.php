@@ -32,7 +32,6 @@ class Newspack_Ads_Model {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_ad_post_type' ) );
-		add_action( 'amp_post_template_head', array( __CLASS__, 'amp_post_template_head' ) );
 	}
 
 	/**
@@ -218,6 +217,9 @@ class Newspack_Ads_Model {
 	 * @param string $header_code The code.
 	 */
 	public static function set_header_code( $service, $header_code ) {
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			return false;
+		}
 		$id = self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX;
 		update_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX, $header_code );
 		return true;
