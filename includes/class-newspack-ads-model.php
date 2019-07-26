@@ -107,7 +107,9 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			return false;
+		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
@@ -152,7 +154,9 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The updated ad unit.
 	 */
 	public static function update_ad_unit( $ad_unit ) {
-
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			return false;
+		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
@@ -195,6 +199,9 @@ class Newspack_Ads_Model {
 	 * @param integer $id The id of the ad unit to delete.
 	 */
 	public static function delete_ad_unit( $id ) {
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			return false;
+		}
 		$ad_unit_post = \get_post( $id );
 		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
 			return new WP_Error(
