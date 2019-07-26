@@ -21,10 +21,19 @@ function newspack_ads_render_block_ad_unit( $attributes ) {
 	$classes = Newspack_Ads_Blocks::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attributes );
 
 	$ad_unit = Newspack_Ads_Model::get_ad_unit( $active_ad );
+
+	$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+
+	$code = $is_amp ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
+
+	if ( empty( $code ) ) {
+		return '';
+	}
+
 	$content = sprintf(
 		'<div class="%s">%s</div>',
 		esc_attr( $classes ),
-		$ad_unit['code'] /* TODO: escape with wp_kses() */
+		$code /* TODO: escape with wp_kses() */
 	);
 
 	Newspack_Ads_Blocks::enqueue_view_assets( 'ad-unit' );
