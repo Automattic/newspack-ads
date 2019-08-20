@@ -22,6 +22,10 @@ function newspack_ads_render_block_ad_unit( $attributes ) {
 
 	$ad_unit = Newspack_Ads_Model::get_ad_unit( $active_ad );
 
+	if ( is_wp_error( $ad_unit ) ) {
+		return;
+	}
+
 	$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 
 	$code = $is_amp ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
