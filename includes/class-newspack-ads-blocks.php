@@ -19,6 +19,7 @@ class Newspack_Ads_Blocks {
 		require_once NEWSPACK_ADS_ABSPATH . 'src/blocks/ad-unit/view.php';
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
 		add_action( 'wp_head', array( __CLASS__, 'insert_google_ad_manager_header_code' ), 30 );
+		add_filter( 'script_loader_tag', array( __CLASS__, 'enqueue_assets_for_block_widgets' ), 10, 2 );
 	}
 
 	/**
@@ -105,6 +106,22 @@ class Newspack_Ads_Blocks {
 				NEWSPACK_ADS_VERSION
 			);
 		}
+	}
+
+	/**
+	 * Enqueue Ads Block scripts on Customizer Widget Blocks screen.
+	 * This is done in a sort-of roundabout way because there is no interface for adding block scripts
+	 * to the widget blocks screen yet. In the future it should be simplified.
+	 *
+	 * @see https://github.com/WordPress/gutenberg/blob/master/lib/widgets-page.php#L38
+	 * @param string $hook Page.
+	 */
+	public static function enqueue_assets_for_block_widgets( $tag, $handle ) {
+		if ( 'wp-edit-widgets' === $handle ) {
+			self::enqueue_block_editor_assets();
+		}
+
+	    return $tag;
 	}
 
 	/**
