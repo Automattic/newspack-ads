@@ -12,6 +12,7 @@ class Newspack_Ads_Model {
 
 	const AD_SERVICE = 'ad_service';
 	const SIZES      = 'sizes';
+	const CODE       = 'code';
 
 	const NEWSPACK_ADS_SERVICE_PREFIX      = '_newspack_ads_service_';
 	const NEWSPACK_ADS_NETWORK_CODE_SUFFIX = '_network_code';
@@ -66,6 +67,7 @@ class Newspack_Ads_Model {
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
 				self::SIZES      => \get_post_meta( $ad_unit->ID, self::SIZES, true ),
+				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
 				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
 				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
 				self::AD_SERVICE => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
@@ -99,6 +101,7 @@ class Newspack_Ads_Model {
 					'id'             => \get_the_ID(),
 					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
 					self::SIZES      => \get_post_meta( get_the_ID(), self::SIZES, true ),
+					self::CODE       => \get_post_meta( get_the_ID(), self::CODE, true ),
 					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
@@ -119,11 +122,13 @@ class Newspack_Ads_Model {
 			return $ad_unit;
 		}
 
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
 		// Save the ad unit.
 		$ad_unit_post = \wp_insert_post(
 			array(
 				'post_author' => \get_current_user_id(),
-				'post_title'  => $ad_unit['name'],
+				'post_title'  => $name,
 				'post_type'   => self::$custom_post_type,
 				'post_status' => 'publish',
 			)
@@ -140,11 +145,13 @@ class Newspack_Ads_Model {
 
 		// Add the code to our new post.
 		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
+		\add_post_meta( $ad_unit_post, self::CODE, $ad_unit[ self::CODE ] );
 
 		return array(
 			'id'             => $ad_unit_post,
 			'name'           => $ad_unit['name'],
 			self::SIZES      => $ad_unit[ self::SIZES ],
+			self::CODE       => $ad_unit[ self::CODE ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
@@ -172,19 +179,23 @@ class Newspack_Ads_Model {
 			);
 		}
 
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
 		\wp_update_post(
 			array(
 				'ID'         => $ad_unit['id'],
-				'post_title' => $ad_unit['name'],
+				'post_title' => $name,
 			)
 		);
 		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
+		\update_post_meta( $ad_unit['id'], self::CODE, $ad_unit[ self::CODE ] );
 		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
 
 		return array(
 			'id'             => $ad_unit['id'],
 			'name'           => $ad_unit['name'],
 			self::SIZES      => $ad_unit[ self::SIZES ],
+			self::CODE       => $ad_unit[ self::CODE ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
@@ -239,7 +250,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function sanitise_ad_unit( $ad_unit ) {
 		if (
-			! array_key_exists( 'name', $ad_unit ) ||
+			! array_key_exists( self::CODE, $ad_unit ) ||
 			! array_key_exists( self::SIZES, $ad_unit )
 		) {
 			return new WP_Error(
@@ -253,6 +264,7 @@ class Newspack_Ads_Model {
 
 		$sanitised_ad_unit = array(
 			'name'           => \esc_html( $ad_unit['name'] ),
+			self::CODE       => $ad_unit[ self::CODE ],
 			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 
@@ -272,7 +284,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit->sizes;
-		$name         = $ad_unit->post_title;
+		$code         = $ad_unit->code;
 		$network_code = self::get_network_code( 'google_ad_manager' );
 		$unique_id    = uniqid();
 
@@ -287,7 +299,7 @@ class Newspack_Ads_Model {
 		$code = sprintf(
 			"<!-- /%s/%s --><div id='div-gpt-ad-%s-0' style='width: %spx; height: %spx;'><script>googletag.cmd.push(function() { googletag.display('div-gpt-ad-%s-0'); });</script></div>",
 			$network_code,
-			$name,
+			$code,
 			$unique_id,
 			$largest[0],
 			$largest[1],
@@ -303,7 +315,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function amp_code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit->sizes;
-		$name         = $ad_unit->post_title;
+		$code         = $ad_unit->code;
 		$network_code = self::get_network_code( 'google_ad_manager' );
 
 		if ( ! is_array( $sizes ) ) {
@@ -335,7 +347,7 @@ class Newspack_Ads_Model {
 			$largest[0],
 			$largest[1],
 			$network_code,
-			$name,
+			$code,
 			$data_multi_size
 		);
 

@@ -153,7 +153,7 @@ class Newspack_Ads_Blocks {
 		<script>
 			googletag.cmd.push(function() {
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
-					googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit->post_title ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
+					googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit->code ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
 				<?php endforeach; ?>
 				googletag.pubads().enableSingleRequest();
 				googletag.enableServices();
