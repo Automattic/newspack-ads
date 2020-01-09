@@ -64,18 +64,10 @@ class Edit extends Component {
 	};
 
 	dimensionsFromAd = adData => {
-		const { noticeOperations } = this.props;
-		const { ad_code, amp_ad_code } = adData || {};
-		const code = ad_code ? ad_code : amp_ad_code;
-		const widthRegex = /width[:=].*?([0-9].*?)(?:px|\s)/i;
-		const widthMatch = ( code || '' ).match( widthRegex );
-		const heightRegex = /height[:=].*?([0-9].*?)(?:px|\s)/i;
-		const heightMatch = ( code || '' ).match( heightRegex );
-		const width = widthMatch && parseInt( widthMatch[ 1 ] );
-		const height = heightMatch && parseInt( heightMatch[ 1 ] );
+		const { sizes } = adData || {};
+		const primarySize = ( sizes && sizes.length ) ? sizes[0] : [ 320, 240 ];
+		const [ width, height ] = primarySize;
 		return {
-			ad_code,
-			amp_ad_code,
 			width,
 			height,
 		};
