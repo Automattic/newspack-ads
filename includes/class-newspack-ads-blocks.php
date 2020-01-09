@@ -19,6 +19,7 @@ class Newspack_Ads_Blocks {
 		require_once NEWSPACK_ADS_ABSPATH . 'src/blocks/ad-unit/view.php';
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
 		add_action( 'wp_head', array( __CLASS__, 'insert_google_ad_manager_header_code' ), 30 );
+		add_action( 'wp_footer', array( __CLASS__, 'insert_google_ad_manager_footer_code' ), 30 );
 	}
 
 	/**
@@ -112,12 +113,43 @@ class Newspack_Ads_Blocks {
 	 */
 	public static function insert_google_ad_manager_header_code() {
 		$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
-
-		if ( ! $is_amp ) {
-			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo Newspack_Ads_Model::get_header_code( 'google_ad_manager' );
-			// phpcs:enable phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+		if ( $is_amp ) {
+			return;
 		}
+		ob_start();
+		?>
+		<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+		<script>
+			window.googletag = window.googletag || {cmd: []};
+		</script>
+		<?php
+		$code = ob_get_clean();
+		echo $code; //phpcs:ignore
+	}
+
+	/**
+	 * Google Ad Manager footer code
+	 */
+	public static function insert_google_ad_manager_footer_code() {
+		$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+		if ( $is_amp ) {
+			return;
+		}
+		$network_code = Newspack_Ads_Model::get_network_code( 'google_ad_manager' );
+		ob_start();
+		?>
+		<script>
+			googletag.cmd.push(function() {
+				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
+					googletag.defineSlot('/<?php echo $network_code; //phpcs:ignore ?>/<?php echo $ad_unit->post_title; ?>', [<?php echo $ad_unit->width; ?>, <?php echo $ad_unit->height; ?>], 'div-gpt-ad-<?php echo $unique_id; ?>').addService(googletag.pubads());
+				<?php endforeach; ?>
+				googletag.pubads().enableSingleRequest();
+				googletag.enableServices();
+			});
+		</script>
+		<?php
+		$code = ob_get_clean();
+		echo $code; // phpcs:ignore
 	}
 }
 Newspack_Ads_Blocks::init();
