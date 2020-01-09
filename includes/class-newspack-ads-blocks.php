@@ -135,16 +135,31 @@ class Newspack_Ads_Blocks {
 		if ( $is_amp ) {
 			return;
 		}
+
 		$network_code = Newspack_Ads_Model::get_network_code( 'google_ad_manager' );
+
+		$formatted_sizes = [];
+		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
+			$formatted_sizes[ $unique_id ] = array_map(
+				function( $item ) {
+					return sprintf( '[%s,%s]', $item[0], $item[1] );
+				},
+				$ad_unit->sizes
+			);
+		}
+
 		ob_start();
 		?>
 		<script>
 			googletag.cmd.push(function() {
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
-					googletag.defineSlot('/<?php echo $network_code; //phpcs:ignore ?>/<?php echo $ad_unit->post_title; ?>', [<?php echo $ad_unit->width; ?>, <?php echo $ad_unit->height; ?>], 'div-gpt-ad-<?php echo $unique_id; ?>').addService(googletag.pubads());
+					googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit->post_title ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
 				<?php endforeach; ?>
 				googletag.pubads().enableSingleRequest();
 				googletag.enableServices();
+				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
+				googletag.display('div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0');
+				<?php endforeach; ?>
 			});
 		</script>
 		<?php

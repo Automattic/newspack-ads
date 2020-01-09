@@ -113,9 +113,6 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
@@ -158,9 +155,6 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The updated ad unit.
 	 */
 	public static function update_ad_unit( $ad_unit ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
@@ -201,9 +195,6 @@ class Newspack_Ads_Model {
 	 * @param integer $id The id of the ad unit to delete.
 	 */
 	public static function delete_ad_unit( $id ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		$ad_unit_post = \get_post( $id );
 		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
 			return new WP_Error(
@@ -280,21 +271,26 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The ad unit to generate code for.
 	 */
 	public static function code_for_ad_unit( $ad_unit ) {
-		$width        = $ad_unit->width;
-		$height       = $ad_unit->height;
+		$sizes        = $ad_unit->sizes;
 		$name         = $ad_unit->post_title;
 		$network_code = self::get_network_code( 'google_ad_manager' );
 		$unique_id    = uniqid();
 
+		if ( ! is_array( $sizes ) ) {
+			$sizes = [];
+		}
+
 		self::$ad_ids[ $unique_id ] = $ad_unit;
 
+		$largest = self::largest_ad_size( $sizes );
+
 		$code = sprintf(
-			"<!-- /%s/%s --><div id='div-gpt-ad-%s' style='width: %spx; height: %spx;'><script>googletag.cmd.push(function() { googletag.display('div-gpt-ad-%s'); });</script></div>",
+			"<!-- /%s/%s --><div id='div-gpt-ad-%s-0' style='width: %spx; height: %spx;'><script>googletag.cmd.push(function() { googletag.display('div-gpt-ad-%s-0'); });</script></div>",
 			$network_code,
 			$name,
 			$unique_id,
-			$width,
-			$height,
+			$largest[0],
+			$largest[1],
 			$unique_id
 		);
 		return $code;
@@ -310,13 +306,11 @@ class Newspack_Ads_Model {
 		$name         = $ad_unit->post_title;
 		$network_code = self::get_network_code( 'google_ad_manager' );
 
-		$largest = array_reduce(
-			$sizes,
-			function( $carry, $item ) {
-				return $item[0] > $carry[0] ? $item : $carry;
-			},
-			[ 0, 0 ]
-		);
+		if ( ! is_array( $sizes ) ) {
+			$sizes = [];
+		}
+
+		$largest = self::largest_ad_size( $sizes );
 
 		$other_sizes = array_filter(
 			$sizes,
@@ -346,6 +340,22 @@ class Newspack_Ads_Model {
 		);
 
 		return $code;
+	}
+
+	/**
+	 * Picks the largest size from an array of width/height pairs.
+	 *
+	 * @param array $sizes An array of dimension pairs.
+	 * @return array The pair with the widest width.
+	 */
+	public static function largest_ad_size( $sizes ) {
+		return array_reduce(
+			$sizes,
+			function( $carry, $item ) {
+				return $item[0] > $carry[0] ? $item : $carry;
+			},
+			[ 0, 0 ]
+		);
 	}
 }
 Newspack_Ads_Model::init();
