@@ -10,7 +10,8 @@
  */
 class Newspack_Ads_Model {
 
-	const AD_SERVICE  = 'ad_service';
+	const AD_SERVICE = 'ad_service';
+	const SIZES      = 'sizes';
 
 	const NEWSPACK_ADS_SERVICE_PREFIX      = '_newspack_ads_service_';
 	const NEWSPACK_ADS_NETWORK_CODE_SUFFIX = '_network_code';
@@ -64,8 +65,7 @@ class Newspack_Ads_Model {
 			return array(
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
-				'width'          => \get_post_meta( $ad_unit->ID, 'width', true ),
-				'height'         => \get_post_meta( $ad_unit->ID, 'height', true ),
+				self::SIZES      => \get_post_meta( $ad_unit->ID, self::SIZES, true ),
 				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
 				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
 				self::AD_SERVICE => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
@@ -98,8 +98,7 @@ class Newspack_Ads_Model {
 				$ad_units[] = array(
 					'id'             => \get_the_ID(),
 					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
-					'width'          => \get_post_meta( get_the_ID(), 'width', true ),
-					'height'         => \get_post_meta( get_the_ID(), 'height', true ),
+					self::SIZES      => \get_post_meta( get_the_ID(), self::SIZES, true ),
 					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
@@ -143,14 +142,12 @@ class Newspack_Ads_Model {
 		}
 
 		// Add the code to our new post.
-		\add_post_meta( $ad_unit_post, 'width', $ad_unit['width'] );
-		\add_post_meta( $ad_unit_post, 'height', $ad_unit['height'] );
+		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
 
 		return array(
 			'id'             => $ad_unit_post,
 			'name'           => $ad_unit['name'],
-			'width'          => $ad_unit['width'],
-			'height'         => $ad_unit['height'],
+			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
@@ -187,15 +184,13 @@ class Newspack_Ads_Model {
 				'post_title' => $ad_unit['name'],
 			)
 		);
-		\update_post_meta( $ad_unit['id'], 'width', $ad_unit['width'] );
-		\update_post_meta( $ad_unit['id'], 'height', $ad_unit['height'] );
+		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
 		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
 
 		return array(
 			'id'             => $ad_unit['id'],
 			'name'           => $ad_unit['name'],
-			'width'          => $ad_unit['width'],
-			'height'         => $ad_unit['height'],
+			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
@@ -254,7 +249,7 @@ class Newspack_Ads_Model {
 	public static function sanitise_ad_unit( $ad_unit ) {
 		if (
 			! array_key_exists( 'name', $ad_unit ) ||
-			( ! array_key_exists( 'width', $ad_unit ) && ! array_key_exists( 'height', $ad_unit ) )
+			! array_key_exists( self::SIZES, $ad_unit )
 		) {
 			return new WP_Error(
 				'newspack_invalid_ad_unit_data',
@@ -267,8 +262,7 @@ class Newspack_Ads_Model {
 
 		$sanitised_ad_unit = array(
 			'name'           => \esc_html( $ad_unit['name'] ),
-			'width'          => $ad_unit['width'],
-			'height'         => $ad_unit['height'],
+			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 
 		);
