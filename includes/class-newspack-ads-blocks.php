@@ -140,11 +140,18 @@ class Newspack_Ads_Blocks {
 
 		$formatted_sizes = [];
 		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
+			$sizes = $ad_unit->sizes;
+			usort(
+				$sizes,
+				function( $a, $b ) {
+					return $a[0] > $b[0] ? -1 : 1;
+				}
+			);
 			$formatted_sizes[ $unique_id ] = array_map(
 				function( $item ) {
 					return sprintf( '[%d,%d]', $item[0], $item[1] );
 				},
-				$ad_unit->sizes
+				$sizes
 			);
 		}
 
