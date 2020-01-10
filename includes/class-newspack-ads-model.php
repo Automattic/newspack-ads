@@ -91,6 +91,7 @@ class Newspack_Ads_Model {
 		$args     = array(
 			'post_type'      => self::$custom_post_type,
 			'posts_per_page' => 100,
+			'post_status'    => [ 'publish' ],
 		);
 
 		$query = new \WP_Query( $args );
