@@ -241,7 +241,8 @@ class Newspack_Ads_Model {
 	 * @return string $network_code The code.
 	 */
 	public static function get_network_code( $service ) {
-		return get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, '' );
+		$network_code = get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, '' );
+		return absint( $network_code );
 	}
 
 	/**
