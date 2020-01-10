@@ -102,7 +102,7 @@ class Newspack_Ads_Model {
 					'id'             => \get_the_ID(),
 					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
 					self::SIZES      => \get_post_meta( get_the_ID(), self::SIZES, true ),
-					self::CODE       => absint( \get_post_meta( get_the_ID(), self::CODE, true ) ),
+					self::CODE       => sanitize_title( \get_post_meta( get_the_ID(), self::CODE, true ) ),
 					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
@@ -242,7 +242,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function get_network_code( $service ) {
 		$network_code = get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, '' );
-		return absint( $network_code );
+		return absint( $network_code ); // Google Ad Manager network code is a numeric identifier https://support.google.com/admanager/answer/7674889?hl=en.
 	}
 
 	/**
@@ -266,7 +266,7 @@ class Newspack_Ads_Model {
 
 		$sanitised_ad_unit = array(
 			'name'           => \esc_html( $ad_unit['name'] ),
-			self::CODE       => absint( $ad_unit[ self::CODE ] ), // Google Ad Manager network code is a numeric identifier https://support.google.com/admanager/answer/7674889?hl=en.
+			self::CODE       => sanitize_title( $ad_unit[ self::CODE ] ),
 			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 
