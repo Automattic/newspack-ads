@@ -66,11 +66,11 @@ class Newspack_Ads_Model {
 			return array(
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
-				self::SIZES      => \get_post_meta( $ad_unit->ID, self::SIZES, true ),
+				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
 				self::CODE       => absint( \get_post_meta( $ad_unit->ID, self::CODE, true ) ),
 				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
 				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
-				self::AD_SERVICE => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
+				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
 			);
 		} else {
 			return new WP_Error(
@@ -101,7 +101,7 @@ class Newspack_Ads_Model {
 				$ad_units[] = array(
 					'id'             => \get_the_ID(),
 					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
-					self::SIZES      => \get_post_meta( get_the_ID(), self::SIZES, true ),
+					self::SIZES      => self::sanitize_sizes( \get_post_meta( get_the_ID(), self::SIZES, true ) ),
 					self::CODE       => sanitize_title( \get_post_meta( get_the_ID(), self::CODE, true ) ),
 					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
@@ -267,8 +267,8 @@ class Newspack_Ads_Model {
 		$sanitised_ad_unit = array(
 			'name'           => \esc_html( $ad_unit['name'] ),
 			self::CODE       => sanitize_title( $ad_unit[ self::CODE ] ),
-			self::SIZES      => $ad_unit[ self::SIZES ],
-			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
+			self::SIZES      => self::sanitize_sizes( $ad_unit[ self::SIZES ] ),
+			self::AD_SERVICE => self::sanitize_ad_service( $ad_unit[ self::AD_SERVICE ] ),
 
 		);
 
@@ -277,6 +277,35 @@ class Newspack_Ads_Model {
 		}
 
 		return $sanitised_ad_unit;
+	}
+
+	/**
+	 * Sanitize array of ad unit sizes.
+	 *
+	 * @param array $sizes Array of sizes to sanitize.
+	 * @return array Sanitized array.
+	 */
+	public static function sanitize_sizes( $sizes ) {
+		$sizes     = is_array( $sizes ) ? $sizes : [];
+		$sanitized = [];
+		foreach ( $sizes as $size ) {
+			$size    = is_array( $size ) && 2 === count( $size ) ? $size : [ 0, 0 ];
+			$size[0] = absint( $size[0] );
+			$size[1] = absint( $size[1] );
+
+			$sanitized[] = $size;
+		}
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize ad service ID.
+	 *
+	 * @param string $ad_service Ad service ID.
+	 * @return string Sanitized Ad service ID.
+	 */
+	public static function sanitize_ad_service( $ad_service ) {
+		return in_array( $ad_service, [ 'google_ad_manager' ] ) ? $ad_service : null;
 	}
 
 	/**

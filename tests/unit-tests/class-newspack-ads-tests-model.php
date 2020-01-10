@@ -95,4 +95,31 @@ class Newspack_Ads_Test_Plugin_Manager extends WP_UnitTestCase {
 			$this->assertTrue( $unit['sizes'] === $unit1['sizes'] || $unit['sizes'] === $unit2['sizes'] );
 		}
 	}
+
+	/**
+	 * Test sanitization functions.
+	 */
+	public function test_sanitization() {
+		$sizes = [ [ 10, 10 ], [ 100, 100 ] ];
+		$this->assertEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+
+		$sizes = [ [ 10, 10 ] ];
+		$this->assertEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+
+		$sizes = [ [ 10, 10, 90 ] ];
+		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+
+		$sizes = [ [ 'dog', 'cat' ] ];
+		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+
+		$sizes = 'notanarray';
+		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+
+		$ad_service = 'google_ad_manager';
+		$this->assertEquals( $ad_service, Newspack_Ads_Model::sanitize_ad_service( $ad_service ) );
+
+		$ad_service = 'something_else';
+		$this->assertNotEquals( $ad_service, Newspack_Ads_Model::sanitize_ad_service( $ad_service ) );
+
+	}
 }
