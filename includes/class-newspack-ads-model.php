@@ -67,7 +67,7 @@ class Newspack_Ads_Model {
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
 				self::SIZES      => \get_post_meta( $ad_unit->ID, self::SIZES, true ),
-				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
+				self::CODE       => absint( \get_post_meta( $ad_unit->ID, self::CODE, true ) ),
 				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
 				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
 				self::AD_SERVICE => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
@@ -102,7 +102,7 @@ class Newspack_Ads_Model {
 					'id'             => \get_the_ID(),
 					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
 					self::SIZES      => \get_post_meta( get_the_ID(), self::SIZES, true ),
-					self::CODE       => \get_post_meta( get_the_ID(), self::CODE, true ),
+					self::CODE       => absint( \get_post_meta( get_the_ID(), self::CODE, true ) ),
 					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
@@ -265,7 +265,7 @@ class Newspack_Ads_Model {
 
 		$sanitised_ad_unit = array(
 			'name'           => \esc_html( $ad_unit['name'] ),
-			self::CODE       => $ad_unit[ self::CODE ],
+			self::CODE       => absint( $ad_unit[ self::CODE ] ), // Google Ad Manager network code is a numeric identifier https://support.google.com/admanager/answer/7674889?hl=en.
 			self::SIZES      => $ad_unit[ self::SIZES ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 
