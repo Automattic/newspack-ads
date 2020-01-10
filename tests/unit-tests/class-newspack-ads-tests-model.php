@@ -66,6 +66,17 @@ class Newspack_Ads_Test_Plugin_Manager extends WP_UnitTestCase {
 		$this->assertTrue( $delete_result );
 		$saved_unit = Newspack_Ads_Model::get_ad_unit( $result['id'] );
 		$this->assertTrue( is_wp_error( $saved_unit ) );
+
+		$generic_post = array(
+			'post_title'  => 'Title',
+			'post_type'   => 'post',
+			'post_status' => 'publish',
+		);
+
+		$generic_post_id = wp_insert_post( $generic_post );
+		$delete_result   = Newspack_Ads_Model::delete_ad_unit( $generic_post_id );
+		$this->assertTrue( is_wp_error( $delete_result ) );
+
 	}
 
 	/**

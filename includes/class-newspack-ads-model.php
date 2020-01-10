@@ -216,10 +216,18 @@ class Newspack_Ads_Model {
 					'status' => '400',
 				)
 			);
-		} else {
-			\wp_delete_post( $id );
-			return true;
 		}
+		if ( $ad_unit_post->post_type !== self::$custom_post_type ) {
+			return new WP_Error(
+				'newspack_ad_unit_incorrect_type',
+				\esc_html__( 'Post is not a Newspack Ad Unit. Cannot be deleted.', 'newspack' ),
+				array(
+					'status' => '400',
+				)
+			);
+		}
+		\wp_delete_post( $id );
+		return true;
 	}
 
 	/**
