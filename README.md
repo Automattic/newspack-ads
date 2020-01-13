@@ -2,6 +2,12 @@
 
 This plugin supplies Google Ad Manager integration to Newspack.
 
+### Development
+
+- Run `npm start` to compile the JS files, and start file watcher.
+- Run `npm run build` to perform a single compilation run.
+- Run `npm run release:archive` to package a release. The archive will be created in `release/newspack-ads.zip`.
+
 ## Reporting Security Issues
 
 To disclose a security issue to our team, [please submit a report via HackerOne here](https://hackerone.com/automattic/).
