@@ -4,7 +4,7 @@
   "author": "Automattic",
   "private": true,
   "devDependencies": {
-    "@automattic/calypso-build": "^2.0.0",
+    "@automattic/calypso-build": "^5.1.0",
     "@babel/core": "^7.5.4",
     "@wordpress/blocks": "^6.4.0",
     "@wordpress/element": "^2.5.0",
