@@ -55,6 +55,7 @@ final class Newspack_Ads {
 	private function includes() {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-blocks.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-model.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-widget.php';
 	}
 
 	/**

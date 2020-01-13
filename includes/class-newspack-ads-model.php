@@ -10,12 +10,12 @@
  */
 class Newspack_Ads_Model {
 
-	const AD_CODE     = 'ad_code';
-	const AMP_AD_CODE = 'amp_ad_code';
-	const AD_SERVICE  = 'ad_service';
+	const AD_SERVICE = 'ad_service';
+	const SIZES      = 'sizes';
+	const CODE       = 'code';
 
-	const NEWSPACK_ADS_SERVICE_PREFIX     = '_newspack_ads_service_';
-	const NEWSPACK_ADS_HEADER_CODE_SUFFIX = '_header_code';
+	const NEWSPACK_ADS_SERVICE_PREFIX      = '_newspack_ads_service_';
+	const NEWSPACK_ADS_NETWORK_CODE_SUFFIX = '_network_code';
 
 	/**
 	 * Custom post type
@@ -24,6 +24,13 @@ class Newspack_Ads_Model {
 	 */
 
 	public static $custom_post_type = 'newspack_ad_codes';
+
+	/**
+	 * Array of all unique div IDs used for ads.
+	 *
+	 * @var array
+	 */
+	public static $ad_ids = [];
 
 	/**
 	 * Initialize Google Ads Model
@@ -57,11 +64,13 @@ class Newspack_Ads_Model {
 		$ad_unit = \get_post( $id );
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
 			return array(
-				'id'              => $ad_unit->ID,
-				'name'            => $ad_unit->post_title,
-				self::AD_CODE     => \get_post_meta( $ad_unit->ID, self::AD_CODE, true ),
-				self::AMP_AD_CODE => \get_post_meta( $ad_unit->ID, self::AMP_AD_CODE, true ),
-				self::AD_SERVICE  => \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ),
+				'id'             => $ad_unit->ID,
+				'name'           => $ad_unit->post_title,
+				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
+				self::CODE       => absint( \get_post_meta( $ad_unit->ID, self::CODE, true ) ),
+				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
+				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
+				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
 			);
 		} else {
 			return new WP_Error(
@@ -82,6 +91,7 @@ class Newspack_Ads_Model {
 		$args     = array(
 			'post_type'      => self::$custom_post_type,
 			'posts_per_page' => 100,
+			'post_status'    => [ 'publish' ],
 		);
 
 		$query = new \WP_Query( $args );
@@ -89,11 +99,11 @@ class Newspack_Ads_Model {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				$ad_units[] = array(
-					'id'              => \get_the_ID(),
-					'name'            => html_entity_decode( \get_the_title(), ENT_QUOTES ),
-					self::AD_CODE     => \get_post_meta( get_the_ID(), self::AD_CODE, true ),
-					self::AMP_AD_CODE => \get_post_meta( get_the_ID(), self::AMP_AD_CODE, true ),
-					self::AD_SERVICE  => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
+					'id'             => \get_the_ID(),
+					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
+					self::SIZES      => self::sanitize_sizes( \get_post_meta( get_the_ID(), self::SIZES, true ) ),
+					self::CODE       => sanitize_title( \get_post_meta( get_the_ID(), self::CODE, true ) ),
+					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
 				);
 			}
 		}
@@ -107,20 +117,19 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
 			return $ad_unit;
 		}
 
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
 		// Save the ad unit.
 		$ad_unit_post = \wp_insert_post(
 			array(
 				'post_author' => \get_current_user_id(),
-				'post_title'  => $ad_unit['name'],
+				'post_title'  => $name,
 				'post_type'   => self::$custom_post_type,
 				'post_status' => 'publish',
 			)
@@ -136,15 +145,15 @@ class Newspack_Ads_Model {
 		}
 
 		// Add the code to our new post.
-		\add_post_meta( $ad_unit_post, self::AD_CODE, $ad_unit[ self::AD_CODE ] );
-		\add_post_meta( $ad_unit_post, self::AMP_AD_CODE, $ad_unit[ self::AMP_AD_CODE ] );
+		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
+		\add_post_meta( $ad_unit_post, self::CODE, $ad_unit[ self::CODE ] );
 
 		return array(
-			'id'              => $ad_unit_post,
-			'name'            => $ad_unit['name'],
-			self::AD_CODE     => $ad_unit[ self::AD_CODE ],
-			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ],
-			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
+			'id'             => $ad_unit_post,
+			'name'           => $ad_unit['name'],
+			self::SIZES      => $ad_unit[ self::SIZES ],
+			self::CODE       => $ad_unit[ self::CODE ],
+			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
 
@@ -154,9 +163,6 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The updated ad unit.
 	 */
 	public static function update_ad_unit( $ad_unit ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		// Sanitise the values.
 		$ad_unit = self::sanitise_ad_unit( $ad_unit );
 		if ( \is_wp_error( $ad_unit ) ) {
@@ -174,22 +180,24 @@ class Newspack_Ads_Model {
 			);
 		}
 
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
 		\wp_update_post(
 			array(
 				'ID'         => $ad_unit['id'],
-				'post_title' => $ad_unit['name'],
+				'post_title' => $name,
 			)
 		);
-		\update_post_meta( $ad_unit['id'], self::AD_CODE, $ad_unit[ self::AD_CODE ] );
-		\update_post_meta( $ad_unit['id'], self::AMP_AD_CODE, $ad_unit[ self::AMP_AD_CODE ] );
+		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
+		\update_post_meta( $ad_unit['id'], self::CODE, $ad_unit[ self::CODE ] );
 		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
 
 		return array(
-			'id'              => $ad_unit['id'],
-			'name'            => $ad_unit['name'],
-			self::AD_CODE     => $ad_unit[ self::AD_CODE ],
-			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ],
-			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
+			'id'             => $ad_unit['id'],
+			'name'           => $ad_unit['name'],
+			self::SIZES      => $ad_unit[ self::SIZES ],
+			self::CODE       => $ad_unit[ self::CODE ],
+			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
 
@@ -199,9 +207,6 @@ class Newspack_Ads_Model {
 	 * @param integer $id The id of the ad unit to delete.
 	 */
 	public static function delete_ad_unit( $id ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
 		$ad_unit_post = \get_post( $id );
 		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
 			return new WP_Error(
@@ -211,24 +216,29 @@ class Newspack_Ads_Model {
 					'status' => '400',
 				)
 			);
-		} else {
-			\wp_delete_post( $id );
-			return true;
 		}
+		if ( $ad_unit_post->post_type !== self::$custom_post_type ) {
+			return new WP_Error(
+				'newspack_ad_unit_incorrect_type',
+				\esc_html__( 'Post is not a Newspack Ad Unit. Cannot be deleted.', 'newspack' ),
+				array(
+					'status' => '400',
+				)
+			);
+		}
+		\wp_delete_post( $id );
+		return true;
 	}
 
 	/**
 	 * Update/create the header code for a service.
 	 *
 	 * @param string $service The service.
-	 * @param string $header_code The code.
+	 * @param string $network_code The code.
 	 */
-	public static function set_header_code( $service, $header_code ) {
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			return false;
-		}
-		$id = self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX;
-		update_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX, $header_code );
+	public static function set_network_code( $service, $network_code ) {
+		$id = self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX;
+		update_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, sanitize_text_field( $network_code ) );
 		return true;
 	}
 
@@ -236,12 +246,12 @@ class Newspack_Ads_Model {
 	 * Retrieve the header code for a service.
 	 *
 	 * @param string $service The service.
-	 * @return string $header_code The code.
+	 * @return string $network_code The code.
 	 */
-	public static function get_header_code( $service ) {
-		return get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_HEADER_CODE_SUFFIX, '' );
+	public static function get_network_code( $service ) {
+		$network_code = get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, '' );
+		return absint( $network_code ); // Google Ad Manager network code is a numeric identifier https://support.google.com/admanager/answer/7674889?hl=en.
 	}
-
 
 	/**
 	 * Sanitize an ad unit.
@@ -250,8 +260,8 @@ class Newspack_Ads_Model {
 	 */
 	public static function sanitise_ad_unit( $ad_unit ) {
 		if (
-			! array_key_exists( 'name', $ad_unit ) ||
-			( ! array_key_exists( self::AD_CODE, $ad_unit ) && ! array_key_exists( self::AMP_AD_CODE, $ad_unit ) )
+			! array_key_exists( self::CODE, $ad_unit ) ||
+			! array_key_exists( self::SIZES, $ad_unit )
 		) {
 			return new WP_Error(
 				'newspack_invalid_ad_unit_data',
@@ -263,10 +273,10 @@ class Newspack_Ads_Model {
 		}
 
 		$sanitised_ad_unit = array(
-			'name'            => \esc_html( $ad_unit['name'] ),
-			self::AD_CODE     => $ad_unit[ self::AD_CODE ], // esc_js( $ad_unit['code'] ), @todo If a `script` tag goes here, esc_js is the wrong function to use.
-			self::AMP_AD_CODE => $ad_unit[ self::AMP_AD_CODE ], // esc_js( $ad_unit['code'] ), @todo If a `script` tag goes here, esc_js is the wrong function to use.
-			self::AD_SERVICE  => $ad_unit[ self::AD_SERVICE ],
+			'name'           => \esc_html( $ad_unit['name'] ),
+			self::CODE       => sanitize_title( $ad_unit[ self::CODE ] ),
+			self::SIZES      => self::sanitize_sizes( $ad_unit[ self::SIZES ] ),
+			self::AD_SERVICE => self::sanitize_ad_service( $ad_unit[ self::AD_SERVICE ] ),
 
 		);
 
@@ -275,6 +285,128 @@ class Newspack_Ads_Model {
 		}
 
 		return $sanitised_ad_unit;
+	}
+
+	/**
+	 * Sanitize array of ad unit sizes.
+	 *
+	 * @param array $sizes Array of sizes to sanitize.
+	 * @return array Sanitized array.
+	 */
+	public static function sanitize_sizes( $sizes ) {
+		$sizes     = is_array( $sizes ) ? $sizes : [];
+		$sanitized = [];
+		foreach ( $sizes as $size ) {
+			$size    = is_array( $size ) && 2 === count( $size ) ? $size : [ 0, 0 ];
+			$size[0] = absint( $size[0] );
+			$size[1] = absint( $size[1] );
+
+			$sanitized[] = $size;
+		}
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize ad service ID.
+	 *
+	 * @param string $ad_service Ad service ID.
+	 * @return string Sanitized Ad service ID.
+	 */
+	public static function sanitize_ad_service( $ad_service ) {
+		return in_array( $ad_service, [ 'google_ad_manager' ] ) ? $ad_service : null;
+	}
+
+	/**
+	 * Code for ad unit.
+	 *
+	 * @param array $ad_unit The ad unit to generate code for.
+	 */
+	public static function code_for_ad_unit( $ad_unit ) {
+		$sizes        = $ad_unit->sizes;
+		$code         = $ad_unit->code;
+		$network_code = self::get_network_code( 'google_ad_manager' );
+		$unique_id    = uniqid();
+
+		if ( ! is_array( $sizes ) ) {
+			$sizes = [];
+		}
+
+		self::$ad_ids[ $unique_id ] = $ad_unit;
+
+		$largest = self::largest_ad_size( $sizes );
+
+		$code = sprintf(
+			"<!-- /%s/%s --><div id='div-gpt-ad-%s-0' style='width: %spx; height: %spx;'><script>googletag.cmd.push(function() { googletag.display('div-gpt-ad-%s-0'); });</script></div>",
+			$network_code,
+			$code,
+			$unique_id,
+			$largest[0],
+			$largest[1],
+			$unique_id
+		);
+		return $code;
+	}
+
+	/**
+	 * AMP code for ad unit.
+	 *
+	 * @param array $ad_unit The ad unit to generate AMP code for.
+	 */
+	public static function amp_code_for_ad_unit( $ad_unit ) {
+		$sizes        = $ad_unit->sizes;
+		$code         = $ad_unit->code;
+		$network_code = self::get_network_code( 'google_ad_manager' );
+
+		if ( ! is_array( $sizes ) ) {
+			$sizes = [];
+		}
+
+		$largest = self::largest_ad_size( $sizes );
+
+		$other_sizes = array_filter(
+			$sizes,
+			function( $item ) use ( $largest ) {
+				return $item !== $largest;
+			}
+		);
+
+		$data_multi_size = '';
+		if ( count( $other_sizes ) ) {
+			$formatted_sizes = array_map(
+				function( $item ) {
+					return $item[0] . 'x' . $item[1];
+				},
+				$other_sizes
+			);
+			$data_multi_size = sprintf( 'data-multi-size="%s"', implode( ',', $formatted_sizes ) );
+		}
+
+		$code = sprintf(
+			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" %s></amp-ad>',
+			$largest[0],
+			$largest[1],
+			$network_code,
+			$code,
+			$data_multi_size
+		);
+
+		return $code;
+	}
+
+	/**
+	 * Picks the largest size from an array of width/height pairs.
+	 *
+	 * @param array $sizes An array of dimension pairs.
+	 * @return array The pair with the widest width.
+	 */
+	public static function largest_ad_size( $sizes ) {
+		return array_reduce(
+			$sizes,
+			function( $carry, $item ) {
+				return $item[0] > $carry[0] ? $item : $carry;
+			},
+			[ 0, 0 ]
+		);
 	}
 }
 Newspack_Ads_Model::init();

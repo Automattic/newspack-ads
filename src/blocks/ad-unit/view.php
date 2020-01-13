@@ -14,6 +14,7 @@
  */
 function newspack_ads_render_block_ad_unit( $attributes ) {
 	$active_ad = isset( $attributes['activeAd'] ) ? (int) $attributes['activeAd'] : 0;
+
 	if ( 1 > $active_ad ) {
 		return '';
 	}
