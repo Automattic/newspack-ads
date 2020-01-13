@@ -19,10 +19,14 @@
     "webpack-cli": "^3.3.5"
   },
   "scripts": {
-    "build:webpack": "calypso-build --config='./webpack.config.js'",
+    "build:js": "calypso-build",
+    "build": "run-p \"build:*\"",
+    "dev:js": "calypso-build --watch",
+    "dev": "run-p \"dev:*\"",
+    "start": "npm run dev",
     "clean": "rm -rf dist/",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "release:archive": "run-p \"clean\" && NODE_ENV=production run-p \"build:webpack\" && mkdir -p release && zip -r release/newspack-ads.zip . -x node_modules/\\* .git/\\* .github/\\* .gitignore .DS_Store vendor/\\*"
+    "release:archive": "run-p \"clean\" && NODE_ENV=production run-p \"build\" && mkdir -p release && zip -r release/newspack-ads.zip . -x node_modules/\\* .git/\\* .github/\\* .gitignore .DS_Store vendor/\\*"
   },
   "repository": {
     "type": "git",
