@@ -84,8 +84,8 @@ class Edit extends Component {
 		const style =
 			width && height
 				? {
-						width: `${ width || 400 }px`,
-						height: `${ height || 100 }px`,
+						width: `calc( ${ width || 400 }px + 2em )`,
+						height: `calc( ${ height || 100 }px + 2em )`,
 				  }
 				: {};
 		return (
@@ -95,12 +95,15 @@ class Edit extends Component {
 					<div className="newspack-ads-ad-unit" style={ style }>
 						<Placeholder>
 							{ adUnits && !! adUnits.length && (
-								<SelectControl
-									label={ __( 'Ad Unit' ) }
-									value={ activeAd }
-									options={ this.adUnitsForSelect( adUnits ) }
-									onChange={ activeAd => setAttributes( { activeAd } ) }
-								/>
+								<Fragment>
+									<span className="newspack-ads-ad-unit__icon">{ icon }</span>
+									<SelectControl
+										label={ __( 'Ad Unit' ) }
+										value={ activeAd }
+										options={ this.adUnitsForSelect( adUnits ) }
+										onChange={ activeAd => setAttributes( { activeAd } ) }
+									/>
+								</Fragment>
 							) }
 							{ adUnits && ! adUnits.length && (
 								<Fragment>
