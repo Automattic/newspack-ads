@@ -1,52 +1,44 @@
 .newspack-ads-ad-unit {
 	margin: 0 auto;
 	max-width: 100%;
+	max-width: calc(100vw - 28px);
+	overflow-x: hidden;
+	width: 100%;
 
-	.newspack-ads-ad-unit__icon {
-		align-items: center;
-		display: flex;
-		flex: 0 0 24px;
-		height: 24px;
-		justify-content: center;
-		margin: 0;
-		width: 24px;
-
-		> svg {
-			fill: currentColor;
-			flex: 0 0 auto;
-			margin-right: 1ch;
-		}
-	}
-
-	.components-placeholder__fieldset {
-		flex-wrap: nowrap;
-	}
-
-	.components-base-control {
-		width: 100%;
-	}
-
-	.components-base-control__label {
-		font-weight: bold;
-	}
-
-	.components-base-control__field {
-		display: flex;
-		flex-wrap: wrap;
-		margin: 0;
-
-		> * {
-			flex: 1 1 100%;
-		}
+	@media screen and ( min-width: 600px ) {
+		max-width: calc(100vw - 116px);
 	}
 
 	.components-placeholder {
-		display: flex;
-		height: 100%;
-		min-height: 56px;
+		padding: 0;
+		margin-left: auto;
+		margin-right: auto;
+		max-width: 100%;
+		min-height: 0;
+		position: relative;
 
 		.components-placeholder__label {
-			display: none;
+			align-items: center;
+			bottom: 0;
+			justify-content: center;
+			left: 0;
+			margin: 0;
+			position: absolute;
+			right: 0;
+			top: 0;
+		}
+	}
+
+	.newspack-ads-ad-unit__ratio {
+		width: 100%;
+	}
+
+	.components-base-control__field {
+		text-align: center;
+
+		.components-base-control__label {
+			display: block;
+			font-weight: 600;
 		}
 	}
 }

@@ -1,9 +1,10 @@
 /**
- * WordPress dependencies
+ * WordPress dependencies.
  */
 import { __ } from '@wordpress/i18n';
 import { Component, Fragment } from '@wordpress/element';
 import { ExternalLink, SelectControl, Placeholder, withNotices } from '@wordpress/components';
+import { BlockIcon } from '@wordpress/block-editor';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
@@ -81,30 +82,19 @@ class Edit extends Component {
 		const { activeAd } = attributes;
 		const { adUnits } = this.state;
 		const { width, height } = this.activeAdDataForActiveAd( activeAd );
-		const style =
-			width && height
-				? {
-						width: `calc( ${ width || 400 }px + 2em )`,
-						height: `calc( ${ height || 100 }px + 2em )`,
-				  }
-				: {};
+		const adWidth = width ? { width: `${ width || 400 }px` } : {};
+		const ratio = width && height ? { padding: `0 0 ${ ( height * 100 / width ) }%` } : {};
 		return (
 			<Fragment>
 				{ noticeUI }
 				<div className="wp-block-newspack-ads-blocks-ad-unit">
-					<div className="newspack-ads-ad-unit" style={ style }>
-						<Placeholder>
-							{ adUnits && !! adUnits.length && (
-								<Fragment>
-									<span className="newspack-ads-ad-unit__icon">{ icon }</span>
-									<SelectControl
-										label={ __( 'Ad Unit' ) }
-										value={ activeAd }
-										options={ this.adUnitsForSelect( adUnits ) }
-										onChange={ activeAd => setAttributes( { activeAd } ) }
-									/>
-								</Fragment>
-							) }
+					<div className="newspack-ads-ad-unit">
+						<Placeholder
+							icon={ <BlockIcon icon={ icon } /> }
+							label={ __( 'Ad' ) }
+							style={ adWidth }
+						>
+							<div className="newspack-ads-ad-unit__ratio" style={ ratio } />
 							{ adUnits && ! adUnits.length && (
 								<Fragment>
 									{ __( 'No ad units have been created yet.' ) }
@@ -114,6 +104,14 @@ class Edit extends Component {
 								</Fragment>
 							) }
 						</Placeholder>
+						{ adUnits && !! adUnits.length && (
+							<SelectControl
+								label={ __( 'Ad Unit' ) }
+								value={ activeAd }
+								options={ this.adUnitsForSelect( adUnits ) }
+								onChange={ activeAd => setAttributes( { activeAd } ) }
+							/>
+						) }
 					</div>
 				</div>
 			</Fragment>
