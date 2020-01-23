@@ -59,8 +59,9 @@ class Newspack_Ads_Model {
 	 * Get a single ad unit.
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
+	 * @param string $placement The id of the placement region.
 	 */
-	public static function get_ad_unit( $id ) {
+	public static function get_ad_unit( $id, $placement = null ) {
 		$ad_unit = \get_post( $id );
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
 			$prepared_ad_unit = [
@@ -69,6 +70,7 @@ class Newspack_Ads_Model {
 				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
 				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
 				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
+				'responsive'     => in_array( $placement, [ 'global_above_header', 'global_below_header', 'global_above_footer' ] ), // TODO: Add a filter, so other plugins can register responsive regions.
 			];
 
 			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
