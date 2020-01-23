@@ -63,15 +63,17 @@ class Newspack_Ads_Model {
 	public static function get_ad_unit( $id ) {
 		$ad_unit = \get_post( $id );
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
-			return array(
+			$prepared_ad_unit = [
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
 				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
-				self::CODE       => absint( \get_post_meta( $ad_unit->ID, self::CODE, true ) ),
-				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
-				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
+				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
 				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
-			);
+			];
+
+			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
+			$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit );
+			return $prepared_ad_unit;
 		} else {
 			return new WP_Error(
 				'newspack_no_adspot_found',
@@ -322,8 +324,8 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The ad unit to generate code for.
 	 */
 	public static function code_for_ad_unit( $ad_unit ) {
-		$sizes        = $ad_unit->sizes;
-		$code         = $ad_unit->code;
+		$sizes        = $ad_unit['sizes'];
+		$code         = $ad_unit['code'];
 		$network_code = self::get_network_code( 'google_ad_manager' );
 		$unique_id    = uniqid();
 
@@ -353,8 +355,8 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The ad unit to generate AMP code for.
 	 */
 	public static function amp_code_for_ad_unit( $ad_unit ) {
-		$sizes        = $ad_unit->sizes;
-		$code         = $ad_unit->code;
+		$sizes        = $ad_unit['sizes'];
+		$code         = $ad_unit['code'];
 		$network_code = self::get_network_code( 'google_ad_manager' );
 
 		if ( ! is_array( $sizes ) ) {
