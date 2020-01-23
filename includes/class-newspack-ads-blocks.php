@@ -160,12 +160,24 @@ class Newspack_Ads_Blocks {
 		<script>
 			googletag.cmd.push(function() {
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
-					googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
+					<?php if ( $ad_unit['responsive'] ) : ?>
+						<?php foreach ( $ad_unit['sizes'] as $size ) : ?>
+							googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ [ <?php echo absint( $size[0] ); ?>, <?php echo absint( $size[1] ); ?> ] ], 'div-gpt-<?php echo esc_attr( $ad_unit['code'] ); ?>-<?php echo absint( $size[0] ); ?>x<?php echo absint( $size[1] ); ?>').addService(googletag.pubads());
+						<?php endforeach; ?>
+					<?php else : ?>
+						googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
+					<?php endif; ?>
 				<?php endforeach; ?>
 				googletag.pubads().enableSingleRequest();
 				googletag.enableServices();
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
-				googletag.display('div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0');
+					<?php if ( $ad_unit['responsive'] ) : ?>
+						<?php foreach ( $ad_unit['sizes'] as $size ) : ?>
+						googletag.display('div-gpt-<?php echo esc_attr( $ad_unit['code'] ); ?>-<?php echo absint( $size[0] ); ?>x<?php echo absint( $size[1] ); ?>');
+						<?php endforeach; ?>
+					<?php else : ?>
+						googletag.display('div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0');
+					<?php endif; ?>
 				<?php endforeach; ?>
 			});
 		</script>

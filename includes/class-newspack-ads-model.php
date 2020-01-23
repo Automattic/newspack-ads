@@ -63,6 +63,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function get_ad_unit( $id, $placement = null ) {
 		$ad_unit = \get_post( $id );
+		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ]; // TODO: Add a filter, so other plugins can register responsive regions.
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
 			$prepared_ad_unit = [
 				'id'             => $ad_unit->ID,
@@ -70,7 +71,7 @@ class Newspack_Ads_Model {
 				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
 				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
 				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
-				'responsive'     => in_array( $placement, [ 'global_above_header', 'global_below_header', 'global_above_footer' ] ), // TODO: Add a filter, so other plugins can register responsive regions.
+				'responsive'     => in_array( $placement, $responsive_placements ),
 			];
 
 			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
@@ -337,6 +338,10 @@ class Newspack_Ads_Model {
 
 		self::$ad_ids[ $unique_id ] = $ad_unit;
 
+		if ( $ad_unit['responsive'] ) {
+			return self::ad_elements_for_sizes( $ad_unit );
+		}
+
 		$largest = self::largest_ad_size( $sizes );
 
 		$code = sprintf(
@@ -366,63 +371,7 @@ class Newspack_Ads_Model {
 		}
 
 		if ( $ad_unit['responsive'] ) {
-			$sizes = $ad_unit['sizes'];
-			usort(
-				$sizes,
-				function( $a, $b ) {
-					return $a[0] < $b[0] ? $a : $b;
-				}
-			);
-
-			$markup  = [];
-			$styles  = [];
-			$counter = 0;
-
-			$widths = array_map(
-				function ( $item ) {
-					return $item[0];
-				},
-				$sizes
-			);
-			foreach ( $sizes as $size ) {
-				$width  = absint( $size[0] );
-				$height = absint( $size[1] );
-				$div_id = sprintf(
-					'div-gpt-amp-%s-%dx%d',
-					esc_attr( $ad_unit['code'] ),
-					$width,
-					$height
-				);
-
-				$media_query = [];
-				if ( $widths[ $counter ] > 0 ) {
-					$media_query[] = sprintf( '(min-width:%dpx)', $widths[ $counter ] );
-				}
-				if ( count( $widths ) > $counter + 1 ) {
-					$media_query[] = sprintf( '(max-width:%dpx)', $widths[ $counter + 1 ] );
-				}
-				$styles[] = sprintf(
-					'#%s{ display: none; } @media %s {#%s{ display: block; } }',
-					$div_id,
-					implode( ' and ', $media_query ),
-					$div_id
-				);
-
-				$markup[] = sprintf(
-					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s"></amp-ad></div>',
-					$div_id,
-					$width,
-					$height,
-					$network_code,
-					$code
-				);
-				$counter++;
-			}
-			return sprintf(
-				'<style>%s</style>%s',
-				implode( ' ', $styles ),
-				implode( ' ', $markup )
-			);
+			return self::ad_elements_for_sizes( $ad_unit, true );
 		}
 
 		$largest = self::largest_ad_size( $sizes );
@@ -436,6 +385,89 @@ class Newspack_Ads_Model {
 		);
 
 		return $code;
+	}
+
+	/**
+	 * Generate divs for a series of ad sizes.
+	 *
+	 * @param array   $ad_unit The ad unit to generate code for.
+	 * @param boolean $is_amp Are these AMP units or not.
+	 */
+	public static function ad_elements_for_sizes( $ad_unit, $is_amp = false ) {
+		$network_code = self::get_network_code( 'google_ad_manager' );
+		$code         = $ad_unit['code'];
+		$sizes        = $ad_unit['sizes'];
+		usort(
+			$sizes,
+			function( $a, $b ) {
+				return $a[0] < $b[0] ? $a : $b;
+			}
+		);
+
+		$markup  = [];
+		$styles  = [];
+		$counter = 0;
+
+		$widths = array_map(
+			function ( $item ) {
+				return $item[0];
+			},
+			$sizes
+		);
+		foreach ( $sizes as $size ) {
+			$width  = absint( $size[0] );
+			$height = absint( $size[1] );
+			$prefix = $is_amp ? 'div-gpt-amp-' : 'div-gpt-';
+			$div_id = sprintf(
+				'%s%s-%dx%d',
+				$prefix,
+				esc_attr( $ad_unit['code'] ),
+				$width,
+				$height
+			);
+
+			$media_query = [];
+			if ( $widths[ $counter ] > 0 ) {
+				$media_query[] = sprintf( '(min-width:%dpx)', $widths[ $counter ] );
+			}
+			if ( count( $widths ) > $counter + 1 ) {
+				$media_query[] = sprintf( '(max-width:%dpx)', $widths[ $counter + 1 ] );
+			}
+			$styles[] = sprintf(
+				'#%s{ display: none; } @media %s {#%s{ display: block; } }',
+				$div_id,
+				implode( ' and ', $media_query ),
+				$div_id
+			);
+
+			if ( $is_amp ) {
+				$markup[] = sprintf(
+					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s"></amp-ad></div>',
+					$div_id,
+					$width,
+					$height,
+					$network_code,
+					$code
+				);
+			} else {
+				$markup[] = sprintf(
+					'<!-- /%s/%s --><div id="%s" style="width:%dpx;height:%dpx;"><script>googletag.cmd.push(function() { googletag.display("%s"); });</script></div>',
+					$network_code,
+					$code,
+					$div_id,
+					$width,
+					$height,
+					$div_id
+				);
+			}
+
+			$counter++;
+		}
+		return sprintf(
+			'<style>%s</style>%s',
+			implode( ' ', $styles ),
+			implode( ' ', $markup )
+		);
 	}
 
 	/**
