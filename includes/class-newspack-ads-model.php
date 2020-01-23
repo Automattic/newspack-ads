@@ -365,33 +365,74 @@ class Newspack_Ads_Model {
 			$sizes = [];
 		}
 
-		$largest = self::largest_ad_size( $sizes );
-
-		$other_sizes = array_filter(
-			$sizes,
-			function( $item ) use ( $largest ) {
-				return $item !== $largest;
-			}
-		);
-
-		$data_multi_size = '';
-		if ( count( $other_sizes ) ) {
-			$formatted_sizes = array_map(
-				function( $item ) {
-					return $item[0] . 'x' . $item[1];
-				},
-				$other_sizes
+		if ( $ad_unit['responsive'] ) {
+			$sizes = $ad_unit['sizes'];
+			usort(
+				$sizes,
+				function( $a, $b ) {
+					return $a[0] < $b[0] ? $a : $b;
+				}
 			);
-			$data_multi_size = sprintf( 'data-multi-size="%s"', implode( ',', $formatted_sizes ) );
+
+			$markup  = [];
+			$styles  = [];
+			$counter = 0;
+
+			$widths = array_map(
+				function ( $item ) {
+					return $item[0];
+				},
+				$sizes
+			);
+			foreach ( $sizes as $size ) {
+				$width  = absint( $size[0] );
+				$height = absint( $size[1] );
+				$div_id = sprintf(
+					'div-gpt-amp-%s-%dx%d',
+					esc_attr( $ad_unit['code'] ),
+					$width,
+					$height
+				);
+
+				$media_query = [];
+				if ( $widths[ $counter ] > 0 ) {
+					$media_query[] = sprintf( '(min-width:%dpx)', $widths[ $counter ] );
+				}
+				if ( count( $widths ) > $counter + 1 ) {
+					$media_query[] = sprintf( '(max-width:%dpx)', $widths[ $counter + 1 ] );
+				}
+				$styles[] = sprintf(
+					'#%s{ display: none; } @media %s {#%s{ display: block; } }',
+					$div_id,
+					implode( ' and ', $media_query ),
+					$div_id
+				);
+
+				$markup[] = sprintf(
+					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s"></amp-ad></div>',
+					$div_id,
+					$width,
+					$height,
+					$network_code,
+					$code
+				);
+				$counter++;
+			}
+			return sprintf(
+				'<style>%s</style>%s',
+				implode( ' ', $styles ),
+				implode( ' ', $markup )
+			);
 		}
 
+		$largest = self::largest_ad_size( $sizes );
+
 		$code = sprintf(
-			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" %s></amp-ad>',
+			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s"></amp-ad>',
 			$largest[0],
 			$largest[1],
 			$network_code,
-			$code,
-			$data_multi_size
+			$code
 		);
 
 		return $code;
