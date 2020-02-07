@@ -24,6 +24,13 @@
 		}
 	}
 
+	.components-spinner {
+		left: 50%;
+		margin: -9px 0 0 -9px;
+		position: absolute;
+		top: 50%;
+	}
+
 	.components-base-control {
 		bottom: 1.5384615385em;
 		display: flex;

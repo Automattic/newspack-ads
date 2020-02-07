@@ -3,7 +3,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { Component, Fragment } from '@wordpress/element';
-import { ExternalLink, SelectControl, Placeholder, withNotices } from '@wordpress/components';
+import { ExternalLink, Placeholder, SelectControl, Spinner, withNotices } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
@@ -90,6 +90,7 @@ class Edit extends Component {
 					<div className="newspack-ads-ad-unit">
 						<Placeholder style={ adWidth }>
 							<div className="newspack-ads-ad-unit__ratio" style={ ratio } />
+							{ ! adUnits && <Spinner /> }
 							{ adUnits && !! adUnits.length && (
 								<SelectControl
 									label={ __( 'Ad Unit' ) }
