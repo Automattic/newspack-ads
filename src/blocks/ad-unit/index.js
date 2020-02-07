@@ -36,7 +36,11 @@ export const settings = {
 	},
 	supports: {
 		html: false,
-		align: true,
+		align: [
+			'left',
+			'center',
+			'right',
+		],
 	},
 	edit,
 	save: () => null, // to use view.php
