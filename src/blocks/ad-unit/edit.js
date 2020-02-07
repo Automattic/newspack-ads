@@ -91,14 +91,12 @@ class Edit extends Component {
 						<Placeholder style={ adWidth }>
 							<div className="newspack-ads-ad-unit__ratio" style={ ratio } />
 							{ adUnits && !! adUnits.length && (
-								<Fragment>
-									<SelectControl
-										label={ __( 'Ad Unit' ) }
-										value={ activeAd }
-										options={ this.adUnitsForSelect( adUnits ) }
-										onChange={ activeAd => setAttributes( { activeAd } ) }
-									/>
-								</Fragment>
+								<SelectControl
+									label={ __( 'Ad Unit' ) }
+									value={ activeAd }
+									options={ this.adUnitsForSelect( adUnits ) }
+									onChange={ activeAd => setAttributes( { activeAd } ) }
+								/>
 							) }
 							{ adUnits && ! adUnits.length && (
 								<div className="components-base-control">
