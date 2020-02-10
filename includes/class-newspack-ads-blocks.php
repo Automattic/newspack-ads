@@ -69,7 +69,7 @@ class Newspack_Ads_Blocks {
 	 * @return string Class list separated by spaces.
 	 */
 	public static function block_classes( $type, $attributes = array() ) {
-		$align   = isset( $attributes['align'] ) ? $attributes['align'] : 'center';
+		$align   = isset( $attributes['align'] ) ? $attributes['align'] : 'none';
 		$classes = array(
 			"wp-block-newspack-blocks-{$type}",
 			"align{$align}",

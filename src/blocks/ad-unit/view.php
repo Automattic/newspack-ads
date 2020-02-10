@@ -21,6 +21,12 @@ function newspack_ads_render_block_ad_unit( $attributes ) {
 
 	$classes = Newspack_Ads_Blocks::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attributes );
 
+	$align = 'inherit';
+
+	if ( strpos( $classes, 'aligncenter' ) == true ) {
+		$align = 'center';
+	}
+
 	$ad_unit = Newspack_Ads_Model::get_ad_unit( $active_ad );
 
 	if ( is_wp_error( $ad_unit ) ) {
@@ -36,8 +42,9 @@ function newspack_ads_render_block_ad_unit( $attributes ) {
 	}
 
 	$content = sprintf(
-		'<div class="%s">%s</div>',
+		'<div class="%1$s" style="text-align:%2$s">%3$s</div>',
 		esc_attr( $classes ),
+		esc_attr( $align ),
 		$code /* TODO: escape with wp_kses() */
 	);
 
