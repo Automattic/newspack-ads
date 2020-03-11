@@ -28,7 +28,7 @@ add_action( 'init', 'newspack_register_suppress_ad_meta' );
  */
 function newspack_enqueue_suppress_ad_assets() {
 	if ( 'post' === get_current_screen()->post_type || 'page' === get_current_screen()->post_type ) {
-		wp_enqueue_script( 'newspack-suppress-ads', Newspack_Ads::plugin_url( 'dist/suppress-ads.js' ), $dependencies, NEWSPACK_ADS_VERSION, true );
+		wp_enqueue_script( 'newspack-suppress-ads', Newspack_Ads::plugin_url( 'dist/suppress-ads.js' ), [], NEWSPACK_ADS_VERSION, true );
 	}
 }
 add_action( 'enqueue_block_editor_assets', 'newspack_enqueue_suppress_ad_assets' );
