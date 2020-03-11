@@ -17,7 +17,7 @@ import { withDispatch, withSelect, select } from '@wordpress/data';
 class NewspackSuppressAdsPanel extends Component {
 	render() {
 		const { meta, updateSuppressAds } = this.props;
-		console.log( meta );
+
 		return (
 			<PluginDocumentSettingPanel
 				name="newspack-ad-free"
