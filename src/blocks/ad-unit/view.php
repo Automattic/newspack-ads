@@ -13,7 +13,7 @@
  * @return string Returns the post content with latest posts added.
  */
 function newspack_ads_render_block_ad_unit( $attributes ) {
-	if ( ! newspack_should_show_ads() ) {
+	if ( ! newspack_ads_should_show_ads() ) {
 		return '';
 	}
 

@@ -112,7 +112,7 @@ class Newspack_Ads_Blocks {
 	 * Google Ad Manager header code
 	 */
 	public static function insert_google_ad_manager_header_code() {
-		if ( ! newspack_should_show_ads() ) {
+		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
 
@@ -135,7 +135,7 @@ class Newspack_Ads_Blocks {
 	 * Google Ad Manager footer code
 	 */
 	public static function insert_google_ad_manager_footer_code() {
-		if ( ! newspack_should_show_ads() ) {
+		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
 

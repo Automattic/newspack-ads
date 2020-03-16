@@ -43,7 +43,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 	 * @param object $instance The Widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		if ( ! newspack_should_show_ads() ) {
+		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
 
