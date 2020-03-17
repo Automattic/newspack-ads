@@ -13,6 +13,10 @@
  * @return string Returns the post content with latest posts added.
  */
 function newspack_ads_render_block_ad_unit( $attributes ) {
+	if ( ! newspack_ads_should_show_ads() ) {
+		return '';
+	}
+
 	$active_ad = isset( $attributes['activeAd'] ) ? (int) $attributes['activeAd'] : 0;
 
 	if ( 1 > $active_ad ) {
@@ -30,7 +34,7 @@ function newspack_ads_render_block_ad_unit( $attributes ) {
 	$ad_unit = Newspack_Ads_Model::get_ad_unit( $active_ad );
 
 	if ( is_wp_error( $ad_unit ) ) {
-		return;
+		return '';
 	}
 
 	$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
