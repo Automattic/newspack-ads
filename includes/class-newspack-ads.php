@@ -44,7 +44,7 @@ final class Newspack_Ads {
 	 * Define Constants.
 	 */
 	private function define_constants() {
-		define( 'NEWSPACK_ADS_VERSION', '0.0.1' );
+		define( 'NEWSPACK_ADS_VERSION', '1.0.0' );
 		define( 'NEWSPACK_ADS_ABSPATH', dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/' );
 	}
 
