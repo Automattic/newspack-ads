@@ -62,7 +62,7 @@ class Newspack_Ads_Model {
 	 * @param string $placement The id of the placement region.
 	 */
 	public static function get_ad_unit( $id, $placement = null ) {
-		$ad_unit = \get_post( $id );
+		$ad_unit               = \get_post( $id );
 		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ]; // TODO: Add a filter, so other plugins can register responsive regions.
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
 			$prepared_ad_unit = [
