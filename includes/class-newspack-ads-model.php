@@ -438,24 +438,38 @@ class Newspack_Ads_Model {
 
 			$media_query = [];
 			if ( $widths[ $counter ] > 0 ) {
-				$breakpoint = apply_filters(
-					'newspack_ads_breakpoint',
-					$widths[ $counter ],
+				$breakpoint = intval(
+					apply_filters(
+						'newspack_ads_breakpoint',
+						$widths[ $counter ],
+						$ad_unit['placement'],
+						$ad_unit['context']
+					)
+				);
+
+				$needs_min_width = apply_filters(
+					'newspack_ads_should_have_min_width',
+					true,
+					$breakpoint,
 					$ad_unit['placement'],
 					$ad_unit['context']
 				);
 
-				$media_query[] = sprintf( '(min-width:%dpx)', $breakpoint );
+				if ( $needs_min_width ) {
+					$media_query[] = sprintf( '(min-width:%dpx)', $breakpoint );
+				}
 			}
 			if ( count( $widths ) > $counter + 1 ) {
-				$breakpoint = apply_filters(
-					'newspack_ads_breakpoint',
-					$widths[ $counter + 1 ],
-					$ad_unit['placement'],
-					$ad_unit['context']
+				$breakpoint = intval(
+					apply_filters(
+						'newspack_ads_breakpoint',
+						$widths[ $counter + 1 ],
+						$ad_unit['placement'],
+						$ad_unit['context']
+					)
 				);
 
-				$media_query[] = sprintf( '(max-width:%dpx)', $breakpoint );
+				$media_query[] = sprintf( '(max-width:%dpx)', $breakpoint - 1 );
 			}
 			$styles[] = sprintf(
 				'#%s{ display: none; } @media %s {#%s{ display: block; } }',
