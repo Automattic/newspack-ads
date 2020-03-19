@@ -60,18 +60,28 @@ class Newspack_Ads_Model {
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
 	 * @param string $placement The id of the placement region.
+	 * @param string $context An optional parameter to describe the context of the ad. For example, in the Widget, the widget ID.
 	 */
-	public static function get_ad_unit( $id, $placement = null ) {
-		$ad_unit = \get_post( $id );
-		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ]; // TODO: Add a filter, so other plugins can register responsive regions.
+	public static function get_ad_unit( $id, $placement = null, $context = null ) {
+		$ad_unit               = \get_post( $id );
+		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
+			$responsive = apply_filters(
+				'newspack_ads_maybe_use_responsive_placement',
+				in_array( $placement, $responsive_placements ),
+				$placement,
+				$context
+			);
+
 			$prepared_ad_unit = [
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
 				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
 				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
 				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
-				'responsive'     => in_array( $placement, $responsive_placements ),
+				'responsive'     => $responsive,
+				'placement'      => $placement,
+				'context'        => $context,
 			];
 
 			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
@@ -414,7 +424,7 @@ class Newspack_Ads_Model {
 			},
 			$sizes
 		);
-		foreach ( $sizes as $size ) {
+		foreach ( $sizes as $index => $size ) {
 			$width  = absint( $size[0] );
 			$height = absint( $size[1] );
 			$prefix = $is_amp ? 'div-gpt-amp-' : 'div-gpt-';
@@ -428,10 +438,24 @@ class Newspack_Ads_Model {
 
 			$media_query = [];
 			if ( $widths[ $counter ] > 0 ) {
-				$media_query[] = sprintf( '(min-width:%dpx)', $widths[ $counter ] );
+				$breakpoint = apply_filters(
+					'newspack_ads_breakpoint',
+					$widths[ $counter ],
+					$ad_unit['placement'],
+					$ad_unit['context']
+				);
+
+				$media_query[] = sprintf( '(min-width:%dpx)', $breakpoint );
 			}
 			if ( count( $widths ) > $counter + 1 ) {
-				$media_query[] = sprintf( '(max-width:%dpx)', $widths[ $counter + 1 ] );
+				$breakpoint = apply_filters(
+					'newspack_ads_breakpoint',
+					$widths[ $counter + 1 ],
+					$ad_unit['placement'],
+					$ad_unit['context']
+				);
+
+				$media_query[] = sprintf( '(max-width:%dpx)', $breakpoint );
 			}
 			$styles[] = sprintf(
 				'#%s{ display: none; } @media %s {#%s{ display: block; } }',
