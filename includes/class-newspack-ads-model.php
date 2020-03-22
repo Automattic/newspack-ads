@@ -436,45 +436,29 @@ class Newspack_Ads_Model {
 				$height
 			);
 
-			$media_query = [];
-			if ( $widths[ $counter ] > 0 ) {
-				$breakpoint = intval(
-					apply_filters(
-						'newspack_ads_breakpoint',
-						$widths[ $counter ],
-						$ad_unit['placement'],
-						$ad_unit['context']
-					)
-				);
+			$media_query = apply_filters(
+				'newspack_ads_media_query_for_size',
+				[
+					'min_width' => ( $widths[ $counter ] > 0 ) ? $widths[ $counter ] : null,
+					'max_width' => ( count( $widths ) > $counter + 1 ) ? ( $widths[ $counter + 1 ] - 1 ) : null,
+				],
+				$ad_unit['placement'],
+				$ad_unit['context'],
+				$width,
+				$height
+			);
 
-				$needs_min_width = apply_filters(
-					'newspack_ads_should_have_min_width',
-					true,
-					$breakpoint,
-					$ad_unit['placement'],
-					$ad_unit['context']
-				);
-
-				if ( $needs_min_width ) {
-					$media_query[] = sprintf( '(min-width:%dpx)', $breakpoint );
-				}
+			$media_query_elements = [];
+			if ( $media_query['min_width'] ) {
+				$media_query_elements[] = sprintf( '(min-width:%dpx)', $media_query['min_width'] );
 			}
-			if ( count( $widths ) > $counter + 1 ) {
-				$breakpoint = intval(
-					apply_filters(
-						'newspack_ads_breakpoint',
-						$widths[ $counter + 1 ],
-						$ad_unit['placement'],
-						$ad_unit['context']
-					)
-				);
-
-				$media_query[] = sprintf( '(max-width:%dpx)', $breakpoint - 1 );
+			if ( $media_query['max_width'] ) {
+				$media_query_elements[] = sprintf( '(max-width:%dpx)', $media_query['max_width'] );
 			}
 			$styles[] = sprintf(
 				'#%s{ display: none; } @media %s {#%s{ display: block; } }',
 				$div_id,
-				implode( ' and ', $media_query ),
+				implode( ' and ', $media_query_elements ),
 				$div_id
 			);
 
