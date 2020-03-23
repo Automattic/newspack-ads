@@ -6,6 +6,7 @@
   "devDependencies": {
     "@automattic/calypso-build": "^5.1.0",
     "@babel/core": "^7.5.4",
+    "@wordpress/base-styles": "^1.4.0",
     "@wordpress/blocks": "^6.4.0",
     "@wordpress/element": "^2.5.0",
     "classnames": "^2.2.6",
