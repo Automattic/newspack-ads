@@ -407,18 +407,11 @@ class Newspack_Ads_Model {
 		$network_code = self::get_network_code( 'google_ad_manager' );
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
-		usort(
-			$sizes,
-			function( $a, $b ) {
-				return $a[0] < $b[0] ? $a : $b;
-			}
-		);
-
+		array_multisort( $sizes );
 		$markup  = [];
 		$styles  = [];
 		$counter = 0;
-
-		$widths = array_map(
+		$widths  = array_map(
 			function ( $item ) {
 				return $item[0];
 			},
@@ -448,6 +441,11 @@ class Newspack_Ads_Model {
 				$height
 			);
 
+			$media_query = [
+				'min_width' => $media_query['min_width'] ? round( $media_query['min_width'] ) : null,
+				'max_width' => $media_query['max_width'] ? round( $media_query['max_width'] ) : null,
+			];
+
 			$media_query_elements = [];
 			if ( $media_query['min_width'] ) {
 				$media_query_elements[] = sprintf( '(min-width:%dpx)', $media_query['min_width'] );
@@ -456,11 +454,16 @@ class Newspack_Ads_Model {
 				$media_query_elements[] = sprintf( '(max-width:%dpx)', $media_query['max_width'] );
 			}
 			$styles[] = sprintf(
-				'#%s{ display: none; } @media %s {#%s{ display: block; } }',
-				$div_id,
-				implode( ' and ', $media_query_elements ),
+				'#%s{ display: none; }',
 				$div_id
 			);
+			if ( count( $media_query_elements ) > 0 ) {
+				$styles[] = sprintf(
+					'@media %s {#%s{ display: block; } }',
+					implode( ' and ', $media_query_elements ),
+					$div_id
+				);
+			}
 
 			if ( $is_amp ) {
 				$markup[] = sprintf(
@@ -485,6 +488,7 @@ class Newspack_Ads_Model {
 
 			$counter++;
 		}
+
 		return sprintf(
 			'<style>%s</style>%s',
 			implode( ' ', $styles ),
