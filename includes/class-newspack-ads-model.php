@@ -407,44 +407,51 @@ class Newspack_Ads_Model {
 		$network_code = self::get_network_code( 'google_ad_manager' );
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
+
 		array_multisort( $sizes );
-		$markup  = [];
-		$styles  = [];
-		$counter = 0;
-		$widths  = array_map(
+
+		$markup = [];
+		$styles = [];
+		$widths = array_map(
 			function ( $item ) {
 				return $item[0];
 			},
 			$sizes
 		);
+
+		// Generate an array of media query data, with a likely min and max width for each size.
+		$media_queries = [];
 		foreach ( $sizes as $index => $size ) {
-			$width  = absint( $size[0] );
-			$height = absint( $size[1] );
-			$prefix = $is_amp ? 'div-gpt-amp-' : 'div-gpt-';
-			$div_id = sprintf(
+			$width           = absint( $size[0] );
+			$height          = absint( $size[1] );
+			$media_queries[] = [
+				'width'     => $width,
+				'height'    => $height,
+				'min_width' => ( $width > 0 ) ? $width : null,
+				'max_width' => ( count( $widths ) > $index + 1 ) ? ( $widths[ $index + 1 ] - 1 ) : null,
+			];
+		}
+
+		// Allow themes to filter the media query data based on the size, placement, and context of the ad.
+		$media_queries = apply_filters(
+			'newspack_ads_media_queries',
+			$media_queries,
+			$ad_unit['placement'],
+			$ad_unit['context']
+		);
+
+		foreach ( $sizes as $index => $size ) {
+			$media_query = $media_queries[ $index ];
+			$width       = absint( $size[0] );
+			$height      = absint( $size[1] );
+			$prefix      = $is_amp ? 'div-gpt-amp-' : 'div-gpt-';
+			$div_id      = sprintf(
 				'%s%s-%dx%d',
 				$prefix,
 				sanitize_title( $ad_unit['code'] ),
 				$width,
 				$height
 			);
-
-			$media_query = apply_filters(
-				'newspack_ads_media_query_for_size',
-				[
-					'min_width' => ( $widths[ $counter ] > 0 ) ? $widths[ $counter ] : null,
-					'max_width' => ( count( $widths ) > $counter + 1 ) ? ( $widths[ $counter + 1 ] - 1 ) : null,
-				],
-				$ad_unit['placement'],
-				$ad_unit['context'],
-				$width,
-				$height
-			);
-
-			$media_query = [
-				'min_width' => $media_query['min_width'] ? round( $media_query['min_width'] ) : null,
-				'max_width' => $media_query['max_width'] ? round( $media_query['max_width'] ) : null,
-			];
 
 			$media_query_elements = [];
 			if ( $media_query['min_width'] ) {
@@ -485,8 +492,6 @@ class Newspack_Ads_Model {
 					$div_id
 				);
 			}
-
-			$counter++;
 		}
 
 		return sprintf(
