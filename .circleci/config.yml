@@ -21,7 +21,7 @@ jobs:
           paths:
             - project
 
-  # JS & SCSS jobs
+  # Linting
   lint:
     docker:
       - image: circleci/php:7.2-node-browsers
