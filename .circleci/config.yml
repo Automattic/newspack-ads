@@ -83,10 +83,9 @@ workflows:
   version: 2
   main:
     jobs:
-      - lint-php
       - test-php
       - build
-      - lint-js-scss:
+      - lint:
           requires:
             - build
       - release:
