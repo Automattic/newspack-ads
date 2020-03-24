@@ -3,13 +3,13 @@
 .newspack-ads-ad-unit {
 	margin: 0 0 28px;
 	max-width: 100%;
-	max-width: calc(100vw - 28px);
+	max-width: calc( 100vw - 28px );
 	overflow-x: hidden;
 	position: relative;
 	width: 100%;
 
 	@media screen and ( min-width: 600px ) {
-		max-width: calc(100vw - 116px);
+		max-width: calc( 100vw - 116px );
 	}
 
 	&__ratio {
@@ -56,12 +56,11 @@
 			font-weight: 600;
 		}
 	}
-
 }
 
 // Align center
-.wp-block[data-type="newspack-ads/ad-unit"] {
-	&[data-align="center"] {
+.wp-block[data-type='newspack-ads/ad-unit'] {
+	&[data-align='center'] {
 		.components-placeholder {
 			margin-left: auto;
 			margin-right: auto;
