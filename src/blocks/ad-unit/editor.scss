@@ -1,3 +1,5 @@
+@import '~@wordpress/base-styles/colors';
+
 .newspack-ads-ad-unit {
 	margin: 0 0 28px;
 	max-width: 100%;
@@ -10,16 +12,19 @@
 		max-width: calc( 100vw - 116px );
 	}
 
-	.newspack-ads-ad-unit__ratio {
+	&__ratio {
 		padding: 0 0 75%;
 	}
 
 	.components-placeholder {
+		background: $light-gray-200;
+		border-radius: 0;
+		box-shadow: none;
 		margin: 0;
 		min-height: 100px;
 		padding: 0;
 
-		.components-placeholder__label {
+		&__label {
 			display: none;
 		}
 	}
@@ -39,7 +44,7 @@
 		right: 1.5384615385em;
 		top: 1.5384615385em;
 
-		.components-base-control__field {
+		&__field {
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
@@ -47,7 +52,7 @@
 			width: 100%;
 		}
 
-		.components-base-control__label {
+		&__label {
 			font-weight: 600;
 		}
 	}
