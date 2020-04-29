@@ -107,6 +107,10 @@ class Newspack_Ads_Blocks {
 				NEWSPACK_ADS_VERSION
 			);
 		}
+
+		wp_register_style( "newspack-blocks-{$type}", false ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_add_inline_style( "newspack-blocks-{$type}", '.wp-block-newspack-blocks-wp-block-newspack-ads-blocks-ad-unit.aligncenter > div { margin-left: auto; margin-right: auto; }' );
+		wp_enqueue_style( "newspack-blocks-{$type}" );
 	}
 
 	/**
