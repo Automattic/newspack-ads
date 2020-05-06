@@ -172,13 +172,21 @@ class Newspack_Ads_Blocks {
 		?>
 		<script>
 			googletag.cmd.push(function() {
+				var ad_units = [];
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
 					<?php if ( $ad_unit['responsive'] ) : ?>
 						<?php foreach ( $ad_unit['sizes'] as $size ) : ?>
-							googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ [ <?php echo absint( $size[0] ); ?>, <?php echo absint( $size[1] ); ?> ] ], 'div-gpt-<?php echo esc_attr( $ad_unit['code'] ); ?>-<?php echo esc_attr( $unique_id ); ?>-<?php echo absint( $size[0] ); ?>x<?php echo absint( $size[1] ); ?>').addService(googletag.pubads());
+							ad_units['<?php echo esc_attr( $ad_unit['name'] ); ?>'] = googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ [ <?php echo absint( $size[0] ); ?>, <?php echo absint( $size[1] ); ?> ] ], 'div-gpt-<?php echo esc_attr( $ad_unit['code'] ); ?>-<?php echo esc_attr( $unique_id ); ?>-<?php echo absint( $size[0] ); ?>x<?php echo absint( $size[1] ); ?>').addService(googletag.pubads());
 						<?php endforeach; ?>
 					<?php else : ?>
-						googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
+						ad_units['<?php echo esc_attr( $ad_unit['name'] ); ?>'] = googletag.defineSlot('/<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?>', [ <?php echo esc_attr( implode( ',', $formatted_sizes[ $unique_id ] ) ); ?> ], 'div-gpt-ad-<?php echo esc_attr( $unique_id ); ?>-0').addService(googletag.pubads());
+					<?php endif; ?>
+
+					<?php $targeting = apply_filters( 'newspack_ads_ad_targeting', [], $ad_unit ); ?>
+					<?php if ( ! empty( $targeting ) ) : ?>
+						<?php foreach ( $targeting as $key => $val ) : ?>
+							ad_units['<?php echo esc_attr( $ad_unit['name'] ); ?>'].setTargeting( '<?php echo esc_attr( $key ); ?>', '<?php echo esc_attr( $val ); ?>' );
+						<?php endforeach; ?>
 					<?php endif; ?>
 				<?php endforeach; ?>
 				googletag.pubads().enableSingleRequest();
