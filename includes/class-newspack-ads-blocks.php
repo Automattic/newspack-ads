@@ -189,6 +189,9 @@ class Newspack_Ads_Blocks {
 						<?php endforeach; ?>
 					<?php endif; ?>
 				<?php endforeach; ?>
+				<?php if ( apply_filters( 'newspack_ads_disable_gtag_initial_load', false ) ) : ?>
+					googletag.pubads().disableInitialLoad();
+				<?php endif; ?>
 				googletag.pubads().enableSingleRequest();
 				googletag.enableServices();
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
