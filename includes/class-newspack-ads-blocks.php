@@ -193,6 +193,11 @@ class Newspack_Ads_Blocks {
 					googletag.pubads().disableInitialLoad();
 				<?php endif; ?>
 				googletag.pubads().enableSingleRequest();
+				googletag.pubads().enableLazyLoad( {
+					fetchMarginPercent: 500,   // Fetch slots within 5 viewports.
+					renderMarginPercent: 200,  // Render slots within 2 viewports.
+					mobileScaling: 2.0         // Double the above values on mobile.
+				} );
 				googletag.enableServices();
 				<?php foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) : ?>
 					<?php if ( $ad_unit['responsive'] ) : ?>
