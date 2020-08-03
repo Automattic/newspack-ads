@@ -235,12 +235,15 @@ class Newspack_Ads_Blocks {
 					for ( width in unique_widths ) {
 						mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
 					}
+					// On viewports smaller than the smallest ad size, don't show any ads.
+					mapping.addSize( [0, 0], [] );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
 				}
 
 				if ( ad_config['disable_initial_load'] ) {
 					googletag.pubads().disableInitialLoad();
 				}
+				googletag.pubads().collapseEmptyDivs();
 				googletag.pubads().enableSingleRequest();
 				googletag.pubads().enableLazyLoad( {
 					fetchMarginPercent: 500,   // Fetch slots within 5 viewports.
