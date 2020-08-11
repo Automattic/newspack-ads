@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/Automattic/newspack-ads/compare/v1.5.0...v1.6.0) (2020-08-11)
+
+
+### Features
+
+* trigger release ([af80dd2](https://github.com/Automattic/newspack-ads/commit/af80dd25986c38724edfed1025085daefb19aeb7))
+
 # [1.5.0](https://github.com/Automattic/newspack-ads/compare/v1.4.2...v1.5.0) (2020-08-04)
 
 
