@@ -75,6 +75,9 @@ jobs:
     steps:
       - checkout_with_workspace
       - run:
+          name: Install rsync
+          command: sudo apt install rsync
+      - run:
           name: Release new version
           command: npm run release
 
@@ -92,4 +95,6 @@ workflows:
             - build
           filters:
             branches:
-              only: release
+              only:
+                - release
+                - alpha

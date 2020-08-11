@@ -57,7 +57,7 @@
     "lint:js:staged": "eslint --ext .js,.jsx",
     "lint:scss:staged": "stylelint --syntax scss",
     "lint:php:staged": "./vendor/bin/phpcs",
-    "release:archive": "mkdir -p release && zip -r release/newspack-ads.zip . -x node_modules/\\* .git/\\* .github/\\* .gitignore .DS_Store vendor/\\*",
+    "release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-ads --exclude-from='./.distignore' && cd release && zip -r newspack-ads.zip newspack-ads",
     "release": "npm run build && npm run semantic-release"
   },
   "lint-staged": {
@@ -67,7 +67,11 @@
   },
   "release": {
     "branches": [
-      "release"
+      "release",
+      {
+        "name": "alpha",
+        "prerelease": "alpha"
+      }
     ],
     "prepare": [
       "@semantic-release/changelog",
