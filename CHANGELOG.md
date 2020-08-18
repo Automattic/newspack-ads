@@ -1,3 +1,10 @@
+## [1.6.1-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.6.0...v1.6.1-alpha.1) (2020-08-18)
+
+
+### Bug Fixes
+
+* remove redundant responsive ad handling ([a8b5727](https://github.com/Automattic/newspack-ads/commit/a8b5727572893f2353ccec93b02af77dd671b359))
+
 # [1.6.0](https://github.com/Automattic/newspack-ads/compare/v1.5.0...v1.6.0) (2020-08-11)
 
 
