@@ -78,7 +78,7 @@ class Newspack_Ads_Blocks {
 		if ( isset( $attributes['className'] ) ) {
 			array_push( $classes, $attributes['className'] );
 		}
-		return implode( $classes, ' ' );
+		return implode( ' ', $classes );
 	}
 
 	/**
@@ -155,27 +155,14 @@ class Newspack_Ads_Blocks {
 		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
 			$ad_targeting = apply_filters( 'newspack_ads_ad_targeting', [], $ad_unit );
 
-			if ( $ad_unit['responsive'] ) {
-				foreach ( $ad_unit['sizes'] as $size ) {
-					$container_id = esc_attr( 'div-gpt-' . $ad_unit['code'] . '-' . $unique_id . '-' . absint( $size[0] ) . 'x' . absint( $size[1] ) );
+			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
 
-					$prepared_unit_data[ $container_id ] = [
-						'name'      => esc_attr( $ad_unit['name'] ),
-						'code'      => esc_attr( $ad_unit['code'] ),
-						'sizes'     => [ $size ],
-						'targeting' => $ad_targeting,
-					];
-				}
-			} else {
-				$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
-
-				$prepared_unit_data[ $container_id ] = [
-					'name'      => esc_attr( $ad_unit['name'] ),
-					'code'      => esc_attr( $ad_unit['code'] ),
-					'sizes'     => $ad_unit['sizes'],
-					'targeting' => $ad_targeting,
-				];
-			}
+			$prepared_unit_data[ $container_id ] = [
+				'name'      => esc_attr( $ad_unit['name'] ),
+				'code'      => esc_attr( $ad_unit['code'] ),
+				'sizes'     => $ad_unit['sizes'],
+				'targeting' => $ad_targeting,
+			];
 		}
 
 		$ad_config = [
@@ -235,12 +222,15 @@ class Newspack_Ads_Blocks {
 					for ( width in unique_widths ) {
 						mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
 					}
+					// On viewports smaller than the smallest ad size, don't show any ads.
+					mapping.addSize( [0, 0], [] );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
 				}
 
 				if ( ad_config['disable_initial_load'] ) {
 					googletag.pubads().disableInitialLoad();
 				}
+				googletag.pubads().collapseEmptyDivs();
 				googletag.pubads().enableSingleRequest();
 				googletag.pubads().enableLazyLoad( {
 					fetchMarginPercent: 500,   // Fetch slots within 5 viewports.

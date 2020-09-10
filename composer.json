@@ -2,10 +2,8 @@
   "name": "automattic/newspack-ads",
   "description": "Newspack Ad integrations.",
   "type": "wordpress-plugin",
-  "require": {
-    "composer/installers": "~1.6"
-  },
   "require-dev": {
+    "composer/installers": "~1.6",
     "automattic/vipwpcs": "^2.0.0",
     "brainmaestro/composer-git-hooks": "^2.6",
     "wp-coding-standards/wpcs": "*",
