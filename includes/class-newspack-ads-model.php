@@ -378,7 +378,7 @@ class Newspack_Ads_Model {
 		$largest = self::largest_ad_size( $sizes );
 
 		$code = sprintf(
-			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s"></amp-ad>',
+			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views"></amp-ad>',
 			$largest[0],
 			$largest[1],
 			$network_code,
@@ -467,7 +467,7 @@ class Newspack_Ads_Model {
 
 			if ( $is_amp ) {
 				$markup[] = sprintf(
-					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s"></amp-ad></div>',
+					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views"></amp-ad></div>',
 					$div_id,
 					$width,
 					$height,
