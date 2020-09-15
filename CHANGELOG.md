@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/Automattic/newspack-ads/compare/v1.6.1...v1.7.0) (2020-09-15)
+
+
+### Features
+
+* optimize amp-ads for viewability ([#72](https://github.com/Automattic/newspack-ads/issues/72)) ([6a29e67](https://github.com/Automattic/newspack-ads/commit/6a29e67b052ec8b6baa7bed187cccb192e15d946))
+
 ## [1.6.1](https://github.com/Automattic/newspack-ads/compare/v1.6.0...v1.6.1) (2020-08-18)
 
 
