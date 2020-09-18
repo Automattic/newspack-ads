@@ -153,7 +153,7 @@ class Newspack_Ads_Blocks {
 
 		$prepared_unit_data = [];
 		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
-			$ad_targeting = apply_filters( 'newspack_ads_ad_targeting', [], $ad_unit );
+			$ad_targeting = Newspack_Ads_Model::get_ad_targeting( $ad_unit );
 
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
 
