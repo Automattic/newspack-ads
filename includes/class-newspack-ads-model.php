@@ -539,10 +539,10 @@ class Newspack_Ads_Model {
 			$targeting['ID'] = get_the_ID();
 
 			// Add the category slugs to targeting on category archives.
-		} elseif ( 'WP_Term' === get_class( get_queried_object() ) ) {
-			$term_object = get_queried_object();
-			if ( 'category' === $term_object->taxonomy ) {
-				$targeting['category'] = [ sanitize_text_field( $term_object->slug ) ];
+		} elseif ( get_queried_object() ) {
+			$queried_object = get_queried_object();
+			if ( 'WP_Term' === get_class( $queried_object ) && 'category' === $queried_object->taxonomy ) {
+				$targeting['category'] = [ sanitize_text_field( $queried_object->slug ) ];
 			}
 		}
 
