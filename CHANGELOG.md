@@ -1,3 +1,15 @@
+# [1.8.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.7.0...v1.8.0-alpha.1) (2020-09-29)
+
+
+### Bug Fixes
+
+* harden queried object check logic ([dced583](https://github.com/Automattic/newspack-ads/commit/dced583614bac06459f07a2f5683ba51981304b1))
+
+
+### Features
+
+* add common ad targeting to ad units ([18dca0b](https://github.com/Automattic/newspack-ads/commit/18dca0b0213d70075ba3d834a651bab965ad55eb))
+
 # [1.7.0](https://github.com/Automattic/newspack-ads/compare/v1.6.1...v1.7.0) (2020-09-15)
 
 
