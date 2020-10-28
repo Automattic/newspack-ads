@@ -79,6 +79,9 @@ final class Newspack_Ads {
 	 * @return bool AMP or not
 	 */
 	public static function is_amp() {
+		if ( apply_filters( 'should_use_amp_plus', 'gam' ) ) {
+			return false;
+		}
 		if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
 			return true;
 		}
