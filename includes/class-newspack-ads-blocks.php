@@ -121,8 +121,7 @@ class Newspack_Ads_Blocks {
 			return;
 		}
 
-		$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
-		if ( $is_amp ) {
+		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
 		ob_start();
@@ -144,8 +143,7 @@ class Newspack_Ads_Blocks {
 			return;
 		}
 
-		$is_amp = function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
-		if ( $is_amp ) {
+		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
 
@@ -196,7 +194,7 @@ class Newspack_Ads_Blocks {
 						defined_ad_units[ container_id ].setTargeting( target_key, ad_unit['targeting'][ target_key ] );
 					}
 
-					/** 
+					/**
 					 * Configure responsive ads.
 					 * Ads wider than the viewport should not show.
 					 */
@@ -207,7 +205,7 @@ class Newspack_Ads_Blocks {
 						unique_widths[ size[0] ] = [];
 					} );
 
-					// For each width, get all of the sizes equal-to-or-smaller than it. 
+					// For each width, get all of the sizes equal-to-or-smaller than it.
 					for ( width in unique_widths ) {
 						ad_unit['sizes'].forEach( function( size ) {
 							if ( size[0] <= width ) {
