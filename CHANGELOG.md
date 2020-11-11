@@ -1,3 +1,12 @@
+# [1.9.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.8.0...v1.9.0-alpha.1) (2020-11-11)
+
+
+### Features
+
+* check for amp plus status ([7168e03](https://github.com/Automattic/newspack-ads/commit/7168e038a0da83ae34d24dd088667cca36d51747))
+* data attributes on gam scripts for amp sanitization ([484fc82](https://github.com/Automattic/newspack-ads/commit/484fc820c052565827ac0962c43036c56e909e6f))
+* update block icon style and colour ([#82](https://github.com/Automattic/newspack-ads/issues/82)) ([a31297f](https://github.com/Automattic/newspack-ads/commit/a31297f81ac9915fdb63b734dd0a9c9be8300c64))
+
 # [1.8.0](https://github.com/Automattic/newspack-ads/compare/v1.7.0...v1.8.0) (2020-09-29)
 
 
