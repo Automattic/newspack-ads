@@ -4,7 +4,7 @@
   "author": "Automattic",
   "private": true,
   "devDependencies": {
-    "@automattic/calypso-build": "^5.1.0",
+    "@automattic/calypso-build": "^6.3.0",
     "@babel/core": "^7.5.4",
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
@@ -137,6 +137,7 @@
     "@wordpress/data": "^4.14.1",
     "@wordpress/edit-post": "^3.13.6",
     "@wordpress/i18n": "^3.9.0",
+    "@wordpress/icons": "^2.8.0",
     "@wordpress/plugins": "^2.12.0"
   }
 }
