@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/Automattic/newspack-ads/compare/v1.9.0...v1.10.0) (2020-12-08)
+
+
+### Features
+
+* add Gutenberg icon and replace Material ([#88](https://github.com/Automattic/newspack-ads/issues/88)) ([2e7ddc9](https://github.com/Automattic/newspack-ads/commit/2e7ddc9b4359114315ad581651da855d52bdbf44))
+
 # [1.9.0](https://github.com/Automattic/newspack-ads/compare/v1.8.0...v1.9.0) (2020-11-11)
 
 
