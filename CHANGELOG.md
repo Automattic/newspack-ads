@@ -1,3 +1,10 @@
+## [1.10.1-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.10.0...v1.10.1-alpha.1) (2020-12-15)
+
+
+### Bug Fixes
+
+* improve responsive ads in non-AMP mode ([02bde12](https://github.com/Automattic/newspack-ads/commit/02bde127d7500a81a6556581a2d8b7fd4fce566f))
+
 # [1.10.0](https://github.com/Automattic/newspack-ads/compare/v1.9.0...v1.10.0) (2020-12-08)
 
 
