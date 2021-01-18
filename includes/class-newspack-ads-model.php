@@ -373,7 +373,7 @@ class Newspack_Ads_Model {
 		}
 
 		if ( $ad_unit['responsive'] ) {
-			return self::ad_elements_for_sizes( $ad_unit, $unique_id, true );
+			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
 
 		$largest = self::largest_ad_size( $sizes );
