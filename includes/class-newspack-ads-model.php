@@ -86,7 +86,7 @@ class Newspack_Ads_Model {
 
 			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
 			$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit );
-			return apply_filters( 'newspack_ads_ad_unit', $prepared_ad_unit );
+			return $prepared_ad_unit;
 		} else {
 			return new WP_Error(
 				'newspack_no_adspot_found',
@@ -376,15 +376,33 @@ class Newspack_Ads_Model {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
 
-		$largest = self::largest_ad_size( $sizes );
+		$width  = max( array_column( $sizes, 0 ) );
+		$height = max( array_column( $sizes, 1 ) );
+
+		$ad_size_as_multisize = $width . 'x' . $height;
+		$multisizes           = [];
+		foreach ( $sizes as $size ) {
+			$multisize = $size[0] . 'x' . $size[1];
+			if ( $multisize !== $ad_size_as_multisize ) {
+				$multisizes[] = $multisize;
+			}
+		}
+		$multisize_attribute = '';
+		if ( count( $multisizes ) ) {
+			$multisize_attribute = sprintf( 
+				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'', 
+				implode( ',', $multisizes ) 
+			);
+		}
 
 		$code = sprintf(
-			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views" json=\'{"targeting":%s}\'></amp-ad>',
-			$largest[0],
-			$largest[1],
+			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views" json=\'{"targeting":%s}\' %s></amp-ad>',
+			$width,
+			$height,
 			$network_code,
 			$code,
-			wp_json_encode( $targeting )
+			wp_json_encode( $targeting ),
+			$multisize_attribute
 		);
 
 		return $code;
