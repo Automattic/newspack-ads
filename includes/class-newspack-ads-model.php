@@ -86,7 +86,7 @@ class Newspack_Ads_Model {
 
 			$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
 			$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit );
-			return $prepared_ad_unit;
+			return apply_filters( 'newspack_ads_ad_unit', $prepared_ad_unit );
 		} else {
 			return new WP_Error(
 				'newspack_no_adspot_found',
