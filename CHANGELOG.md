@@ -1,3 +1,17 @@
+# [1.11.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.10.1...v1.11.0-alpha.1) (2021-01-19)
+
+
+### Bug Fixes
+
+* initial work on amp multisize ([ae6aad6](https://github.com/Automattic/newspack-ads/commit/ae6aad6799a1207a2352821fc97a44a88dd07a5b))
+* remove deprecated third arg from function ([fddcd06](https://github.com/Automattic/newspack-ads/commit/fddcd0686a10de8bd2bdd0a21e5d7913c9cd5d8e))
+
+
+### Features
+
+* add filters to extend ad sizing logic ([a3b396f](https://github.com/Automattic/newspack-ads/commit/a3b396f525b34daa31e7169deeb183c4993a9b20))
+* size grouping for responsive amp ads ([0b7da43](https://github.com/Automattic/newspack-ads/commit/0b7da43b88e0e65ef4823a2206204b13b1efe9e4))
+
 ## [1.10.1](https://github.com/Automattic/newspack-ads/compare/v1.10.0...v1.10.1) (2020-12-15)
 
 
