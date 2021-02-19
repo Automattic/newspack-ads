@@ -428,7 +428,7 @@ class Newspack_Ads_Model {
 
 		// Gather up all of the ad sizes which should be displayed on the same viewports.
 		// As a heuristic, each ad slot can safely display ads 200px narrower or less than the slot's width.
-		// e.g. for the following setup: [[900,200], [750,200]], 
+		// e.g. for the following setup: [[900,200], [750,200]],
 		// We can display [[900,200], [750,200]] on viewports >= 900px and [[750,200]] on viewports < 900px.
 		$width_difference_max = apply_filters( 'newspack_ads_multisize_size_difference_max', 200, $ad_unit );
 		$all_ad_sizes         = [];
@@ -481,13 +481,13 @@ class Newspack_Ads_Model {
 			$height = absint( max( array_column( $ad_sizes, 1 ) ) );
 
 			$multisizes = array_map(
-				function( $size ) { 
+				function( $size ) {
 					return $size[0] . 'x' . $size[1];
-				}, 
-				$ad_sizes 
+				},
+				$ad_sizes
 			);
 
-			// If there is a multisize that's equal to the width and height of the container, remove it from the multisizes. 
+			// If there is a multisize that's equal to the width and height of the container, remove it from the multisizes.
 			// The container size is included by default, and should not also be included in the multisize.
 			$container_multisize          = $width . 'x' . $height;
 			$container_multisize_location = array_search( $container_multisize, $multisizes );
@@ -497,9 +497,9 @@ class Newspack_Ads_Model {
 
 			$multisize_attribute = '';
 			if ( count( $multisizes ) ) {
-				$multisize_attribute = sprintf( 
-					'data-multi-size=\'%s\' data-multi-size-validation=\'false\'', 
-					implode( ',', $multisizes ) 
+				$multisize_attribute = sprintf(
+					'data-multi-size=\'%s\' data-multi-size-validation=\'false\'',
+					implode( ',', $multisizes )
 				);
 			}
 
@@ -553,6 +553,22 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Picks the smallest size from an array of width/height pairs.
+	 *
+	 * @param array $sizes An array of dimension pairs.
+	 * @return array The pair with the narrowest width.
+	 */
+	public static function smallest_ad_size( $sizes ) {
+		return array_reduce(
+			$sizes,
+			function( $carry, $item ) {
+				return $item[0] < $carry[0] ? $item : $carry;
+			},
+			[ PHP_INT_MAX, PHP_INT_MAX ]
+		);
+	}
+
+	/**
 	 * Picks the largest size from an array of width/height pairs.
 	 *
 	 * @param array $sizes An array of dimension pairs.
@@ -602,6 +618,16 @@ class Newspack_Ads_Model {
 		}
 
 		return apply_filters( 'newspack_ads_ad_targeting', $targeting, $ad_unit );
+	}
+
+	/**
+	 * Is the given ad unit a sticky ad?
+	 *
+	 * @param array $ad_unit Ad unit to check.
+	 * @return boolean True if sticky, otherwise false.
+	 */
+	public static function is_sticky( $ad_unit ) {
+		return 'sticky' === $ad_unit['placement'];
 	}
 }
 Newspack_Ads_Model::init();
