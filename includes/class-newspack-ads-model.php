@@ -383,15 +383,19 @@ class Newspack_Ads_Model {
 		$multisizes           = [];
 		foreach ( $sizes as $size ) {
 			$multisize = $size[0] . 'x' . $size[1];
-			if ( $multisize !== $ad_size_as_multisize ) {
+			if (
+				( $multisize !== $ad_size_as_multisize ) &&
+				( ! self::is_sticky( $ad_unit ) || ( self::is_sticky( $ad_unit ) && $size[0] < 600 ) )
+			) {
 				$multisizes[] = $multisize;
 			}
 		}
 		$multisize_attribute = '';
 		if ( count( $multisizes ) ) {
-			$multisize_attribute = sprintf( 
-				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'', 
-				implode( ',', $multisizes ) 
+			$multisize_attribute = sprintf(
+				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'%s',
+				implode( ',', $multisizes ),
+				self::is_sticky( $ad_unit ) ? ' data-override-width=\'600\'' : ''
 			);
 		}
 
