@@ -376,15 +376,33 @@ class Newspack_Ads_Model {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
 
-		$size_to_show = self::is_sticky( $ad_unit ) ? self::smallest_ad_size( $sizes ) : self::largest_ad_size( $sizes );
+		$width  = max( array_column( $sizes, 0 ) );
+		$height = max( array_column( $sizes, 1 ) );
+
+		$ad_size_as_multisize = $width . 'x' . $height;
+		$multisizes           = [];
+		foreach ( $sizes as $size ) {
+			$multisize = $size[0] . 'x' . $size[1];
+			if ( $multisize !== $ad_size_as_multisize ) {
+				$multisizes[] = $multisize;
+			}
+		}
+		$multisize_attribute = '';
+		if ( count( $multisizes ) ) {
+			$multisize_attribute = sprintf( 
+				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'', 
+				implode( ',', $multisizes ) 
+			);
+		}
 
 		$code = sprintf(
-			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views" json=\'{"targeting":%s}\'></amp-ad>',
-			$size_to_show[0],
-			$size_to_show[1],
+			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views" json=\'{"targeting":%s}\' %s></amp-ad>',
+			$width,
+			$height,
 			$network_code,
 			$code,
-			wp_json_encode( $targeting )
+			wp_json_encode( $targeting ),
+			$multisize_attribute
 		);
 
 		return $code;
