@@ -373,9 +373,12 @@ class Newspack_Ads_Model {
 		}
 		// Remove all ad sizes greater than 600px wide for sticky ads.
 		if ( self::is_sticky( $ad_unit ) ) {
-			$sizes = array_filter( $sizes, function( $size ) {
-				return $size[0] < 600;
-			} );
+			$sizes = array_filter(
+				$sizes,
+				function( $size ) {
+					return $size[0] < 600;
+				}
+			);
 		}
 
 		if ( $ad_unit['responsive'] ) {
