@@ -397,7 +397,7 @@ class Newspack_Ads_Model {
 		if ( count( $multisizes ) ) {
 			$multisize_attribute = sprintf(
 				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'',
-				implode( ',', $multisizes ),
+				implode( ',', $multisizes )
 			);
 		}
 
