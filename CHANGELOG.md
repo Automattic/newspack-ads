@@ -1,3 +1,10 @@
+# [1.12.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.12.0-alpha.1...v1.12.0-alpha.2) (2021-02-24)
+
+
+### Bug Fixes
+
+* limit multisizes of sticky ads ([#109](https://github.com/Automattic/newspack-ads/issues/109)) ([481fccc](https://github.com/Automattic/newspack-ads/commit/481fccc6a4db312c1c0222fdff32215a0718dd9a))
+
 # [1.12.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.11.1...v1.12.0-alpha.1) (2021-02-23)
 
 
