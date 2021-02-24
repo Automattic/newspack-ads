@@ -371,6 +371,12 @@ class Newspack_Ads_Model {
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
 		}
+		// Remove all ad sizes greater than 600px wide for sticky ads.
+		if ( self::is_sticky( $ad_unit ) ) {
+			$sizes = array_filter( $sizes, function( $size ) {
+				return $size[0] < 600;
+			} );
+		}
 
 		if ( $ad_unit['responsive'] ) {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
@@ -383,19 +389,15 @@ class Newspack_Ads_Model {
 		$multisizes           = [];
 		foreach ( $sizes as $size ) {
 			$multisize = $size[0] . 'x' . $size[1];
-			if (
-				( $multisize !== $ad_size_as_multisize ) &&
-				( ! self::is_sticky( $ad_unit ) || ( self::is_sticky( $ad_unit ) && $size[0] < 600 ) )
-			) {
+			if ( $multisize !== $ad_size_as_multisize ) {
 				$multisizes[] = $multisize;
 			}
 		}
 		$multisize_attribute = '';
 		if ( count( $multisizes ) ) {
 			$multisize_attribute = sprintf(
-				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'%s',
+				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'',
 				implode( ',', $multisizes ),
-				self::is_sticky( $ad_unit ) ? ' data-override-width=\'600\'' : ''
 			);
 		}
 
