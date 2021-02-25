@@ -1,3 +1,16 @@
+# [1.12.0](https://github.com/Automattic/newspack-ads/compare/v1.11.1...v1.12.0) (2021-02-25)
+
+
+### Bug Fixes
+
+* limit multisizes of sticky ads ([#109](https://github.com/Automattic/newspack-ads/issues/109)) ([481fccc](https://github.com/Automattic/newspack-ads/commit/481fccc6a4db312c1c0222fdff32215a0718dd9a))
+
+
+### Features
+
+* add filter for customizing ad output ([ee6e442](https://github.com/Automattic/newspack-ads/commit/ee6e442e668c5cdedafac03a7d5752ad6ebdb15a))
+* improved ad sizing for non-responsive amp ads ([9551a20](https://github.com/Automattic/newspack-ads/commit/9551a20ef7c9341ec1e15fd92abd25c15c453fc5))
+
 ## [1.11.1](https://github.com/Automattic/newspack-ads/compare/v1.11.0...v1.11.1) (2021-01-28)
 
 
