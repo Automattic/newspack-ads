@@ -392,8 +392,6 @@ class Newspack_Ads_Model {
 			);
 		}
 
-		error_log( print_r( $ad_unit, true ) );
-
 		if ( $ad_unit['responsive'] ) {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
