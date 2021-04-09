@@ -52,7 +52,7 @@ export const settings = {
 	},
 	supports: {
 		html: false,
-		align: [ 'left', 'center', 'right' ],
+		align: [ 'left', 'center', 'right', 'wide', 'full' ],
 	},
 	edit,
 	save: () => null, // to use view.php
