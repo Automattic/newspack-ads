@@ -166,29 +166,6 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Update/create the header code for a service.
-	 *
-	 * @param string $service The service.
-	 * @param string $network_code The code.
-	 */
-	public static function set_network_code( $service, $network_code ) {
-		$id = self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX;
-		update_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, sanitize_text_field( $network_code ) );
-		return true;
-	}
-
-	/**
-	 * Retrieve the header code for a service.
-	 *
-	 * @param string $service The service.
-	 * @return string $network_code The code.
-	 */
-	public static function get_network_code( $service ) {
-		$network_code = get_option( self::NEWSPACK_ADS_SERVICE_PREFIX . $service . self::NEWSPACK_ADS_NETWORK_CODE_SUFFIX, '' );
-		return absint( $network_code ); // Google Ad Manager network code is a numeric identifier https://support.google.com/admanager/answer/7674889?hl=en.
-	}
-
-	/**
 	 * Sanitize an ad unit.
 	 *
 	 * @param array $ad_unit The ad unit to sanitize.
