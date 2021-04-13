@@ -166,6 +166,15 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Retrieve the header code.
+	 *
+	 * @return string $network_code The code.
+	 */
+	public static function get_network_code() {
+		return Newspack_Ads_GAM::get_gam_network_code();
+	}
+
+	/**
 	 * Sanitize an ad unit.
 	 *
 	 * @param array $ad_unit The ad unit to sanitize.

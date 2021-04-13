@@ -85,6 +85,14 @@ class Newspack_Ads_GAM {
 			return new WP_Error( 'newspack_ads', __( 'Missing GAM Ad network.', 'newspack-ads' ) );
 		}
 		return $networks[0];
+
+	/**
+	 * Get user's GAM network code.
+	 *
+	 * @return int GAM network code.
+	 */
+	public static function get_gam_network_code() {
+		return self::get_gam_network()->getNetworkCode();
 	}
 
 	/**
@@ -103,7 +111,7 @@ class Newspack_Ads_GAM {
 		$config        = new Configuration(
 			[
 				'AD_MANAGER' => [
-					'networkCode'     => self::get_gam_network()->getNetworkCode(),
+					'networkCode'     => self::get_gam_network_code(),
 					'applicationName' => self::GAM_APP_NAME_FOR_LOGS,
 				],
 			]
@@ -152,7 +160,7 @@ class Newspack_Ads_GAM {
 		$session         = self::get_gam_session();
 		return [
 			'user_email'   => $service_factory->createUserService( $session )->getCurrentUser()->getEmail(),
-			'network_code' => self::get_gam_network()->getNetworkCode(),
+			'network_code' => self::get_gam_network_code(),
 		];
 	}
 
