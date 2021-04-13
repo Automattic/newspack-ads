@@ -111,44 +111,7 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-		// Sanitise the values.
-		$ad_unit = self::sanitise_ad_unit( $ad_unit );
-		if ( \is_wp_error( $ad_unit ) ) {
-			return $ad_unit;
-		}
-
-		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
-
-		// Save the ad unit.
-		$ad_unit_post = \wp_insert_post(
-			array(
-				'post_author' => \get_current_user_id(),
-				'post_title'  => $name,
-				'post_type'   => self::$custom_post_type,
-				'post_status' => 'publish',
-			)
-		);
-		if ( \is_wp_error( $ad_unit_post ) ) {
-			return new WP_Error(
-				'newspack_ad_unit_exists',
-				\esc_html__( 'An ad unit with that name already exists', 'newspack' ),
-				array(
-					'status' => '400',
-				)
-			);
-		}
-
-		// Add the code to our new post.
-		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
-		\add_post_meta( $ad_unit_post, self::CODE, $ad_unit[ self::CODE ] );
-
-		return array(
-			'id'             => $ad_unit_post,
-			'name'           => $ad_unit['name'],
-			self::SIZES      => $ad_unit[ self::SIZES ],
-			self::CODE       => $ad_unit[ self::CODE ],
-			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
-		);
+		return Newspack_Ads_GAM::create_ad_unit( $ad_unit );
 	}
 
 	/**

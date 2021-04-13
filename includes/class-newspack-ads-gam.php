@@ -5,12 +5,17 @@
  * @package Newspack
  */
 
+use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerServices;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
-use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
+use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
-use Google\AdsApi\Common\Configuration;
+use Google\AdsApi\AdManager\v202102\AdUnit;
+use Google\AdsApi\AdManager\v202102\AdUnitSize;
+use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202102\EnvironmentType;
+use Google\AdsApi\AdManager\v202102\Size;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -171,27 +176,76 @@ class Newspack_Ads_GAM {
 						// There are these phantom ad units with 'ca-pub-<int>' names.
 						continue;
 					}
-					$ad_unit = [
-						'id'     => $item->getId(),
-						'code'   => $item->getAdUnitCode(),
-						'status' => $item->getStatus(),
-						'name'   => $ad_unit_name,
-						'sizes'  => [],
-					];
-					$sizes   = $item->getAdUnitSizes();
-					if ( $sizes ) {
-						foreach ( $sizes as $size ) {
-							$size               = $size->getSize();
-							$ad_unit['sizes'][] = [ $size->getWidth(), $size->getHeight() ];
-						}
-					}
-					$gam_ad_units[] = $ad_unit;
+					$gam_ad_units[] = self::serialize_ad_unit($item);
 				}
 			}
 			$statement_builder->increaseOffsetBy( StatementBuilder::SUGGESTED_PAGE_LIMIT );
 		} while ( $statement_builder->getOffset() < $total_result_set_size );
 
 		return $gam_ad_units;
+	}
+
+	/**
+	 * Serialize Ad Unit.
+	 *
+	 * @param object Ad Unit.
+	 * @return object Ad Unit.
+	 */
+	private static function serialize_ad_unit($gam_ad_unit){
+		$ad_unit = [
+			'id'     => $gam_ad_unit->getId(),
+			'code'   => $gam_ad_unit->getAdUnitCode(),
+			'status' => $gam_ad_unit->getStatus(),
+			'name'   => $gam_ad_unit->getName(),
+			'sizes'  => [],
+		];
+		$sizes   = $gam_ad_unit->getAdUnitSizes();
+		if ( $sizes ) {
+			foreach ( $sizes as $size ) {
+				$size               = $size->getSize();
+				$ad_unit['sizes'][] = [ $size->getWidth(), $size->getHeight() ];
+			}
+		}
+		return $ad_unit;
+	}
+
+	/**
+	 * Create a GAM Ad Unit.
+	 *
+	 * @param int Id of the ad unit to archive.
+	 */
+	public static function create_ad_unit( $ad_unit_config ) {
+		$network = self::get_gam_network();
+		$inventory_service = self::get_gam_inventory_service();
+
+		$name = $ad_unit_config['name'];
+		$sizes = $ad_unit_config['sizes'];
+		$slug = substr(sanitize_title($name), 0, 80); // Ad unit code can have 100 characters at most.
+
+		$ad_unit = new AdUnit();
+		$ad_unit->setName($name);
+		$ad_unit->setAdUnitCode(uniqid($slug . '-'));
+		$ad_unit->setParentId($network->getEffectiveRootAdUnitId());
+		$ad_unit->setTargetWindow(AdUnitTargetWindow::BLANK);
+
+		$ad_unit_sizes = [];
+		foreach ($sizes as $size_spec) {
+			$size = new Size();
+			$size->setWidth($size_spec[0]);
+			$size->setHeight($size_spec[1]);
+			$size->setIsAspectRatio(false);
+			$ad_unit_size = new AdUnitSize();
+			$ad_unit_size->setSize($size);
+			$ad_unit_size->setEnvironmentType(EnvironmentType::BROWSER);
+			$ad_unit_sizes[] = $ad_unit_size;
+		}
+		$ad_unit->setAdUnitSizes($ad_unit_sizes);
+
+		$created_ad_units = $inventory_service->createAdUnits([$ad_unit]);
+		if (empty($created_ad_units)) {
+			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
+		}
+		return self::serialize_ad_unit($created_ad_units[0]);
 	}
 
 	/**
