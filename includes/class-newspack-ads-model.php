@@ -173,7 +173,7 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Update an ad unit
+	 * Update an ad unit. Updating the code is not possible, it's set at ad unit creation.
 	 *
 	 * @param array $ad_unit The updated ad unit.
 	 */
@@ -204,14 +204,12 @@ class Newspack_Ads_Model {
 			)
 		);
 		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
-		\update_post_meta( $ad_unit['id'], self::CODE, $ad_unit[ self::CODE ] );
 		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
 
 		return array(
 			'id'             => $ad_unit['id'],
 			'name'           => $ad_unit['name'],
 			self::SIZES      => $ad_unit[ self::SIZES ],
-			self::CODE       => $ad_unit[ self::CODE ],
 			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
 		);
 	}
