@@ -37,32 +37,41 @@ class Newspack_Ads_GAM {
 	private static $session = null;
 
 	/**
+	 * Get OAuth2 credentials.
+	 *
+	 * @return object OAuth2 credentials.
+	 */
+	private static function get_google_oauth2_credentials() {
+		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
+			return \Newspack\Google_Services_Connection::get_oauth2_credentials();
+		} else {
+			return new WP_Error( 'newspack_google_connection_missing', __( 'Please activate the Newspack Plugin.', 'newspack-ads' ) );
+		}
+	}
+
+	/**
 	 * Get GAM networks the authenticated user has access to.
 	 *
 	 * @return int[] Array of networks.
 	 */
 	private static function get_gam_networks() {
-		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			if ( empty( self::$networks ) ) {
-				// Create a configuration and session to get the network codes.
-				$config = new Configuration(
-					[
-						'AD_MANAGER' => [
-							'networkCode'     => '-', // Provide non-empty network code to pass validation.
-							'applicationName' => self::GAM_APP_NAME_FOR_LOGS,
-						],
-					]
-				);
+		if ( empty( self::$networks ) ) {
+			// Create a configuration and session to get the network codes.
+			$config = new Configuration(
+				[
+					'AD_MANAGER' => [
+						'networkCode'     => '-', // Provide non-empty network code to pass validation.
+						'applicationName' => self::GAM_APP_NAME_FOR_LOGS,
+					],
+				]
+			);
 
-				$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
-				$session            = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-				$service_factory    = new ServiceFactory();
-				self::$networks     = $service_factory->createNetworkService( $session )->getAllNetworks();
-			}
-			return self::$networks;
-		} else {
-			return new WP_Error( 'newspack_google_connection_missing', __( 'Please activate the Newspack Plugin.', 'newspack-ads' ) );
+			$oauth2_credentials = self::get_google_oauth2_credentials();
+			$session            = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
+			$service_factory    = new ServiceFactory();
+			self::$networks     = $service_factory->createNetworkService( $session )->getAllNetworks();
 		}
+		return self::$networks;
 	}
 
 	/**
@@ -84,28 +93,24 @@ class Newspack_Ads_GAM {
 	 * @return object GAM Session.
 	 */
 	private static function get_gam_session() {
-		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			if ( self::$session ) {
-				return self::$session;
-			}
-			$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
-			$service_factory    = new ServiceFactory();
-
-			// Create a new configuration and session, with a network code.
-			$config        = new Configuration(
-				[
-					'AD_MANAGER' => [
-						'networkCode'     => self::get_gam_network()->getNetworkCode(),
-						'applicationName' => self::GAM_APP_NAME_FOR_LOGS,
-					],
-				]
-			);
-			self::$session = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-
+		if ( self::$session ) {
 			return self::$session;
-		} else {
-			return new WP_Error( 'newspack_google_connection_missing', __( 'Please activate the Newspack Plugin.', 'newspack-ads' ) );
 		}
+		$oauth2_credentials = self::get_google_oauth2_credentials();
+		$service_factory    = new ServiceFactory();
+
+		// Create a new configuration and session, with a network code.
+		$config        = new Configuration(
+			[
+				'AD_MANAGER' => [
+					'networkCode'     => self::get_gam_network()->getNetworkCode(),
+					'applicationName' => self::GAM_APP_NAME_FOR_LOGS,
+				],
+			]
+		);
+		self::$session = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
+
+		return self::$session;
 	}
 
 	/**
@@ -176,7 +181,7 @@ class Newspack_Ads_GAM {
 						// There are these phantom ad units with 'ca-pub-<int>' names.
 						continue;
 					}
-					$gam_ad_units[] = self::serialize_ad_unit($item);
+					$gam_ad_units[] = self::serialize_ad_unit( $item );
 				}
 			}
 			$statement_builder->increaseOffsetBy( StatementBuilder::SUGGESTED_PAGE_LIMIT );
@@ -191,7 +196,7 @@ class Newspack_Ads_GAM {
 	 * @param object Ad Unit.
 	 * @return object Ad Unit.
 	 */
-	private static function serialize_ad_unit($gam_ad_unit){
+	private static function serialize_ad_unit( $gam_ad_unit ) {
 		$ad_unit = [
 			'id'     => $gam_ad_unit->getId(),
 			'code'   => $gam_ad_unit->getAdUnitCode(),
@@ -215,37 +220,37 @@ class Newspack_Ads_GAM {
 	 * @param int Id of the ad unit to archive.
 	 */
 	public static function create_ad_unit( $ad_unit_config ) {
-		$network = self::get_gam_network();
+		$network           = self::get_gam_network();
 		$inventory_service = self::get_gam_inventory_service();
 
-		$name = $ad_unit_config['name'];
+		$name  = $ad_unit_config['name'];
 		$sizes = $ad_unit_config['sizes'];
-		$slug = substr(sanitize_title($name), 0, 80); // Ad unit code can have 100 characters at most.
+		$slug  = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
 
 		$ad_unit = new AdUnit();
-		$ad_unit->setName($name);
-		$ad_unit->setAdUnitCode(uniqid($slug . '-'));
-		$ad_unit->setParentId($network->getEffectiveRootAdUnitId());
-		$ad_unit->setTargetWindow(AdUnitTargetWindow::BLANK);
+		$ad_unit->setName( $name );
+		$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
+		$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
+		$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
 
 		$ad_unit_sizes = [];
-		foreach ($sizes as $size_spec) {
+		foreach ( $sizes as $size_spec ) {
 			$size = new Size();
-			$size->setWidth($size_spec[0]);
-			$size->setHeight($size_spec[1]);
-			$size->setIsAspectRatio(false);
+			$size->setWidth( $size_spec[0] );
+			$size->setHeight( $size_spec[1] );
+			$size->setIsAspectRatio( false );
 			$ad_unit_size = new AdUnitSize();
-			$ad_unit_size->setSize($size);
-			$ad_unit_size->setEnvironmentType(EnvironmentType::BROWSER);
+			$ad_unit_size->setSize( $size );
+			$ad_unit_size->setEnvironmentType( EnvironmentType::BROWSER );
 			$ad_unit_sizes[] = $ad_unit_size;
 		}
-		$ad_unit->setAdUnitSizes($ad_unit_sizes);
+		$ad_unit->setAdUnitSizes( $ad_unit_sizes );
 
-		$created_ad_units = $inventory_service->createAdUnits([$ad_unit]);
-		if (empty($created_ad_units)) {
+		$created_ad_units = $inventory_service->createAdUnits( [ $ad_unit ] );
+		if ( empty( $created_ad_units ) ) {
 			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
-		return self::serialize_ad_unit($created_ad_units[0]);
+		return self::serialize_ad_unit( $created_ad_units[0] );
 	}
 
 	/**
