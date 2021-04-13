@@ -28,11 +28,15 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Codes of networks that the user has access to.
+	 *
+	 * @var Network[]
 	 */
 	private static $networks = [];
 
 	/**
 	 * Reusable GAM session.
+	 *
+	 * @var AdManagerSession
 	 */
 	private static $session = null;
 
@@ -52,7 +56,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get GAM networks the authenticated user has access to.
 	 *
-	 * @return int[] Array of networks.
+	 * @return Network[] Array of networks.
 	 */
 	private static function get_gam_networks() {
 		if ( empty( self::$networks ) ) {
@@ -77,7 +81,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get user's GAM network. Assumes the user has access to just one.
 	 *
-	 * @return object GAM network.
+	 * @return Network GAM network.
 	 */
 	private static function get_gam_network() {
 		$networks = self::get_gam_networks();
@@ -99,7 +103,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get GAM session for making API requests.
 	 *
-	 * @return object GAM Session.
+	 * @return AdManagerSession GAM Session.
 	 */
 	private static function get_gam_session() {
 		if ( self::$session ) {
@@ -125,7 +129,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Create inventory service.
 	 *
-	 * @return object Inventory service.
+	 * @return InventoryService Inventory service.
 	 */
 	private static function get_gam_inventory_service() {
 		$service_factory = new ServiceFactory();
@@ -136,7 +140,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
-	 * @param int[] Optional array of ad unit ids.
+	 * @param int[] $ids Optional array of ad unit ids.
 	 * @return StatementBuilder Statement builder.
 	 */
 	private static function get_serialised_gam_ad_units_statement_builder( $ids = [] ) {
@@ -154,7 +158,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get details of the authorised GAM user.
 	 *
-	 * @param object Details of the user.
+	 * @return object Details of the user.
 	 */
 	public static function get_user_details() {
 		$service_factory = new ServiceFactory();
@@ -167,8 +171,10 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get all GAM Ad Units in the user's network.
+	 * If $ids parameter is not specified, will return all ad units found.
 	 *
-	 * @return int[] Array of ad units.
+	 * @param int[] $ids Optional array of ad unit ids.
+	 * @return AdUnit[] Array of AdUnits.
 	 */
 	private static function get_gam_ad_units( $ids = [] ) {
 		$gam_ad_units      = [];
@@ -200,9 +206,10 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get all GAM Ad Units in the user's network.
+	 * Get all GAM Ad Units in the user's network, serialised.
 	 *
-	 * @return int[] Array of serialised ad units.
+	 * @param int[] $ids Optional array of ad unit ids.
+	 * @return object[] Array of serialised ad units.
 	 */
 	public static function get_serialised_gam_ad_units( $ids = [] ) {
 		$ad_units            = self::get_gam_ad_units( $ids );
@@ -216,8 +223,8 @@ class Newspack_Ads_GAM {
 	/**
 	 * Serialize Ad Unit.
 	 *
-	 * @param object Ad Unit.
-	 * @return object Ad Unit.
+	 * @param AdUnit $gam_ad_unit An AdUnit.
+	 * @return object Ad Unit configuration.
 	 */
 	private static function serialize_ad_unit( $gam_ad_unit ) {
 		$ad_unit = [
@@ -239,10 +246,12 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Modify a GAM Ad Unit.
+	 * Given a configuration object and an AdUnit instance, return modified AdUnit.
+	 * If the AdUnit is not provided, create a new one.
 	 *
-	 * @param object Configuration for an Ad Unit.
-	 * @param object Ad Unit.
-	 * @return object Ad Unit.
+	 * @param object $ad_unit_config Configuration for an Ad Unit.
+	 * @param AdUnit $ad_unit Ad Unit.
+	 * @return AdUnit Ad Unit.
 	 */
 	private static function modify_ad_unit( $ad_unit_config, $ad_unit = null ) {
 		$name  = $ad_unit_config['name'];
@@ -277,8 +286,8 @@ class Newspack_Ads_GAM {
 	/**
 	 * Update Ad Unit.
 	 *
-	 * @param object Ad Unit.
-	 * @return object Ad Unit.
+	 * @param object $ad_unit_config Ad Unit configuration.
+	 * @return AdUnit Updated AdUnit.
 	 */
 	public static function update_ad_unit( $ad_unit_config ) {
 		$inventory_service = self::get_gam_inventory_service();
@@ -289,12 +298,17 @@ class Newspack_Ads_GAM {
 		$result = $inventory_service->updateAdUnits(
 			[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
 		);
+		if ( empty( $result ) ) {
+			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+		}
+		return $result[0];
 	}
 
 	/**
 	 * Create a GAM Ad Unit.
 	 *
-	 * @param int Id of the ad unit to archive.
+	 * @param object $ad_unit_config Configuration of the ad unit.
+	 * @return AdUnit Created AdUnit.
 	 */
 	public static function create_ad_unit( $ad_unit_config ) {
 		$network           = self::get_gam_network();
@@ -310,7 +324,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Archive a single GAM Ad Unit.
 	 *
-	 * @param int Id of the ad unit to archive.
+	 * @param int $id Id of the ad unit to archive.
 	 */
 	public static function archive_ad_unit( $id ) {
 		$action            = new ArchiveAdUnitsAction();
@@ -321,7 +335,7 @@ class Newspack_Ads_GAM {
 			$action,
 			$statement_builder->toStatement()
 		);
-		if ( $result !== null && $result->getNumChanges() > 0 ) {
+		if ( null !== $result && $result->getNumChanges() > 0 ) {
 			return true;
 		} else {
 			return false;
