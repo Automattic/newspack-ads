@@ -199,27 +199,7 @@ class Newspack_Ads_Model {
 	 * @param integer $id The id of the ad unit to delete.
 	 */
 	public static function delete_ad_unit( $id ) {
-		$ad_unit_post = \get_post( $id );
-		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
-			return new WP_Error(
-				'newspack_ad_unit_not_exists',
-				\esc_html__( "Can't delete an ad unit that doesn't already exist", 'newspack' ),
-				array(
-					'status' => '400',
-				)
-			);
-		}
-		if ( $ad_unit_post->post_type !== self::$custom_post_type ) {
-			return new WP_Error(
-				'newspack_ad_unit_incorrect_type',
-				\esc_html__( 'Post is not a Newspack Ad Unit. Cannot be deleted.', 'newspack' ),
-				array(
-					'status' => '400',
-				)
-			);
-		}
-		\wp_delete_post( $id );
-		return true;
+		return Newspack_Ads_GAM::archive_ad_unit( $id );
 	}
 
 	/**
