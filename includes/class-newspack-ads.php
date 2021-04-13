@@ -38,6 +38,15 @@ final class Newspack_Ads {
 	public function __construct() {
 		$this->define_constants();
 		$this->includes();
+
+		// Ensure Site Kit asks for sufficient scopes to manage Google Ad Manager.
+		add_filter(
+			'googlesitekit_auth_scopes',
+			function( array $scopes ) {
+				return array_merge( $scopes, [ 'https://www.googleapis.com/auth/dfp' ] );
+			},
+			1
+		);
 	}
 
 	/**
@@ -54,6 +63,7 @@ final class Newspack_Ads {
 	 */
 	private function includes() {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-blocks.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-gam.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-model.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-widget.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/suppress-ads.php';

@@ -99,31 +99,10 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Get the ad units from our saved option.
+	 * Get the ad units.
 	 */
 	public static function get_ad_units() {
-		$ad_units = array();
-		$args     = array(
-			'post_type'      => self::$custom_post_type,
-			'posts_per_page' => 100,
-			'post_status'    => [ 'publish' ],
-		);
-
-		$query = new \WP_Query( $args );
-		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$ad_units[] = array(
-					'id'             => \get_the_ID(),
-					'name'           => html_entity_decode( \get_the_title(), ENT_QUOTES ),
-					self::SIZES      => self::sanitize_sizes( \get_post_meta( get_the_ID(), self::SIZES, true ) ),
-					self::CODE       => esc_html( \get_post_meta( get_the_ID(), self::CODE, true ) ),
-					self::AD_SERVICE => \get_post_meta( get_the_ID(), self::AD_SERVICE, true ),
-				);
-			}
-		}
-
-		return $ad_units;
+		return Newspack_Ads_GAM::get_gam_ad_units();
 	}
 
 	/**
