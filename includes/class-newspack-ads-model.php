@@ -102,7 +102,7 @@ class Newspack_Ads_Model {
 	 * Get the ad units.
 	 */
 	public static function get_ad_units() {
-		return Newspack_Ads_GAM::get_gam_ad_units();
+		return Newspack_Ads_GAM::get_serialised_gam_ad_units();
 	}
 
 	/**
@@ -120,40 +120,7 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The updated ad unit.
 	 */
 	public static function update_ad_unit( $ad_unit ) {
-		// Sanitise the values.
-		$ad_unit = self::sanitise_ad_unit( $ad_unit );
-		if ( \is_wp_error( $ad_unit ) ) {
-			return $ad_unit;
-		}
-
-		$ad_unit_post = \get_post( $ad_unit['id'] );
-		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
-			return new WP_Error(
-				'newspack_ad_unit_not_exists',
-				\esc_html__( "Can't update an ad unit that doesn't already exist", 'newspack' ),
-				array(
-					'status' => '400',
-				)
-			);
-		}
-
-		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
-
-		\wp_update_post(
-			array(
-				'ID'         => $ad_unit['id'],
-				'post_title' => $name,
-			)
-		);
-		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
-		\update_post_meta( $ad_unit['id'], self::AD_SERVICE, $ad_unit[ self::AD_SERVICE ] );
-
-		return array(
-			'id'             => $ad_unit['id'],
-			'name'           => $ad_unit['name'],
-			self::SIZES      => $ad_unit[ self::SIZES ],
-			self::AD_SERVICE => $ad_unit[ self::AD_SERVICE ],
-		);
+		return Newspack_Ads_GAM::update_ad_unit( $ad_unit );
 	}
 
 	/**

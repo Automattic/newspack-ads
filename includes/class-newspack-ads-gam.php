@@ -85,6 +85,7 @@ class Newspack_Ads_GAM {
 			return new WP_Error( 'newspack_ads', __( 'Missing GAM Ad network.', 'newspack-ads' ) );
 		}
 		return $networks[0];
+	}
 
 	/**
 	 * Get user's GAM network code.
@@ -138,7 +139,7 @@ class Newspack_Ads_GAM {
 	 * @param int[] Optional array of ad unit ids.
 	 * @return StatementBuilder Statement builder.
 	 */
-	private static function get_gam_ad_units_statement_builder( $ids = [] ) {
+	private static function get_serialised_gam_ad_units_statement_builder( $ids = [] ) {
 		$inventory_service = self::get_gam_inventory_service();
 
 		// Create a statement to select items.
@@ -169,9 +170,9 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return int[] Array of ad units.
 	 */
-	public static function get_gam_ad_units( $ids = [] ) {
+	private static function get_gam_ad_units( $ids = [] ) {
 		$gam_ad_units      = [];
-		$statement_builder = self::get_gam_ad_units_statement_builder( $ids );
+		$statement_builder = self::get_serialised_gam_ad_units_statement_builder( $ids );
 		$inventory_service = self::get_gam_inventory_service();
 
 		// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
@@ -189,13 +190,27 @@ class Newspack_Ads_GAM {
 						// There are these phantom ad units with 'ca-pub-<int>' names.
 						continue;
 					}
-					$gam_ad_units[] = self::serialize_ad_unit( $item );
+					$gam_ad_units[] = $item;
 				}
 			}
 			$statement_builder->increaseOffsetBy( StatementBuilder::SUGGESTED_PAGE_LIMIT );
 		} while ( $statement_builder->getOffset() < $total_result_set_size );
 
 		return $gam_ad_units;
+	}
+
+	/**
+	 * Get all GAM Ad Units in the user's network.
+	 *
+	 * @return int[] Array of serialised ad units.
+	 */
+	public static function get_serialised_gam_ad_units( $ids = [] ) {
+		$ad_units            = self::get_gam_ad_units( $ids );
+		$ad_units_serialised = [];
+		foreach ( $ad_units as $ad_unit ) {
+			$ad_units_serialised[] = self::serialize_ad_unit( $ad_unit );
+		}
+		return $ad_units_serialised;
 	}
 
 	/**
@@ -223,23 +238,25 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create a GAM Ad Unit.
+	 * Modify a GAM Ad Unit.
 	 *
-	 * @param int Id of the ad unit to archive.
+	 * @param object Configuration for an Ad Unit.
+	 * @param object Ad Unit.
+	 * @return object Ad Unit.
 	 */
-	public static function create_ad_unit( $ad_unit_config ) {
-		$network           = self::get_gam_network();
-		$inventory_service = self::get_gam_inventory_service();
-
+	private static function modify_ad_unit( $ad_unit_config, $ad_unit = null ) {
 		$name  = $ad_unit_config['name'];
 		$sizes = $ad_unit_config['sizes'];
 		$slug  = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
 
-		$ad_unit = new AdUnit();
+		if ( null === $ad_unit ) {
+			$ad_unit = new AdUnit();
+			$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
+			$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
+			$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
+		}
+
 		$ad_unit->setName( $name );
-		$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
-		$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
-		$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
 
 		$ad_unit_sizes = [];
 		foreach ( $sizes as $size_spec ) {
@@ -254,7 +271,36 @@ class Newspack_Ads_GAM {
 		}
 		$ad_unit->setAdUnitSizes( $ad_unit_sizes );
 
-		$created_ad_units = $inventory_service->createAdUnits( [ $ad_unit ] );
+		return $ad_unit;
+	}
+
+	/**
+	 * Update Ad Unit.
+	 *
+	 * @param object Ad Unit.
+	 * @return object Ad Unit.
+	 */
+	public static function update_ad_unit( $ad_unit_config ) {
+		$inventory_service = self::get_gam_inventory_service();
+		$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
+		if ( empty( $found_ad_units ) ) {
+			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not found.', 'newspack-ads' ) );
+		}
+		$result = $inventory_service->updateAdUnits(
+			[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
+		);
+	}
+
+	/**
+	 * Create a GAM Ad Unit.
+	 *
+	 * @param int Id of the ad unit to archive.
+	 */
+	public static function create_ad_unit( $ad_unit_config ) {
+		$network           = self::get_gam_network();
+		$inventory_service = self::get_gam_inventory_service();
+		$ad_unit           = self::modify_ad_unit( $ad_unit_config );
+		$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
 		if ( empty( $created_ad_units ) ) {
 			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
@@ -270,7 +316,7 @@ class Newspack_Ads_GAM {
 		$action            = new ArchiveAdUnitsAction();
 		$inventory_service = self::get_gam_inventory_service();
 
-		$statement_builder = self::get_gam_ad_units_statement_builder( [ $id ] );
+		$statement_builder = self::get_serialised_gam_ad_units_statement_builder( [ $id ] );
 		$result            = $inventory_service->performAdUnitAction(
 			$action,
 			$statement_builder->toStatement()
