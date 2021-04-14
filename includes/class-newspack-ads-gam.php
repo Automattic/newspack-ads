@@ -263,6 +263,7 @@ class Newspack_Ads_GAM {
 		if ( null === $ad_unit ) {
 			$ad_unit = new AdUnit();
 			$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
+			$network = self::get_gam_network();
 			$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
 			$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
 		}
