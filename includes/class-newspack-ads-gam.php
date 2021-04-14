@@ -146,9 +146,11 @@ class Newspack_Ads_GAM {
 	private static function get_serialised_gam_ad_units_statement_builder( $ids = [] ) {
 		$inventory_service = self::get_gam_inventory_service();
 
-		// Create a statement to select items.
+		// Get all non-archived ad units, unless ids are specified.
 		$statement_builder = new StatementBuilder();
-		if ( ! empty( $ids ) ) {
+		if ( empty( $ids ) ) {
+			$statement_builder = $statement_builder->where( "Status IN('ACTIVE', 'INACTIVE')" );
+		} else {
 			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		}
 		$statement_builder->orderBy( 'name ASC' )->limit( StatementBuilder::SUGGESTED_PAGE_LIMIT );
