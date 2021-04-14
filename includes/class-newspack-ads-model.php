@@ -56,13 +56,14 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Get a single ad unit.
+	 * Get a single ad unit to display on the page.
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
 	 * @param string $placement The id of the placement region.
 	 * @param string $context An optional parameter to describe the context of the ad. For example, in the Widget, the widget ID.
+	 * @return object Prepared ad unit, with markup for injecting on a page.
 	 */
-	public static function get_ad_unit( $id, $placement = null, $context = null ) {
+	public static function get_ad_unit_for_display( $id, $placement = null, $context = null ) {
 		$ad_unit               = \get_post( $id );
 		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
