@@ -14,8 +14,7 @@ class Newspack_Ads_Model {
 	const SIZES      = 'sizes';
 	const CODE       = 'code';
 
-	const NEWSPACK_ADS_SERVICE_PREFIX      = '_newspack_ads_service_';
-	const NEWSPACK_ADS_NETWORK_CODE_SUFFIX = '_network_code';
+	const OPTION_NAME_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
 
 	/**
 	 * Custom post type
@@ -103,7 +102,9 @@ class Newspack_Ads_Model {
 	 * Get the ad units.
 	 */
 	public static function get_ad_units() {
-		return Newspack_Ads_GAM::get_serialised_gam_ad_units();
+		$ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+		self::sync_gam_settings( $ad_units );
+		return $ad_units;
 	}
 
 	/**
@@ -134,12 +135,35 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Retrieve the header code.
+	 * Retrieve the network code.
 	 *
-	 * @return string $network_code The code.
+	 * @return string The network code.
 	 */
 	public static function get_network_code() {
-		return Newspack_Ads_GAM::get_gam_network_code();
+		$network_code = get_option( self::OPTION_NAME_NETWORK_CODE, '' );
+		return absint( $network_code );
+	}
+
+	/**
+	 * Save GAM configuration locally.
+	 * First reson is that GAM API is not queried on frontend requests - information
+	 * about ad units & GAM settings will be read from the DB.
+	 * Second reason is backwards compatibility - in a previous version of the plugin,
+	 * the sync was done manually.
+	 *
+	 * @param object[] $serialised_ad_units An array of ad units configurations.
+	 * @param object   $settings Other GAM settings, the network code among them.
+	 */
+	public static function sync_gam_settings( $serialised_ad_units = null, $settings = null ) {
+		if ( null === $serialised_ad_units ) {
+			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+		}
+		if ( null === $settings ) {
+			$settings = Newspack_Ads_GAM::get_gam_settings();
+		}
+		if ( isset( $settings['network_code'] ) ) {
+			update_option( self::OPTION_NAME_NETWORK_CODE, sanitize_text_field( $settings['network_code'] ) );
+		}
 	}
 
 	/**
@@ -213,7 +237,7 @@ class Newspack_Ads_Model {
 	public static function code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
-		$network_code = self::get_network_code( 'google_ad_manager' );
+		$network_code = self::get_network_code();
 		$unique_id    = uniqid();
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
@@ -238,7 +262,7 @@ class Newspack_Ads_Model {
 	public static function amp_code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
-		$network_code = self::get_network_code( 'google_ad_manager' );
+		$network_code = self::get_network_code();
 		$targeting    = self::get_ad_targeting( $ad_unit );
 		$unique_id    = uniqid();
 
@@ -298,7 +322,7 @@ class Newspack_Ads_Model {
 	 * @param string $unique_id Unique ID for this ad unit instance.
 	 */
 	public static function ad_elements_for_sizes( $ad_unit, $unique_id ) {
-		$network_code = self::get_network_code( 'google_ad_manager' );
+		$network_code = self::get_network_code();
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
 		$targeting    = self::get_ad_targeting( $ad_unit );

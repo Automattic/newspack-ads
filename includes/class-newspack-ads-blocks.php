@@ -147,7 +147,7 @@ class Newspack_Ads_Blocks {
 			return;
 		}
 
-		$network_code = Newspack_Ads_Model::get_network_code( 'google_ad_manager' );
+		$network_code = Newspack_Ads_Model::get_network_code();
 
 		$prepared_unit_data = [];
 		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {

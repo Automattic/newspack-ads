@@ -96,7 +96,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return int GAM network code.
 	 */
-	public static function get_gam_network_code() {
+	private static function get_gam_network_code() {
 		return self::get_gam_network()->getNetworkCode();
 	}
 
@@ -160,7 +160,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return object Details of the user.
 	 */
-	public static function get_user_details() {
+	public static function get_gam_settings() {
 		$service_factory = new ServiceFactory();
 		$session         = self::get_gam_session();
 		return [
