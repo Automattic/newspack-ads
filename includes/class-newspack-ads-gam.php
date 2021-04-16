@@ -43,11 +43,16 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get OAuth2 credentials.
 	 *
+	 * @throws \Exception If the user is not authenticated.
 	 * @return object OAuth2 credentials.
 	 */
 	private static function get_google_oauth2_credentials() {
 		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			return \Newspack\Google_Services_Connection::get_oauth2_credentials();
+			$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
+			if ( false === $oauth2_credentials ) {
+				throw new \Exception( __( 'Please authenticate Newspack with Google.', 'newspack-ads' ), 1 );
+			}
+			return $oauth2_credentials;
 		} else {
 			return new WP_Error( 'newspack_google_connection_missing', __( 'Please activate the Newspack Plugin.', 'newspack-ads' ) );
 		}
