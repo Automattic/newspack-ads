@@ -1,3 +1,11 @@
+# [1.13.0](https://github.com/Automattic/newspack-ads/compare/v1.12.0...v1.13.0) (2021-04-20)
+
+
+### Features
+
+* update block icon ([#116](https://github.com/Automattic/newspack-ads/issues/116)) ([6831c72](https://github.com/Automattic/newspack-ads/commit/6831c7283986d50f1bc649c35c4a95043246dcec))
+* update block placeholder and alignment options ([#121](https://github.com/Automattic/newspack-ads/issues/121)) ([744bb3d](https://github.com/Automattic/newspack-ads/commit/744bb3db96388dec987578a2874bd44fe2613918))
+
 # [1.12.0](https://github.com/Automattic/newspack-ads/compare/v1.11.1...v1.12.0) (2021-02-25)
 
 
