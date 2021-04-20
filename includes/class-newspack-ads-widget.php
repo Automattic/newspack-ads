@@ -85,6 +85,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 						<option
 							value="<?php echo esc_attr( $ad_unit['id'] ); ?>"
 							<?php selected( $selected_ad_unit, $ad_unit['id'] ); ?>
+							<?php echo esc_attr( $ad_unit['status'] === 'INACTIVE' ? 'disabled' : '' ); ?>
 						>
 							<?php echo esc_html( $ad_unit['name'] ); ?>
 						</option>
