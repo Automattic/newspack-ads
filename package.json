@@ -10,7 +10,7 @@
     "@commitlint/config-conventional": "^8.3.4",
     "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
-    "@wordpress/base-styles": "^1.4.0",
+    "@wordpress/base-styles": "^3.4.1",
     "@wordpress/blocks": "^6.4.0",
     "@wordpress/element": "^2.5.0",
     "@wordpress/eslint-plugin": "^4.0.0",
@@ -137,7 +137,6 @@
     "@wordpress/data": "^4.14.1",
     "@wordpress/edit-post": "^3.13.6",
     "@wordpress/i18n": "^3.9.0",
-    "@wordpress/icons": "^2.8.0",
     "@wordpress/plugins": "^2.12.0"
   }
 }
