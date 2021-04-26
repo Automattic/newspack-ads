@@ -17,7 +17,6 @@ class Newspack_Ads_Model {
 	 *
 	 * @var string
 	 */
-
 	public static $custom_post_type = 'newspack_ad_codes';
 
 	/**
@@ -118,12 +117,41 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Get the legacy ad units (defined as CPTs).
+	 */
+	private static function get_legacy_ad_units() {
+		$legacy_ad_units = [];
+		$query           = new \WP_Query(
+			[
+				'post_type'      => self::$custom_post_type,
+				'posts_per_page' => 100,
+				'post_status'    => [ 'publish' ],
+			]
+		);
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				$legacy_ad_units[] = [
+					'id'        => \get_the_ID(),
+					'name'      => html_entity_decode( \get_the_title(), ENT_QUOTES ) . ' ' . __( '(legacy)', 'newspack' ),
+					'sizes'     => self::sanitize_sizes( \get_post_meta( get_the_ID(), 'sizes', true ) ),
+					'code'      => esc_html( \get_post_meta( get_the_ID(), 'code', true ) ),
+					'status'    => 'ACTIVE',
+					'is_legacy' => true,
+				];
+			}
+		}
+		return $legacy_ad_units;
+	}
+
+	/**
 	 * Get the ad units.
 	 */
 	public static function get_ad_units() {
 		$ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		self::sync_gam_settings( $ad_units );
-		return $ad_units;
+		$legacy_ad_units = self::get_legacy_ad_units();
+		return array_merge( $ad_units, $legacy_ad_units );
 	}
 
 	/**
@@ -154,9 +182,15 @@ class Newspack_Ads_Model {
 	 * @param integer $id The id of the ad unit to delete.
 	 */
 	public static function delete_ad_unit( $id ) {
-		$result = Newspack_Ads_GAM::archive_ad_unit( $id );
-		self::sync_gam_settings();
-		return $result;
+		$ad_unit_cpt = \get_post( $id );
+		if ( is_a( $ad_unit_cpt, 'WP_Post' ) ) {
+			\wp_delete_post( $id );
+			return true;
+		} else {
+			$result = Newspack_Ads_GAM::archive_ad_unit( $id );
+			self::sync_gam_settings();
+			return $result;
+		}
 	}
 
 	/**
