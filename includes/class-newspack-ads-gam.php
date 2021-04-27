@@ -54,7 +54,7 @@ class Newspack_Ads_GAM {
 			}
 			return $oauth2_credentials;
 		} else {
-			return new WP_Error( 'newspack_google_connection_missing', __( 'Please activate the Newspack Plugin.', 'newspack-ads' ) );
+			return new \Exception( __( 'Please activate the Newspack Plugin.', 'newspack-ads' ), 1 );
 		}
 	}
 
@@ -346,6 +346,20 @@ class Newspack_Ads_GAM {
 		if ( null !== $result && $result->getNumChanges() > 0 ) {
 			return true;
 		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Is GAM connected?
+	 *
+	 * @return boolean True if GAM is connected.
+	 */
+	public static function is_connected() {
+		try {
+			self::get_google_oauth2_credentials();
+			return true;
+		} catch ( \Exception $e ) {
 			return false;
 		}
 	}

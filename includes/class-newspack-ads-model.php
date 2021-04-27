@@ -148,9 +148,12 @@ class Newspack_Ads_Model {
 	 * Get the ad units.
 	 */
 	public static function get_ad_units() {
+		$legacy_ad_units = self::get_legacy_ad_units();
+		if ( ! self::is_gam_connected() ) {
+			return $legacy_ad_units;
+		}
 		$ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		self::sync_gam_settings( $ad_units );
-		$legacy_ad_units = self::get_legacy_ad_units();
 		return array_merge( $ad_units, $legacy_ad_units );
 	}
 
@@ -553,6 +556,15 @@ class Newspack_Ads_Model {
 	 */
 	public static function is_sticky( $ad_unit ) {
 		return 'sticky' === $ad_unit['placement'];
+	}
+
+	/**
+	 * Is GAM connected?
+	 *
+	 * @return boolean True if GAM is connected.
+	 */
+	public static function is_gam_connected() {
+		return Newspack_Ads_GAM::is_connected();
 	}
 }
 Newspack_Ads_Model::init();
