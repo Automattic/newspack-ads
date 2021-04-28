@@ -168,12 +168,16 @@ class Newspack_Ads_GAM {
 	 * @return object Details of the user.
 	 */
 	public static function get_gam_settings() {
-		$service_factory = new ServiceFactory();
-		$session         = self::get_gam_session();
-		return [
-			'user_email'   => $service_factory->createUserService( $session )->getCurrentUser()->getEmail(),
-			'network_code' => self::get_gam_network_code(),
-		];
+		try {
+			$service_factory = new ServiceFactory();
+			$session         = self::get_gam_session();
+			return [
+				'user_email'   => $service_factory->createUserService( $session )->getCurrentUser()->getEmail(),
+				'network_code' => self::get_gam_network_code(),
+			];
+		} catch ( \Exception $e ) {
+			return [];
+		}
 	}
 
 	/**
@@ -219,12 +223,16 @@ class Newspack_Ads_GAM {
 	 * @return object[] Array of serialised ad units.
 	 */
 	public static function get_serialised_gam_ad_units( $ids = [] ) {
-		$ad_units            = self::get_gam_ad_units( $ids );
-		$ad_units_serialised = [];
-		foreach ( $ad_units as $ad_unit ) {
-			$ad_units_serialised[] = self::serialize_ad_unit( $ad_unit );
+		try {
+			$ad_units            = self::get_gam_ad_units( $ids );
+			$ad_units_serialised = [];
+			foreach ( $ad_units as $ad_unit ) {
+				$ad_units_serialised[] = self::serialize_ad_unit( $ad_unit );
+			}
+			return $ad_units_serialised;
+		} catch ( \Exception $e ) {
+			return [];
 		}
-		return $ad_units_serialised;
 	}
 
 	/**
@@ -298,18 +306,22 @@ class Newspack_Ads_GAM {
 	 * @return AdUnit Updated AdUnit.
 	 */
 	public static function update_ad_unit( $ad_unit_config ) {
-		$inventory_service = self::get_gam_inventory_service();
-		$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
-		if ( empty( $found_ad_units ) ) {
-			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not found.', 'newspack-ads' ) );
+		try {
+			$inventory_service = self::get_gam_inventory_service();
+			$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
+			if ( empty( $found_ad_units ) ) {
+				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not found.', 'newspack-ads' ) );
+			}
+			$result = $inventory_service->updateAdUnits(
+				[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
+			);
+			if ( empty( $result ) ) {
+				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+			}
+			return $result[0];
+		} catch ( \Exception $e ) {
+			return [];
 		}
-		$result = $inventory_service->updateAdUnits(
-			[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
-		);
-		if ( empty( $result ) ) {
-			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not updated.', 'newspack-ads' ) );
-		}
-		return $result[0];
 	}
 
 	/**
@@ -319,14 +331,18 @@ class Newspack_Ads_GAM {
 	 * @return AdUnit Created AdUnit.
 	 */
 	public static function create_ad_unit( $ad_unit_config ) {
-		$network           = self::get_gam_network();
-		$inventory_service = self::get_gam_inventory_service();
-		$ad_unit           = self::modify_ad_unit( $ad_unit_config );
-		$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
-		if ( empty( $created_ad_units ) ) {
-			return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
+		try {
+			$network           = self::get_gam_network();
+			$inventory_service = self::get_gam_inventory_service();
+			$ad_unit           = self::modify_ad_unit( $ad_unit_config );
+			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
+			if ( empty( $created_ad_units ) ) {
+				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
+			}
+			return self::serialize_ad_unit( $created_ad_units[0] );
+		} catch ( \Exception $e ) {
+			return [];
 		}
-		return self::serialize_ad_unit( $created_ad_units[0] );
 	}
 
 	/**
@@ -335,17 +351,21 @@ class Newspack_Ads_GAM {
 	 * @param int $id Id of the ad unit to archive.
 	 */
 	public static function archive_ad_unit( $id ) {
-		$action            = new ArchiveAdUnitsAction();
-		$inventory_service = self::get_gam_inventory_service();
+		try {
+			$action            = new ArchiveAdUnitsAction();
+			$inventory_service = self::get_gam_inventory_service();
 
-		$statement_builder = self::get_serialised_gam_ad_units_statement_builder( [ $id ] );
-		$result            = $inventory_service->performAdUnitAction(
-			$action,
-			$statement_builder->toStatement()
-		);
-		if ( null !== $result && $result->getNumChanges() > 0 ) {
-			return true;
-		} else {
+			$statement_builder = self::get_serialised_gam_ad_units_statement_builder( [ $id ] );
+			$result            = $inventory_service->performAdUnitAction(
+				$action,
+				$statement_builder->toStatement()
+			);
+			if ( null !== $result && $result->getNumChanges() > 0 ) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch ( \Exception $e ) {
 			return false;
 		}
 	}
