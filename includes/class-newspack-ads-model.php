@@ -10,7 +10,7 @@
  */
 class Newspack_Ads_Model {
 	const OPTION_NAME_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
-	const OPTION_NAME_AD_UNITS     = '_newspack_ads_ad_units';
+	const OPTION_NAME_GAM_ITEMS    = '_newspack_ads_gam_items';
 
 	/**
 	 * Custom post type
@@ -73,7 +73,7 @@ class Newspack_Ads_Model {
 			];
 		} else {
 			// Ad units saved in options table. Ad unit ID is the GAM Ad Unit ID.
-			$ad_units = get_option( self::OPTION_NAME_AD_UNITS, [] );
+			$ad_units = self::get_synced_gam_ad_units();
 			foreach ( $ad_units as $unit ) {
 				if ( $unit['id'] === $id && 'ACTIVE' === $unit['status'] ) {
 					$ad_unit = $unit;
@@ -197,11 +197,14 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Retrieve the network code.
+	 * Retrieve the active network code.
+	 * This might be updateable in the future to enable handling users with
+	 * multiple GAM networks - for now simply the first available GAM network
+	 * is retrieved.
 	 *
 	 * @return string The network code.
 	 */
-	public static function get_network_code() {
+	public static function get_active_network_code() {
 		$network_code = get_option( self::OPTION_NAME_NETWORK_CODE, '' );
 		return absint( $network_code );
 	}
@@ -214,21 +217,51 @@ class Newspack_Ads_Model {
 	 * the sync was done manually.
 	 *
 	 * @param object[] $serialised_ad_units An array of ad units configurations.
-	 * @param object   $settings Other GAM settings, the network code among them.
 	 */
-	public static function sync_gam_settings( $serialised_ad_units = null, $settings = null ) {
+	private static function sync_gam_settings( $serialised_ad_units = null ) {
 		if ( null === $serialised_ad_units ) {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
-		if ( null === $settings ) {
-			$settings = Newspack_Ads_GAM::get_gam_settings();
+		$settings = Newspack_Ads_GAM::get_gam_settings();
+		if (
+			isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units )
+		) {
+			$synced_gam_items = get_option( self::OPTION_NAME_GAM_ITEMS, null );
+			if ( null === $synced_gam_items ) {
+				$synced_gam_items = [];
+			}
+			$network_code                                  = sanitize_text_field( $settings['network_code'] );
+			$synced_gam_items[ $network_code ]['ad_units'] = $serialised_ad_units;
+			update_option( self::OPTION_NAME_NETWORK_CODE, $network_code );
+			update_option( self::OPTION_NAME_GAM_ITEMS, $synced_gam_items );
 		}
-		if ( isset( $settings['network_code'] ) ) {
-			update_option( self::OPTION_NAME_NETWORK_CODE, sanitize_text_field( $settings['network_code'] ) );
+	}
+
+	/**
+	 * Retrieve the synced GAM items.
+	 *
+	 * @return object GAM items.
+	 */
+	private static function get_synced_gam_items() {
+		$network_code     = self::get_active_network_code();
+		$synced_gam_items = get_option( self::OPTION_NAME_GAM_ITEMS, null );
+		if ( $network_code && $synced_gam_items ) {
+			return $synced_gam_items[ $network_code ];
 		}
-		if ( $serialised_ad_units && ! empty( $serialised_ad_units ) ) {
-			update_option( self::OPTION_NAME_AD_UNITS, $serialised_ad_units );
+		return null;
+	}
+
+	/**
+	 * Retrieve the synced GAM items.
+	 *
+	 * @return object GAM items.
+	 */
+	private static function get_synced_gam_ad_units() {
+		$gam_items = self::get_synced_gam_items();
+		if ( $gam_items ) {
+			return $gam_items['ad_units'];
 		}
+		return [];
 	}
 
 	/**
@@ -258,7 +291,7 @@ class Newspack_Ads_Model {
 	public static function code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
-		$network_code = self::get_network_code();
+		$network_code = self::get_active_network_code();
 		$unique_id    = uniqid();
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
@@ -283,7 +316,7 @@ class Newspack_Ads_Model {
 	public static function amp_code_for_ad_unit( $ad_unit ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
-		$network_code = self::get_network_code();
+		$network_code = self::get_active_network_code();
 		$targeting    = self::get_ad_targeting( $ad_unit );
 		$unique_id    = uniqid();
 
@@ -343,7 +376,7 @@ class Newspack_Ads_Model {
 	 * @param string $unique_id Unique ID for this ad unit instance.
 	 */
 	public static function ad_elements_for_sizes( $ad_unit, $unique_id ) {
-		$network_code = self::get_network_code();
+		$network_code = self::get_active_network_code();
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
 		$targeting    = self::get_ad_targeting( $ad_unit );
