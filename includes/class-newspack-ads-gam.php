@@ -11,6 +11,8 @@ use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
 use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
+use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\AdUnit;
 use Google\AdsApi\AdManager\v202102\AdUnitSize;
 use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
@@ -269,9 +271,10 @@ class Newspack_Ads_GAM {
 	 * @return AdUnit Ad Unit.
 	 */
 	private static function modify_ad_unit( $ad_unit_config, $ad_unit = null ) {
-		$name  = $ad_unit_config['name'];
-		$sizes = $ad_unit_config['sizes'];
-		$slug  = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
+		$name   = $ad_unit_config['name'];
+		$sizes  = $ad_unit_config['sizes'];
+		$status = $ad_unit_config['status'];
+		$slug   = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
 
 		if ( null === $ad_unit ) {
 			$ad_unit = new AdUnit();
@@ -295,6 +298,11 @@ class Newspack_Ads_GAM {
 			$ad_unit_sizes[] = $ad_unit_size;
 		}
 		$ad_unit->setAdUnitSizes( $ad_unit_sizes );
+
+		$existing_status = $ad_unit->getStatus();
+		if ( $existing_status !== $status ) {
+			self::change_ad_unit_status( $ad_unit->getId(), $status );
+		}
 
 		return $ad_unit;
 	}
@@ -346,13 +354,26 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Archive a single GAM Ad Unit.
+	 * Change status of a single GAM Ad Unit.
 	 *
-	 * @param int $id Id of the ad unit to archive.
+	 * @param int    $id Id of the ad unit to archive.
+	 * @param string $status Desired status of the ad unit.
 	 */
-	public static function archive_ad_unit( $id ) {
+	public static function change_ad_unit_status( $id, $status ) {
 		try {
-			$action            = new ArchiveAdUnitsAction();
+			switch ( $status ) {
+				case 'ACTIVE':
+					$action = new ActivateAdUnitsAction();
+					break;
+				case 'INACTIVE':
+					$action = new DeactivateAdUnitsAction();
+					break;
+				case 'ARCHIVE':
+					$action = new ArchiveAdUnitsAction();
+					break;
+				default:
+					return false;
+			}
 			$inventory_service = self::get_gam_inventory_service();
 
 			$statement_builder = self::get_serialised_gam_ad_units_statement_builder( [ $id ] );

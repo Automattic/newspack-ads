@@ -190,7 +190,7 @@ class Newspack_Ads_Model {
 			\wp_delete_post( $id );
 			return true;
 		} else {
-			$result = Newspack_Ads_GAM::archive_ad_unit( $id );
+			$result = Newspack_Ads_GAM::change_ad_unit_status( $id, 'ARCHIVE' );
 			self::sync_gam_settings();
 			return $result;
 		}
