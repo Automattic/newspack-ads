@@ -564,7 +564,17 @@ class Newspack_Ads_Model {
 	 * @return boolean True if GAM is connected.
 	 */
 	public static function is_gam_connected() {
-		return Newspack_Ads_GAM::is_connected();
+		$status = Newspack_Ads_GAM::connection_status();
+		return $status['connected'];
+	}
+
+	/**
+	 * Get GAM connection status.
+	 *
+	 * @return object Object with status information.
+	 */
+	public static function get_gam_connection_status() {
+		return Newspack_Ads_GAM::connection_status();
 	}
 }
 Newspack_Ads_Model::init();

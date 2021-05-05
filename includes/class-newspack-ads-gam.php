@@ -371,16 +371,19 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Is GAM connected?
+	 * Get GAM connection status.
 	 *
-	 * @return boolean True if GAM is connected.
+	 * @return object Object with status information.
 	 */
-	public static function is_connected() {
+	public static function connection_status() {
+		$response = [];
 		try {
-			self::get_google_oauth2_credentials();
-			return true;
+			$network_code          = self::get_gam_network_code();
+			$response['connected'] = true;
 		} catch ( \Exception $e ) {
-			return false;
+			$response['connected'] = false;
+			$response['error']     = $e->getMessage();
 		}
+		return $response;
 	}
 }
