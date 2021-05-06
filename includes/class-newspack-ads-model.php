@@ -29,6 +29,7 @@ class Newspack_Ads_Model {
 	/**
 	 * Initialize Google Ads Model
 	 *
+	 * @codeCoverageIgnore
 	 * @return void
 	 */
 	public static function init() {
@@ -37,6 +38,8 @@ class Newspack_Ads_Model {
 
 	/**
 	 * Register ad unit post type
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public static function register_ad_post_type() {
 		register_post_type(
@@ -211,19 +214,25 @@ class Newspack_Ads_Model {
 
 	/**
 	 * Save GAM configuration locally.
-	 * First reson is that GAM API is not queried on frontend requests - information
+	 * First reason is so the GAM API is not queried on frontend requests - information
 	 * about ad units & GAM settings will be read from the DB.
 	 * Second reason is backwards compatibility - in a previous version of the plugin,
 	 * the sync was done manually.
 	 *
 	 * @param object[] $serialised_ad_units An array of ad units configurations.
+	 * @param object[] $settings Settings to use.
 	 */
-	private static function sync_gam_settings( $serialised_ad_units = null ) {
+	public static function sync_gam_settings( $serialised_ad_units = null, $settings = null ) {
 		if ( null === $serialised_ad_units ) {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
-		$settings             = Newspack_Ads_GAM::get_gam_settings();
-		$network_code_matches = self::is_network_code_matched();
+		if ( null === $settings ) {
+			$settings             = Newspack_Ads_GAM::get_gam_settings();
+			$network_code_matches = self::is_network_code_matched();
+		} else {
+			$network_code_matches = true;
+		}
+
 		if (
 			$network_code_matches &&
 			isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units )

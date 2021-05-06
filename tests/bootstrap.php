@@ -69,6 +69,8 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 
 		// Load the WP testing environment.
 		require_once $this->wp_tests_dir . '/includes/bootstrap.php';
+
+		define( 'IS_TEST_ENV', 1 );
 	}
 
 	/**
