@@ -8,7 +8,7 @@
 /**
  * Test ads model functionality.
  */
-class Newspack_Ads_Test_Plugin_Manager extends WP_UnitTestCase {
+class ModelTest extends WP_UnitTestCase {
 	/**
 	 * Test sanitization functions.
 	 */
