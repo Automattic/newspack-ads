@@ -222,18 +222,38 @@ class Newspack_Ads_Model {
 		if ( null === $serialised_ad_units ) {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
-		$settings = Newspack_Ads_GAM::get_gam_settings();
+		$settings             = Newspack_Ads_GAM::get_gam_settings();
+		$network_code_matches = self::is_network_code_matched();
 		if (
+			$network_code_matches &&
 			isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units )
 		) {
-			$synced_gam_items = get_option( self::OPTION_NAME_GAM_ITEMS, null );
-			if ( null === $synced_gam_items ) {
-				$synced_gam_items = [];
-			}
+			$synced_gam_items                              = get_option( self::OPTION_NAME_GAM_ITEMS, [] );
 			$network_code                                  = sanitize_text_field( $settings['network_code'] );
 			$synced_gam_items[ $network_code ]['ad_units'] = $serialised_ad_units;
 			update_option( self::OPTION_NAME_NETWORK_CODE, $network_code );
 			update_option( self::OPTION_NAME_GAM_ITEMS, $synced_gam_items );
+		}
+	}
+
+	/**
+	 * The user on whose behalf GAM is authorised might be using
+	 * a different GAM account than the one already configured on the site.
+	 *
+	 * @return boolean True if there is a network code mismatch.
+	 */
+	private static function is_network_code_matched() {
+		$active_network_code = self::get_active_network_code();
+		if ( 0 === $active_network_code ) {
+			// No network code set yet.
+			return true;
+		}
+		try {
+			$user_network_code = Newspack_Ads_GAM::get_gam_network_code();
+			return $active_network_code === absint( $user_network_code );
+		} catch ( \Exception $e ) {
+			// Can't get user's network code.
+			return false;
 		}
 	}
 
@@ -245,7 +265,7 @@ class Newspack_Ads_Model {
 	private static function get_synced_gam_items() {
 		$network_code     = self::get_active_network_code();
 		$synced_gam_items = get_option( self::OPTION_NAME_GAM_ITEMS, null );
-		if ( $network_code && $synced_gam_items ) {
+		if ( $network_code && $synced_gam_items && isset( $synced_gam_items[ $network_code ] ) ) {
 			return $synced_gam_items[ $network_code ];
 		}
 		return null;
@@ -607,7 +627,9 @@ class Newspack_Ads_Model {
 	 * @return object Object with status information.
 	 */
 	public static function get_gam_connection_status() {
-		return Newspack_Ads_GAM::connection_status();
+		$status                            = Newspack_Ads_GAM::connection_status();
+		$status['is_network_code_matched'] = self::is_network_code_matched();
+		return $status;
 	}
 }
 Newspack_Ads_Model::init();

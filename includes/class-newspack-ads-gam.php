@@ -103,7 +103,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return int GAM network code.
 	 */
-	private static function get_gam_network_code() {
+	public static function get_gam_network_code() {
 		return self::get_gam_network()->getNetworkCode();
 	}
 
