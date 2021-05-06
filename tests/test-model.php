@@ -86,24 +86,24 @@ class ModelTest extends WP_UnitTestCase {
 	 */
 	public function test_ad_unit_generated_markup() {
 		$legacy_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$legacy_ad_id );
-		self::assertStringContainsString(
+		self::assertContains(
 			'<!-- /' . self::$network_code . '/' . self::$ad_code_1 . ' -->',
 			$legacy_ad_unit['ad_code'],
 			'The ad code for the legacy ad unit contains a comment with network ID and ad uni code.'
 		);
-		self::assertStringContainsString(
+		self::assertContains(
 			'data-slot="/' . self::$network_code . '/' . self::$ad_code_1 . '"',
 			$legacy_ad_unit['amp_ad_code'],
 			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad uni code.'
 		);
 
 		$gam_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
-		self::assertStringContainsString(
+		self::assertContains(
 			'<!-- /' . self::$network_code . '/' . $gam_ad_unit['code'] . ' -->',
 			$gam_ad_unit['ad_code'],
 			'The ad code contains a comment with network ID and ad uni code.'
 		);
-		self::assertStringContainsString(
+		self::assertContains(
 			'data-slot="/' . self::$network_code . '/' . $gam_ad_unit['code'] . '"',
 			$gam_ad_unit['amp_ad_code'],
 			'The AMP ad code contains an attribute with network ID and ad uni code.'
@@ -120,7 +120,7 @@ class ModelTest extends WP_UnitTestCase {
 			1,
 			'Only the single legacy ad unit is returned, as there is no GAM connection.'
 		);
-		self::assertStringContainsString(
+		self::assertContains(
 			' (legacy)',
 			$result[0]['name'],
 			'The "(legacy)" suffix is added to the legacy ad unit name.'
