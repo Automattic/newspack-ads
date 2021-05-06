@@ -259,7 +259,7 @@ class Newspack_Ads_Model {
 		}
 		try {
 			$user_network_code = Newspack_Ads_GAM::get_gam_network_code();
-			return $active_network_code === absint( $user_network_code );
+			return absint( $user_network_code ) === $active_network_code;
 		} catch ( \Exception $e ) {
 			// Can't get user's network code.
 			return false;

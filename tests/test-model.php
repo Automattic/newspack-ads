@@ -51,6 +51,8 @@ class ModelTest extends WP_UnitTestCase {
 
 	/**
 	 * Create mock GAM Ad Unit object.
+	 *
+	 * @param object $config Config.
 	 */
 	private static function createMockGAMAdUnit( $config ) {
 		return array_merge(

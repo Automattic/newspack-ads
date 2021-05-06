@@ -94,6 +94,7 @@ class Newspack_Ads_GAM {
 	 * Get user's GAM network. Assumes the user has access to just one.
 	 *
 	 * @return Network GAM network.
+	 * @throws \Exception If there is no GAM network to use.
 	 */
 	private static function get_gam_network() {
 		$networks = self::get_gam_networks();
