@@ -56,7 +56,7 @@ class Newspack_Ads_GAM {
 			}
 			return $oauth2_credentials;
 		} else {
-			return new \Exception( __( 'Please activate the Newspack Plugin.', 'newspack-ads' ), 1 );
+			throw new \Exception( __( 'Please activate the Newspack Plugin.', 'newspack-ads' ), 1 );
 		}
 	}
 
@@ -77,10 +77,15 @@ class Newspack_Ads_GAM {
 				]
 			);
 
-			$oauth2_credentials = self::get_google_oauth2_credentials();
-			$session            = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-			$service_factory    = new ServiceFactory();
-			self::$networks     = $service_factory->createNetworkService( $session )->getAllNetworks();
+			try {
+				$oauth2_credentials = self::get_google_oauth2_credentials();
+			} catch ( \Exception $e ) {
+				return [];
+			}
+
+			$session         = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
+			$service_factory = new ServiceFactory();
+			self::$networks  = $service_factory->createNetworkService( $session )->getAllNetworks();
 		}
 		return self::$networks;
 	}
@@ -93,7 +98,7 @@ class Newspack_Ads_GAM {
 	private static function get_gam_network() {
 		$networks = self::get_gam_networks();
 		if ( empty( $networks ) ) {
-			return new WP_Error( 'newspack_ads', __( 'Missing GAM Ad network.', 'newspack-ads' ) );
+			throw new \Exception( __( 'Missing GAM Ad network.', 'newspack-ads' ) );
 		}
 		return $networks[0];
 	}
