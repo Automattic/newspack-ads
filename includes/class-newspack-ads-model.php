@@ -132,16 +132,17 @@ class Newspack_Ads_Model {
 			]
 		);
 		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$legacy_ad_units[] = [
-					'id'        => \get_the_ID(),
-					'name'      => html_entity_decode( \get_the_title(), ENT_QUOTES ) . ' ' . __( '(legacy)', 'newspack' ),
-					'sizes'     => self::sanitize_sizes( \get_post_meta( get_the_ID(), 'sizes', true ) ),
-					'code'      => esc_html( \get_post_meta( get_the_ID(), 'code', true ) ),
-					'status'    => 'ACTIVE',
-					'is_legacy' => true,
-				];
+			foreach ( $query->posts as $post ) {
+				if ( self::$custom_post_type === $post->post_type ) {
+					$legacy_ad_units[] = [
+						'id'        => $post->ID,
+						'name'      => html_entity_decode( $post->post_title, ENT_QUOTES ) . ' ' . __( '(legacy)', 'newspack' ),
+						'sizes'     => self::sanitize_sizes( \get_post_meta( $post->ID, 'sizes', true ) ),
+						'code'      => esc_html( \get_post_meta( $post->ID, 'code', true ) ),
+						'status'    => 'ACTIVE',
+						'is_legacy' => true,
+					];
+				}
 			}
 		}
 		return $legacy_ad_units;
