@@ -1,3 +1,10 @@
+## [1.13.1-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.13.0...v1.13.1-alpha.1) (2021-06-01)
+
+
+### Bug Fixes
+
+* ensure only Ad Unit CPT are handled in query ([e919502](https://github.com/Automattic/newspack-ads/commit/e9195020513f2a4f052c25df3600f05bf6d75204))
+
 # [1.13.0](https://github.com/Automattic/newspack-ads/compare/v1.12.0...v1.13.0) (2021-04-20)
 
 
