@@ -77,15 +77,10 @@ class Newspack_Ads_GAM {
 				]
 			);
 
-			try {
-				$oauth2_credentials = self::get_google_oauth2_credentials();
-			} catch ( \Exception $e ) {
-				return [];
-			}
-
-			$session         = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-			$service_factory = new ServiceFactory();
-			self::$networks  = $service_factory->createNetworkService( $session )->getAllNetworks();
+			$oauth2_credentials = self::get_google_oauth2_credentials();
+			$session            = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
+			$service_factory    = new ServiceFactory();
+			self::$networks     = $service_factory->createNetworkService( $session )->getAllNetworks();
 		}
 		return self::$networks;
 	}
