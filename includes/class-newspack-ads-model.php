@@ -724,8 +724,11 @@ class Newspack_Ads_Model {
 	 * @return object Object with status information.
 	 */
 	public static function get_gam_connection_status() {
-		$status                            = Newspack_Ads_GAM::connection_status();
-		$status['is_network_code_matched'] = self::is_network_code_matched();
+		$status                 = Newspack_Ads_GAM::connection_status();
+		$status['network_code'] = self::get_active_network_code();
+		if ( true === $status['connected'] ) {
+			$status['is_network_code_matched'] = self::is_network_code_matched();
+		}
 		return $status;
 	}
 }
