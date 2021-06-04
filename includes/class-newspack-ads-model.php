@@ -136,7 +136,7 @@ class Newspack_Ads_Model {
 				if ( self::$custom_post_type === $post->post_type ) {
 					$legacy_ad_units[] = [
 						'id'        => $post->ID,
-						'name'      => html_entity_decode( $post->post_title, ENT_QUOTES ) . ' ' . __( '(legacy)', 'newspack' ),
+						'name'      => html_entity_decode( $post->post_title, ENT_QUOTES ),
 						'sizes'     => self::sanitize_sizes( \get_post_meta( $post->ID, 'sizes', true ) ),
 						'code'      => esc_html( \get_post_meta( $post->ID, 'code', true ) ),
 						'status'    => 'ACTIVE',

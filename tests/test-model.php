@@ -120,11 +120,6 @@ class ModelTest extends WP_UnitTestCase {
 			1,
 			'Only the single legacy ad unit is returned, as there is no GAM connection.'
 		);
-		self::assertContains(
-			' (legacy)',
-			$result[0]['name'],
-			'The "(legacy)" suffix is added to the legacy ad unit name.'
-		);
 		self::assertTrue(
 			$result[0]['is_legacy'],
 			'The legacy ad unit is marked as legacy by a property.'
