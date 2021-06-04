@@ -398,7 +398,12 @@ class Newspack_Ads_GAM {
 	 * @return object Object with status information.
 	 */
 	public static function connection_status() {
-		$response = [];
+		$response = [ 'can_connect' => true ];
+		if ( ! defined( 'NEWSPACK_ADS_USE_GAM' ) || ( defined( 'NEWSPACK_ADS_USE_GAM' ) && false === NEWSPACK_ADS_USE_GAM ) ) {
+			$response['connected']   = false;
+			$response['can_connect'] = false;
+			return $response;
+		}
 		try {
 			$network_code          = self::get_gam_network_code();
 			$response['connected'] = true;
