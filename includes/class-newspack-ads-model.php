@@ -9,6 +9,9 @@
  * Newspack Ads Blocks Management
  */
 class Newspack_Ads_Model {
+	const SIZES = 'sizes';
+	const CODE  = 'code';
+
 	const OPTION_NAME_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
 	const OPTION_NAME_GAM_ITEMS    = '_newspack_ads_gam_items';
 
@@ -167,9 +170,87 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-		$result = Newspack_Ads_GAM::create_ad_unit( $ad_unit );
-		self::sync_gam_settings();
+		if ( self::is_gam_connected() ) {
+			$result = Newspack_Ads_GAM::create_ad_unit( $ad_unit );
+			self::sync_gam_settings();
+		} else {
+			$result = self::legacy_add_ad_unit( $ad_unit );
+		}
 		return $result;
+	}
+
+	/**
+	 * Add a new legacy ad unit.
+	 *
+	 * @param array $ad_unit The new ad unit info to add.
+	 */
+	private static function legacy_add_ad_unit( $ad_unit ) {
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
+		// Save the ad unit.
+		$ad_unit_post = \wp_insert_post(
+			array(
+				'post_author' => \get_current_user_id(),
+				'post_title'  => $name,
+				'post_type'   => self::$custom_post_type,
+				'post_status' => 'publish',
+			)
+		);
+		if ( \is_wp_error( $ad_unit_post ) ) {
+			return new WP_Error(
+				'newspack_ad_unit_exists',
+				\esc_html__( 'An ad unit with that name already exists', 'newspack' ),
+				array(
+					'status' => '400',
+				)
+			);
+		}
+
+		// Add the code to our new post.
+		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
+		\add_post_meta( $ad_unit_post, self::CODE, $ad_unit[ self::CODE ] );
+
+		return array(
+			'id'        => $ad_unit_post,
+			'name'      => $ad_unit['name'],
+			self::SIZES => $ad_unit[ self::SIZES ],
+			self::CODE  => $ad_unit[ self::CODE ],
+		);
+	}
+
+	/**
+	 * Update a legacy ad unit.
+	 *
+	 * @param array $ad_unit The updated ad unit.
+	 */
+	private static function legacy_update_ad_unit( $ad_unit ) {
+		$ad_unit_post = \get_post( $ad_unit['id'] );
+		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
+			return new WP_Error(
+				'newspack_ad_unit_not_exists',
+				\esc_html__( "Can't update an ad unit that doesn't already exist", 'newspack' ),
+				array(
+					'status' => '400',
+				)
+			);
+		}
+
+		$name = strlen( trim( $ad_unit['name'] ) ) ? $ad_unit['name'] : $ad_unit[ self::CODE ];
+
+		\wp_update_post(
+			array(
+				'ID'         => $ad_unit['id'],
+				'post_title' => $name,
+			)
+		);
+		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
+		\update_post_meta( $ad_unit['id'], self::CODE, $ad_unit[ self::CODE ] );
+		return array(
+			'id'        => $ad_unit['id'],
+			'name'      => $ad_unit['name'],
+			self::SIZES => $ad_unit[ self::SIZES ],
+			self::CODE  => $ad_unit[ self::CODE ],
+		);
 	}
 
 	/**
@@ -178,8 +259,12 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The updated ad unit.
 	 */
 	public static function update_ad_unit( $ad_unit ) {
-		$result = Newspack_Ads_GAM::update_ad_unit( $ad_unit );
-		self::sync_gam_settings();
+		if ( isset( $ad_unit['is_legacy'] ) && true === $ad_unit['is_legacy'] ) {
+			$result = self::legacy_update_ad_unit( $ad_unit );
+		} else {
+			$result = Newspack_Ads_GAM::update_ad_unit( $ad_unit );
+			self::sync_gam_settings();
+		}
 		return $result;
 	}
 
@@ -191,8 +276,10 @@ class Newspack_Ads_Model {
 	public static function delete_ad_unit( $id ) {
 		$ad_unit_cpt = \get_post( $id );
 		if ( is_a( $ad_unit_cpt, 'WP_Post' ) ) {
-			\wp_delete_post( $id );
-			return true;
+			if ( $ad_unit_cpt->post_type === self::$custom_post_type ) {
+				\wp_delete_post( $id );
+				return true;
+			}
 		} else {
 			$result = Newspack_Ads_GAM::change_ad_unit_status( $id, 'ARCHIVE' );
 			self::sync_gam_settings();
