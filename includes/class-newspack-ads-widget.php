@@ -43,7 +43,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 		if ( is_wp_error( $ad_unit ) ) {
 			return;
 		}
-		if ( isset( $instance['stick_to_top'] ) ) {
+		if ( ! Newspack_Ads::is_amp() && isset( $instance['stick_to_top'] ) ) {
 			$stick_to_top = $instance['stick_to_top'];
 		} else {
 			$stick_to_top = false;
@@ -96,17 +96,19 @@ class Newspack_Ads_Widget extends WP_Widget {
 					<?php endforeach; ?>
 				</select>
 			</label>
-			<br/>
-			<br/>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>">
-				<?php echo esc_html__( 'Stick to top', 'newspack-ads' ); ?>
-				<input
-					type="checkbox"
-					id="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>"
-					name="<?php echo esc_attr( $this->get_field_name( 'stick_to_top' ) ); ?>"
-					<?php checked( ! $stick_to_top, isset( $ad_unit['stick_to_top'] ) ? $ad_unit['stick_to_top'] : false ); ?>
-				>
-			</label>
+			<?php if ( Newspack_Ads::is_amp_plus_configured() ) : ?>
+				<br/>
+				<br/>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>">
+					<?php echo esc_html__( 'Stick to top', 'newspack-ads' ); ?>
+					<input
+						type="checkbox"
+						id="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'stick_to_top' ) ); ?>"
+						<?php checked( ! $stick_to_top, isset( $ad_unit['stick_to_top'] ) ? $ad_unit['stick_to_top'] : false ); ?>
+					>
+				</label>
+			<?php endif; ?>
 		</p>
 		<?php
 	}

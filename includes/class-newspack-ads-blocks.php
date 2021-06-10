@@ -126,8 +126,8 @@ class Newspack_Ads_Blocks {
 		}
 		ob_start();
 		?>
-		<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" data-amp-plus-gam></script>
-		<script data-amp-plus-gam>
+		<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" data-amp-plus-allowed></script>
+		<script data-amp-plus-allowed>
 			window.googletag = window.googletag || {cmd: []};
 		</script>
 		<?php
@@ -170,7 +170,7 @@ class Newspack_Ads_Blocks {
 
 		ob_start();
 		?>
-		<script data-amp-plus-gam>
+		<script data-amp-plus-allowed>
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;

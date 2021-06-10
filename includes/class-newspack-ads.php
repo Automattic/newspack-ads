@@ -103,5 +103,13 @@ final class Newspack_Ads {
 		}
 		return false;
 	}
+	/**
+	 * Can the site use AMP Plus features?
+	 *
+	 * @return bool Configured or not.
+	 */
+	public static function is_amp_plus_configured() {
+		return class_exists( 'Newspack\AMP_Enhancements' ) && method_exists( 'Newspack\AMP_Enhancements', 'is_amp_plus_configured' ) && Newspack\AMP_Enhancements::is_amp_plus_configured();
+	}
 }
 Newspack_Ads::instance();
