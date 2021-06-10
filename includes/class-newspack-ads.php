@@ -38,6 +38,22 @@ final class Newspack_Ads {
 	public function __construct() {
 		$this->define_constants();
 		$this->includes();
+
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
+	}
+
+	/**
+	 * Enqueue front-end styles.
+	 */
+	public static function enqueue_scripts() {
+		\wp_register_style(
+			'newspack-ads-frontend',
+			plugins_url( '../dist/frontend.css', __FILE__ ),
+			null,
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.css' )
+		);
+		\wp_style_add_data( 'newspack-ads-frontend', 'rtl', 'replace' );
+		\wp_enqueue_style( 'newspack-ads-frontend' );
 	}
 
 	/**

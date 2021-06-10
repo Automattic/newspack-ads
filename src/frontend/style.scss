@@ -1,0 +1,13 @@
+.stick-to-top {
+	position: sticky;
+	top: 0;
+}
+
+.widget_newspack-ads-widget {
+	overflow: hidden;
+}
+
+// TMP: the overflow: hidden should be removed in the theme.
+#page {
+	overflow: initial !important;
+}
