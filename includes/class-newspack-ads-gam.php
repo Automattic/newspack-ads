@@ -272,10 +272,9 @@ class Newspack_Ads_GAM {
 	 * @return AdUnit Ad Unit.
 	 */
 	private static function modify_ad_unit( $ad_unit_config, $ad_unit = null ) {
-		$name   = $ad_unit_config['name'];
-		$sizes  = $ad_unit_config['sizes'];
-		$status = $ad_unit_config['status'];
-		$slug   = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
+		$name  = $ad_unit_config['name'];
+		$sizes = $ad_unit_config['sizes'];
+		$slug  = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
 
 		if ( null === $ad_unit ) {
 			$ad_unit = new AdUnit();
@@ -300,9 +299,12 @@ class Newspack_Ads_GAM {
 		}
 		$ad_unit->setAdUnitSizes( $ad_unit_sizes );
 
-		$existing_status = $ad_unit->getStatus();
-		if ( $existing_status !== $status ) {
-			self::change_ad_unit_status( $ad_unit->getId(), $status );
+		if ( isset( $ad_unit_config['status'] ) ) {
+			$status          = $ad_unit_config['status'];
+			$existing_status = $ad_unit->getStatus();
+			if ( $existing_status !== $status ) {
+				self::change_ad_unit_status( $ad_unit->getId(), $status );
+			}
 		}
 
 		return $ad_unit;
