@@ -38,7 +38,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 		}
 
 		$selected_ad_unit = $instance['selected_ad_unit'];
-		$ad_unit          = Newspack_Ads_Model::get_ad_unit( $selected_ad_unit, 'newspack_ads_widget', $args['id'] );
+		$ad_unit          = Newspack_Ads_Model::get_ad_unit_for_display( $selected_ad_unit, 'newspack_ads_widget', $args['id'] );
 
 		if ( is_wp_error( $ad_unit ) ) {
 			return;
@@ -90,6 +90,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 						<option
 							value="<?php echo esc_attr( $ad_unit['id'] ); ?>"
 							<?php selected( $selected_ad_unit, $ad_unit['id'] ); ?>
+							<?php echo esc_attr( 'INACTIVE' === $ad_unit['status'] ? 'disabled' : '' ); ?>
 						>
 							<?php echo esc_html( $ad_unit['name'] ); ?>
 						</option>
