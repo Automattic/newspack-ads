@@ -83,6 +83,9 @@ jobs:
           name: Install rsync
           command: sudo apt install rsync
       - run:
+          name: Install PHP packages
+          command: composer install --no-dev --no-scripts
+      - run:
           name: Release new version
           command: npm run release
 
