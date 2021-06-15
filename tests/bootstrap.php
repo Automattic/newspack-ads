@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 /**
  * Loads and prepares everything for unit testing.
  *
@@ -56,7 +56,10 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 
 		$this->tests_dir    = dirname( __FILE__ );
 		$this->plugin_dir   = dirname( $this->tests_dir );
-		$this->wp_tests_dir = getenv( 'WP_TESTS_DIR' ) ? getenv( 'WP_TESTS_DIR' ) : '/tmp/wordpress-tests-lib';
+		$this->wp_tests_dir = getenv( 'WP_TESTS_DIR' );
+		if ( ! $this->wp_tests_dir ) {
+			$this->wp_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
+		}
 
 		// Load test function so tests_add_filter() is available.
 		require_once $this->wp_tests_dir . '/includes/functions.php';
@@ -69,6 +72,8 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 
 		// Load the WP testing environment.
 		require_once $this->wp_tests_dir . '/includes/bootstrap.php';
+
+		define( 'IS_TEST_ENV', 1 );
 	}
 
 	/**
