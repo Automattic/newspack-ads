@@ -24,5 +24,8 @@
         "cat $1 | ./node_modules/.bin/commitlint"
       ]
     }
+  },
+  "require": {
+    "googleads/googleads-php-lib": "^52.0"
   }
 }
