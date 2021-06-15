@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/Automattic/newspack-ads/compare/v1.13.1...v1.14.0) (2021-06-15)
+
+
+### Bug Fixes
+
+* run composer install on release tasks ([#135](https://github.com/Automattic/newspack-ads/issues/135)) ([fbf1dbc](https://github.com/Automattic/newspack-ads/commit/fbf1dbc107cd393317814a77e38902c61040f043))
+
+
+### Features
+
+* add experimental GAM integration ([#124](https://github.com/Automattic/newspack-ads/issues/124)) ([ccd2c28](https://github.com/Automattic/newspack-ads/commit/ccd2c282fd1690bad42ae6d00a619f9bc0a00c6d))
+
 ## [1.13.1](https://github.com/Automattic/newspack-ads/compare/v1.13.0...v1.13.1) (2021-06-02)
 
 
