@@ -1,6 +1,6 @@
-.stick-to-top {
+.stick-to-top:last-child {
 	position: sticky;
-	top: 0;
+	top: 1rem;
 }
 
 .widget_newspack-ads-widget {

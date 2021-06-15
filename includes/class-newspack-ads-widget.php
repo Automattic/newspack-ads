@@ -100,7 +100,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 				<br/>
 				<br/>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>">
-					<?php echo esc_html__( 'Stick to top', 'newspack-ads' ); ?>
+					<?php echo esc_html__( 'Stick to top (only if the last widget in the sidebar)', 'newspack-ads' ); ?>
 					<input
 						type="checkbox"
 						id="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>"
