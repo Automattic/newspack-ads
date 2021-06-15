@@ -11,15 +11,11 @@ const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.
 const path = require( 'path' );
 
 /**
- * Internal dependencies
- */
-// const { workerCount } = require( './webpack.common' ); // todo: shard...
-
-/**
  * Internal variables
  */
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
+const frontend = path.join( __dirname, 'src', 'frontend' );
 
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
@@ -29,8 +25,8 @@ function blockScripts( type, inputDir, blocks ) {
 
 const blocksDir = path.join( __dirname, 'src', 'blocks' );
 const blocks = fs
-  .readdirSync( blocksDir )
-  .filter( block => fs.existsSync( path.join( __dirname, 'src', 'blocks', block, 'editor.js' ) ) );
+	.readdirSync( blocksDir )
+	.filter( block => fs.existsSync( path.join( __dirname, 'src', 'blocks', block, 'editor.js' ) ) );
 
 // Helps split up each block into its own folder view script
 const viewBlocksScripts = blocks.reduce( ( viewBlocks, block ) => {
@@ -56,6 +52,7 @@ const webpackConfig = getBaseWebpackConfig(
 			editor: editorScript,
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
+			frontend,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
