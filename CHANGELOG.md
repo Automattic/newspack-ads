@@ -1,3 +1,10 @@
+# [1.14.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.14.0-alpha.1...v1.14.0-alpha.2) (2021-06-15)
+
+
+### Bug Fixes
+
+* run composer install on release tasks ([61a3cde](https://github.com/Automattic/newspack-ads/commit/61a3cdee7480f79058c1e9435efa191e3446dfa1))
+
 # [1.14.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.13.1...v1.14.0-alpha.1) (2021-06-15)
 
 
