@@ -1,3 +1,10 @@
+## [1.14.1-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.14.0...v1.14.1-alpha.1) (2021-07-06)
+
+
+### Bug Fixes
+
+* handle undefined properties for widget ([cc48641](https://github.com/Automattic/newspack-ads/commit/cc48641407443435414667e6781efe3465dd9ec4))
+
 # [1.14.0](https://github.com/Automattic/newspack-ads/compare/v1.13.1...v1.14.0) (2021-06-15)
 
 
