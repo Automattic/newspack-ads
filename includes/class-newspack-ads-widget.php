@@ -33,7 +33,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 	 * @param object $instance The Widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		if ( ! newspack_ads_should_show_ads() ) {
+		if ( ! newspack_ads_should_show_ads() || ! isset( $args['id'] ) ) {
 			return;
 		}
 
@@ -121,6 +121,9 @@ class Newspack_Ads_Widget extends WP_Widget {
 	 * @param object $old_instance Old instance.
 	 */
 	public function update( $new_instance, $old_instance ) {
+		if ( ! isset( $new_instance['stick_to_top'] ) ) {
+			$new_instance['stick_to_top'] = false;
+		}
 		return [
 			'selected_ad_unit' => $new_instance['selected_ad_unit'],
 			'stick_to_top'     => $new_instance['stick_to_top'],
