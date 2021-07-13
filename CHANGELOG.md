@@ -1,3 +1,10 @@
+## [1.14.2-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.14.1...v1.14.2-alpha.1) (2021-07-13)
+
+
+### Bug Fixes
+
+* compare ad unit IDs as int rather than float ([#142](https://github.com/Automattic/newspack-ads/issues/142)) ([0633cc7](https://github.com/Automattic/newspack-ads/commit/0633cc718dc8c6abb88072fe035689dca8970367))
+
 ## [1.14.1](https://github.com/Automattic/newspack-ads/compare/v1.14.0...v1.14.1) (2021-07-06)
 
 
