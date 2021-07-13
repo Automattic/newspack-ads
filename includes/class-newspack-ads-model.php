@@ -80,8 +80,9 @@ class Newspack_Ads_Model {
 		} else {
 			// Ad units saved in options table. Ad unit ID is the GAM Ad Unit ID.
 			$ad_units = self::get_synced_gam_ad_units();
+
 			foreach ( $ad_units as $unit ) {
-				if ( $unit['id'] === $id && 'ACTIVE' === $unit['status'] ) {
+				if ( intval( $id ) === intval( $unit['id'] ) && 'ACTIVE' === $unit['status'] ) {
 					$ad_unit = $unit;
 					break;
 				}
