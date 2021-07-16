@@ -64,6 +64,16 @@ class Newspack_Ads_Model {
 	 * @return object Prepared ad unit, with markup for injecting on a page.
 	 */
 	public static function get_ad_unit_for_display( $id, $placement = null, $context = null ) {
+		if ( 0 === (int) $id ) {
+			return new WP_Error(
+				'newspack_no_adspot_found',
+				\esc_html__( 'No such ad spot.', 'newspack' ),
+				array(
+					'status' => '400',
+				)
+			);
+		}
+
 		$ad_unit               = \get_post( $id );
 		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
 
