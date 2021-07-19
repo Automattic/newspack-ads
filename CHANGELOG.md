@@ -1,3 +1,10 @@
+## [1.14.3](https://github.com/Automattic/newspack-ads/compare/v1.14.2...v1.14.3) (2021-07-19)
+
+
+### Bug Fixes
+
+* harden logic when no ad unit selected ([2640514](https://github.com/Automattic/newspack-ads/commit/26405142de6c19c4db1e9ae7bb423b38e7ca7866))
+
 ## [1.14.2](https://github.com/Automattic/newspack-ads/compare/v1.14.1...v1.14.2) (2021-07-13)
 
 
