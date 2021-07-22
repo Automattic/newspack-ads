@@ -82,7 +82,7 @@ class Edit extends Component {
 		const { activeAd } = attributes;
 		const { adUnits } = this.state;
 		const { width, height } = this.activeAdDataForActiveAd( activeAd );
-		const adWidth = width ? { width: `${ width }px` } : {};
+		const adWidth = width ? { width: `${ Math.max( 100, width ) }px` } : {};
 		const ratio = width && height ? { padding: `0 0 ${ ( height * 100 ) / width }%` } : {};
 		return (
 			<Fragment>
