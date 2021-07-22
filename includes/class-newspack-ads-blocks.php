@@ -175,6 +175,7 @@ class Newspack_Ads_Blocks {
 				'code'      => esc_attr( $ad_unit['code'] ),
 				'sizes'     => array_values( $sizes ),
 				'targeting' => $ad_targeting,
+				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
 			];
 		}
 
@@ -265,6 +266,11 @@ class Newspack_Ads_Blocks {
 						for ( width in unique_widths ) {
 							mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
 						}
+					}
+
+					// Sticky ads should only be shown on mobile (screen width <=600px).
+					if ( ad_unit['sticky'] ) {
+						mapping.addSize( [600, 0], [] );
 					}
 
 					// On viewports smaller than the smallest ad size, don't show any ads.
