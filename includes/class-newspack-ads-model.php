@@ -425,6 +425,16 @@ class Newspack_Ads_Model {
 			$sizes = [];
 		}
 
+		// Remove all ad sizes greater than 600px wide for sticky ads.
+		if ( self::is_sticky( $ad_unit ) ) {
+			$sizes = array_filter(
+				$sizes,
+				function( $size ) {
+					return $size[0] < 600;
+				}
+			);
+		}
+
 		self::$ad_ids[ $unique_id ] = $ad_unit;
 
 		$code = sprintf(
@@ -451,6 +461,7 @@ class Newspack_Ads_Model {
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
 		}
+
 		// Remove all ad sizes greater than 600px wide for sticky ads.
 		if ( self::is_sticky( $ad_unit ) ) {
 			$sizes = array_filter(

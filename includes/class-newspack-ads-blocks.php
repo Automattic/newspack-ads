@@ -154,12 +154,28 @@ class Newspack_Ads_Blocks {
 			$ad_targeting = Newspack_Ads_Model::get_ad_targeting( $ad_unit );
 
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
+			$sizes        = $ad_unit['sizes'];
+
+			if ( ! is_array( $sizes ) ) {
+				$sizes = [];
+			}
+
+			// Remove all ad sizes greater than 600px wide for sticky ads.
+			if ( Newspack_Ads_Model::is_sticky( $ad_unit ) ) {
+				$sizes = array_filter(
+					$sizes,
+					function( $size ) {
+						return $size[0] < 600;
+					}
+				);
+			}
 
 			$prepared_unit_data[ $container_id ] = [
 				'name'      => esc_attr( $ad_unit['name'] ),
 				'code'      => esc_attr( $ad_unit['code'] ),
-				'sizes'     => $ad_unit['sizes'],
+				'sizes'     => array_values( $sizes ),
 				'targeting' => $ad_targeting,
+				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
 			];
 		}
 
@@ -250,6 +266,11 @@ class Newspack_Ads_Blocks {
 						for ( width in unique_widths ) {
 							mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
 						}
+					}
+
+					// Sticky ads should only be shown on mobile (screen width <=600px).
+					if ( ad_unit['sticky'] ) {
+						mapping.addSize( [600, 0], [] );
 					}
 
 					// On viewports smaller than the smallest ad size, don't show any ads.
