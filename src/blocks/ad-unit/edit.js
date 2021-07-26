@@ -81,16 +81,16 @@ class Edit extends Component {
 		const { attributes, setAttributes, noticeUI } = this.props;
 		const { activeAd } = attributes;
 		const { adUnits } = this.state;
-		const { width, height } = this.activeAdDataForActiveAd( activeAd );
-		const adWidth = width ? { width: `${ width }px` } : {};
-		const ratio = width && height ? { padding: `0 0 ${ ( height * 100 ) / width }%` } : {};
+		const { width = 100, height = 75 } = this.activeAdDataForActiveAd( activeAd );
+		const constrainedWidth = Math.max( 100, width );
+		const ratioStyle = { padding: `0 0 ${ Math.min( 500, ( height * 100 ) / width ) }%` };
 		return (
 			<Fragment>
 				{ noticeUI }
 				<div className="wp-block-newspack-ads-blocks-ad-unit">
 					<div className="newspack-ads-ad-unit">
-						<Placeholder style={ adWidth }>
-							<div className="newspack-ads-ad-unit__ratio" style={ ratio } />
+						<Placeholder style={ { width: `${ constrainedWidth }px` } }>
+							<div className="newspack-ads-ad-unit__ratio" style={ ratioStyle } />
 							{ ! adUnits && <Spinner /> }
 							{ adUnits && !! adUnits.length && (
 								<SelectControl
