@@ -1,3 +1,14 @@
+## [1.14.4-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.14.3...v1.14.4-alpha.1) (2021-07-27)
+
+
+### Bug Fixes
+
+* **editor:** ad unit block size handling ([#149](https://github.com/Automattic/newspack-ads/issues/149)) ([3789d83](https://github.com/Automattic/newspack-ads/commit/3789d835e35b9e24fb39fc914569b579d18d3322)), closes [#5](https://github.com/Automattic/newspack-ads/issues/5)
+* only init sticky ad on mobile ([81469d0](https://github.com/Automattic/newspack-ads/commit/81469d019e62d088cde277971922dc79e5e9d659))
+* remove error_log ([2dcfd5a](https://github.com/Automattic/newspack-ads/commit/2dcfd5a9e9b8cce8cee5d43e8f5b63a39fe3b202))
+* remove large sizes for sticky ads in non-amp ([0e1ec98](https://github.com/Automattic/newspack-ads/commit/0e1ec98f5dfaefa8d604c565d2c066ef1ddc42e3))
+* return all ad units ([0679f53](https://github.com/Automattic/newspack-ads/commit/0679f53e8d823fc64f2e15b09ca080f9f4f32a78)), closes [#106](https://github.com/Automattic/newspack-ads/issues/106)
+
 ## [1.14.3](https://github.com/Automattic/newspack-ads/compare/v1.14.2...v1.14.3) (2021-07-19)
 
 
