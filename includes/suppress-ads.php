@@ -52,5 +52,16 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		}
 	}
 
+	$global_suppression_config = Newspack_Ads_Model::get_suppression_config();
+	if ( is_tag() && true === $global_suppression_config['tag_archive_pages'] ) {
+		$should_show = false;
+	}
+	if ( is_category() && true === $global_suppression_config['category_archive_pages'] ) {
+		$should_show = false;
+	}
+	if ( is_author() && true === $global_suppression_config['author_archive_pages'] ) {
+		$should_show = false;
+	}
+
 	return apply_filters( 'newspack_ads_should_show_ads', $should_show, $post_id );
 }

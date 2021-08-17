@@ -12,8 +12,9 @@ class Newspack_Ads_Model {
 	const SIZES = 'sizes';
 	const CODE  = 'code';
 
-	const OPTION_NAME_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
-	const OPTION_NAME_GAM_ITEMS    = '_newspack_ads_gam_items';
+	const OPTION_NAME_NETWORK_CODE          = '_newspack_ads_service_google_ad_manager_network_code';
+	const OPTION_NAME_GAM_ITEMS             = '_newspack_ads_gam_items';
+	const OPTION_NAME_GLOBAL_AD_SUPPRESSION = '_newspack_global_ad_suppression';
 
 	/**
 	 * Custom post type
@@ -752,6 +753,29 @@ class Newspack_Ads_Model {
 			$status['is_network_code_matched'] = self::is_network_code_matched();
 		}
 		return $status;
+	}
+
+	/**
+	 * Get global ad suppresion config.
+	 */
+	public static function get_suppression_config() {
+		return get_option(
+			self::OPTION_NAME_GLOBAL_AD_SUPPRESSION,
+			[
+				'tag_archive_pages'      => false,
+				'category_archive_pages' => false,
+				'author_archive_pages'   => false,
+			]
+		);
+	}
+
+	/**
+	 * Update global ad suppresion config.
+	 *
+	 * @param array $config Updated config.
+	 */
+	public static function update_suppression_config( $config ) {
+		update_option( self::OPTION_NAME_GLOBAL_AD_SUPPRESSION, $config );
 	}
 }
 Newspack_Ads_Model::init();
