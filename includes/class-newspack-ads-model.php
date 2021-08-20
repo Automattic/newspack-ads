@@ -762,9 +762,11 @@ class Newspack_Ads_Model {
 		return get_option(
 			self::OPTION_NAME_GLOBAL_AD_SUPPRESSION,
 			[
-				'tag_archive_pages'      => false,
-				'category_archive_pages' => false,
-				'author_archive_pages'   => false,
+				'tag_archive_pages'               => false,
+				'specific_tag_archive_pages'      => [],
+				'category_archive_pages'          => false,
+				'specific_category_archive_pages' => [],
+				'author_archive_pages'            => false,
 			]
 		);
 	}
