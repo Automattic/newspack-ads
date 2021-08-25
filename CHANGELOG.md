@@ -1,3 +1,10 @@
+# [1.15.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.14.4...v1.15.0-alpha.1) (2021-08-25)
+
+
+### Features
+
+* global add suppression settings ([#156](https://github.com/Automattic/newspack-ads/issues/156)) ([6fb8189](https://github.com/Automattic/newspack-ads/commit/6fb818996408cf45b5f5b96db926bb681654d797)), closes [#155](https://github.com/Automattic/newspack-ads/issues/155)
+
 ## [1.14.4](https://github.com/Automattic/newspack-ads/compare/v1.14.3...v1.14.4) (2021-07-27)
 
 
