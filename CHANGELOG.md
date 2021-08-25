@@ -1,3 +1,10 @@
+# [1.15.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.15.0-alpha.1...v1.15.0-alpha.2) (2021-08-25)
+
+
+### Bug Fixes
+
+* circleci phpunit requirement ([#161](https://github.com/Automattic/newspack-ads/issues/161)) ([1237c90](https://github.com/Automattic/newspack-ads/commit/1237c9007236821a7181f13ada7ca344f314ca66))
+
 # [1.15.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.14.4...v1.15.0-alpha.1) (2021-08-25)
 
 
