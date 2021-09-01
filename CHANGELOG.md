@@ -1,3 +1,10 @@
+# [1.16.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.15.0...v1.16.0-alpha.1) (2021-09-01)
+
+
+### Features
+
+* **gam:** connect using a service account ([5501472](https://github.com/Automattic/newspack-ads/commit/55014721318eada7ef9dbef8def2535ee774392d))
+
 # [1.15.0](https://github.com/Automattic/newspack-ads/compare/v1.14.4...v1.15.0) (2021-08-25)
 
 
