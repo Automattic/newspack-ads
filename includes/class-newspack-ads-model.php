@@ -309,7 +309,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function get_active_network_code() {
 		$network_code = get_option( self::OPTION_NAME_NETWORK_CODE, '' );
-		return absint( $network_code );
+		return sanitize_text_field( $network_code );
 	}
 
 	/**
