@@ -695,17 +695,14 @@ class Newspack_Ads_Model {
 		$targeting = [];
 
 		if ( is_singular() ) {
-			// Add the post slug to targeting.
-			$slug = get_post_field( 'post_name' );
-			if ( $slug ) {
-				$targeting['slug'] = sanitize_text_field( $slug );
-			}
-
 			// Add the category slugs to targeting.
 			$categories = wp_get_post_categories( get_the_ID(), [ 'fields' => 'slugs' ] );
 			if ( ! empty( $categories ) ) {
 				$targeting['category'] = array_map( 'sanitize_text_field', $categories );
 			}
+
+			// Add post type to targeting.
+			$targeting['post_type'] = get_post_type();
 
 			// Add the post ID to targeting.
 			$targeting['ID'] = get_the_ID();
