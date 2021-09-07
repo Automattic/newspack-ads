@@ -1,3 +1,15 @@
+# [1.16.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.16.0-alpha.1...v1.16.0-alpha.2) (2021-09-07)
+
+
+### Bug Fixes
+
+* **targeting:** remove post slug and add post type ([#168](https://github.com/Automattic/newspack-ads/issues/168)) ([f54a325](https://github.com/Automattic/newspack-ads/commit/f54a3258232ac22bf3d80e6521401ca106dc31bd))
+
+
+### Features
+
+* allow multiple comma-delmiited GAM network codes ([#169](https://github.com/Automattic/newspack-ads/issues/169)) ([674038c](https://github.com/Automattic/newspack-ads/commit/674038cfa98d429778965b2417cdd4c911e29a58))
+
 # [1.16.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.15.0...v1.16.0-alpha.1) (2021-09-01)
 
 
