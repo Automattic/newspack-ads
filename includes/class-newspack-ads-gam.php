@@ -6,6 +6,7 @@
  */
 
 use Google\AdsApi\Common\Configuration;
+use Google\AdsApi\Common\OAuth2TokenBuilder;
 use Google\AdsApi\AdManager\AdManagerServices;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
@@ -43,20 +44,31 @@ class Newspack_Ads_GAM {
 	private static $session = null;
 
 	/**
+	 * Get service account credentials file path.
+	 */
+	private static function service_account_credentials_file_path() {
+		return WP_CONTENT_DIR . '/google-service-account-creds.json';
+	}
+
+	/**
 	 * Get OAuth2 credentials.
 	 *
 	 * @throws \Exception If the user is not authenticated.
 	 * @return object OAuth2 credentials.
 	 */
 	private static function get_google_oauth2_credentials() {
-		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
-			if ( false === $oauth2_credentials ) {
-				throw new \Exception( __( 'Please authenticate Newspack with Google.', 'newspack-ads' ), 1 );
-			}
-			return $oauth2_credentials;
-		} else {
-			throw new \Exception( __( 'Please activate the Newspack Plugin.', 'newspack-ads' ), 1 );
+		try {
+			$oauth2_config = new Configuration(
+				[
+					'OAUTH2' => [
+						'scopes'          => 'https://www.googleapis.com/auth/dfp', // Google Ad Manager.
+						'jsonKeyFilePath' => self::service_account_credentials_file_path(),
+					],
+				]
+			);
+			return ( new OAuth2TokenBuilder() )->from( $oauth2_config )->build();
+		} catch ( \Exception $e ) {
+			throw new \Exception( $e->getMessage(), 1 );
 		}
 	}
 
@@ -400,12 +412,7 @@ class Newspack_Ads_GAM {
 	 * @return object Object with status information.
 	 */
 	public static function connection_status() {
-		$response = [ 'can_connect' => true ];
-		if ( ! defined( 'NEWSPACK_ADS_USE_GAM' ) || ( defined( 'NEWSPACK_ADS_USE_GAM' ) && false === NEWSPACK_ADS_USE_GAM ) ) {
-			$response['connected']   = false;
-			$response['can_connect'] = false;
-			return $response;
-		}
+		$response = [ 'can_connect' => file_exists( self::service_account_credentials_file_path() ) ];
 		try {
 			$network_code          = self::get_gam_network_code();
 			$response['connected'] = true;
