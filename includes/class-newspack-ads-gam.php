@@ -10,6 +10,11 @@ use Google\AdsApi\Common\OAuth2TokenBuilder;
 use Google\AdsApi\AdManager\AdManagerServices;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
+use Google\AdsApi\AdManager\v202102\Statement;
+use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
+use Google\AdsApi\AdManager\v202102\TextValue;
+use Google\AdsApi\AdManager\v202102\SetValue;
+use Google\AdsApi\AdManager\v202102\CustomTargetingKey;
 use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
@@ -44,10 +49,75 @@ class Newspack_Ads_GAM {
 	private static $session = null;
 
 	/**
+	 * Custom targeting keys.
+	 *
+	 * @var string[]
+	 */
+	public static $custom_targeting_keys = [
+		'ID',
+		'category',
+		'post_type',
+	];
+
+	/**
 	 * Get service account credentials file path.
 	 */
 	private static function service_account_credentials_file_path() {
 		return WP_CONTENT_DIR . '/google-service-account-creds.json';
+	}
+
+	/**
+	 * Update custom targeting keys.
+	 */
+	public static function update_custom_targeting_keys() {
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+
+		// Find existing keys.
+		$key_map   = [
+			new String_ValueMapEntry(
+				'name',
+				new SetValue(
+					array_map(
+						function ( $key ) {
+							return new TextValue( $key );
+						},
+						self::$custom_targeting_keys
+					)
+				)
+			),
+		];
+		$statement = new Statement( 'WHERE name = :name', $key_map );
+		$keys      = $service->getCustomTargetingKeysByStatement( $statement );
+
+		$keys_to_create = array_values(
+			array_diff(
+				array_map(
+					function ( $key ) {
+						return $key;
+					},
+					self::$custom_targeting_keys
+				),
+				array_map(
+					function ( $key ) {
+						return $key->getName();
+					},
+					$keys->getResults()
+				)
+			)
+		);
+
+		// Create custom targeting keys.
+		if ( ! empty( $keys_to_create ) ) {
+			$service->createCustomTargetingKeys(
+				array_map(
+					function ( $key ) {
+						return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
+					},
+					$keys_to_create
+				)
+			);
+		}
 	}
 
 	/**
