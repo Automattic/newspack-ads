@@ -313,7 +313,7 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Save GAM configuration locally.
+	 * Save GAM configuration locally and update GAM settings.
 	 * First reason is so the GAM API is not queried on frontend requests - information
 	 * about ad units & GAM settings will be read from the DB.
 	 * Second reason is backwards compatibility - in a previous version of the plugin,

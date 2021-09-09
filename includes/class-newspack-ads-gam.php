@@ -67,60 +67,6 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Update custom targeting keys.
-	 */
-	public static function update_custom_targeting_keys() {
-		$session = self::get_gam_session();
-		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
-
-		// Find existing keys.
-		$key_map   = [
-			new String_ValueMapEntry(
-				'name',
-				new SetValue(
-					array_map(
-						function ( $key ) {
-							return new TextValue( $key );
-						},
-						self::$custom_targeting_keys
-					)
-				)
-			),
-		];
-		$statement = new Statement( 'WHERE name = :name', $key_map );
-		$keys      = $service->getCustomTargetingKeysByStatement( $statement );
-
-		$keys_to_create = array_values(
-			array_diff(
-				array_map(
-					function ( $key ) {
-						return $key;
-					},
-					self::$custom_targeting_keys
-				),
-				array_map(
-					function ( $key ) {
-						return $key->getName();
-					},
-					$keys->getResults()
-				)
-			)
-		);
-
-		// Create custom targeting keys.
-		if ( ! empty( $keys_to_create ) ) {
-			$service->createCustomTargetingKeys(
-				array_map(
-					function ( $key ) {
-						return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
-					},
-					$keys_to_create
-				)
-			);
-		}
-	}
-
-	/**
 	 * Get OAuth2 credentials.
 	 *
 	 * @throws \Exception If the user is not authenticated.
@@ -473,6 +419,55 @@ class Newspack_Ads_GAM {
 			}
 		} catch ( \Exception $e ) {
 			return false;
+		}
+	}
+
+	/**
+	 * Update custom targeting keys.
+	 */
+	public static function update_custom_targeting_keys() {
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+
+		// Find existing keys.
+		$key_map   = [
+			new String_ValueMapEntry(
+				'name',
+				new SetValue(
+					array_map(
+						function ( $key ) {
+							return new TextValue( $key );
+						},
+						self::$custom_targeting_keys
+					)
+				)
+			),
+		];
+		$statement = new Statement( "WHERE name = :name AND status = 'ACTIVE'", $key_map );
+		$keys      = $service->getCustomTargetingKeysByStatement( $statement );
+
+		$keys_to_create = array_values(
+			array_diff(
+				self::$custom_targeting_keys,
+				array_map(
+					function ( $key ) {
+						return $key->getName();
+					},
+					$keys->getResults()
+				)
+			)
+		);
+
+		// Create custom targeting keys.
+		if ( ! empty( $keys_to_create ) ) {
+			$service->createCustomTargetingKeys(
+				array_map(
+					function ( $key ) {
+						return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
+					},
+					$keys_to_create
+				)
+			);
 		}
 	}
 
