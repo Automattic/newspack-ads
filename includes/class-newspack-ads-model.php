@@ -327,6 +327,8 @@ class Newspack_Ads_Model {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
 		if ( null === $settings ) {
+			// Update targeting keys when fetching settings from GAM.
+			Newspack_Ads_GAM::update_custom_targeting_keys();
 			$settings             = Newspack_Ads_GAM::get_gam_settings();
 			$network_code_matches = self::is_network_code_matched();
 		} else {
@@ -342,8 +344,6 @@ class Newspack_Ads_Model {
 			$synced_gam_items[ $network_code ]['ad_units'] = $serialised_ad_units;
 			update_option( self::OPTION_NAME_NETWORK_CODE, $network_code );
 			update_option( self::OPTION_NAME_GAM_ITEMS, $synced_gam_items );
-
-			Newspack_Ads_GAM::update_custom_targeting_keys();
 		}
 	}
 
