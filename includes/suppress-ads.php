@@ -50,6 +50,8 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		if ( get_post_meta( $post_id, 'newspack_ads_suppress_ads', true ) ) {
 			$should_show = false;
 		}
+
+		$should_show = apply_filters( 'newspack_ads_should_display_for_post', true, $post_id );
 	}
 
 	$global_suppression_config = Newspack_Ads_Model::get_suppression_config();
