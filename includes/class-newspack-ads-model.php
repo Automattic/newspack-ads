@@ -706,6 +706,12 @@ class Newspack_Ads_Model {
 		$targeting = [];
 
 		if ( is_singular() ) {
+			// Add the post slug to targeting.
+			$slug = get_post_field( 'post_name' );
+			if ( $slug ) {
+				$targeting['slug'] = sanitize_text_field( $slug );
+			}
+
 			// Add the category slugs to targeting.
 			$categories = wp_get_post_categories( get_the_ID(), [ 'fields' => 'slugs' ] );
 			if ( ! empty( $categories ) ) {
