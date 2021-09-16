@@ -55,6 +55,7 @@ class Newspack_Ads_GAM {
 	 */
 	public static $custom_targeting_keys = [
 		'ID',
+		'slug',
 		'category',
 		'post_type',
 	];
