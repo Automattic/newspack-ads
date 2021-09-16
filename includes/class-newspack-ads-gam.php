@@ -423,7 +423,11 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Update custom targeting keys.
+	 * Update custom targeting keys with predefined values if necessary.
+	 *
+	 * @return string[] Created custom targeting keys names or empty array if none was created.
+	 *
+	 * @throws \Exception If there is an error while communicating with the API.
 	 */
 	public static function update_custom_targeting_keys() {
 		$session = self::get_gam_session();
@@ -444,7 +448,11 @@ class Newspack_Ads_GAM {
 			),
 		];
 		$statement = new Statement( "WHERE name = :name AND status = 'ACTIVE'", $key_map );
-		$keys      = $service->getCustomTargetingKeysByStatement( $statement );
+		try {
+			$keys = $service->getCustomTargetingKeysByStatement( $statement );
+		} catch ( \Exception $e ) {
+			throw new \Exception( __( 'Unable to find existing targeting keys', 'newspack-ads' ) );
+		}
 
 		$keys_to_create = array_values(
 			array_diff(
@@ -453,22 +461,33 @@ class Newspack_Ads_GAM {
 					function ( $key ) {
 						return $key->getName();
 					},
-					$keys->getResults()
+					(array) $keys->getResults()
 				)
 			)
 		);
 
 		// Create custom targeting keys.
 		if ( ! empty( $keys_to_create ) ) {
-			$service->createCustomTargetingKeys(
-				array_map(
-					function ( $key ) {
-						return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
-					},
-					$keys_to_create
-				)
+			try {
+				$created_keys = $service->createCustomTargetingKeys(
+					array_map(
+						function ( $key ) {
+								return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
+						},
+						$keys_to_create
+					)
+				);
+			} catch ( \Exception $e ) {
+				throw new \Exception( __( 'Unable to create custom targeting keys', 'newspack-ads' ) );
+			}
+			return array_map(
+				function( $key ) {
+					return $key->getName();
+				},
+				$created_keys
 			);
 		}
+		return [];
 	}
 
 	/**
