@@ -1,3 +1,10 @@
+# [1.17.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.16.0...v1.17.0-alpha.1) (2021-09-16)
+
+
+### Features
+
+* **targeting:** add slug back ([f3095d0](https://github.com/Automattic/newspack-ads/commit/f3095d0e386af79f1752ec78beef230d7234927d))
+
 # [1.16.0](https://github.com/Automattic/newspack-ads/compare/v1.15.0...v1.16.0) (2021-09-08)
 
 
