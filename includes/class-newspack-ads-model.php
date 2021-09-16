@@ -171,8 +171,11 @@ class Newspack_Ads_Model {
 		if ( ! self::is_gam_connected() ) {
 			return $legacy_ad_units;
 		}
-		$ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
-		self::sync_gam_settings( $ad_units );
+		$ad_units    = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+		$sync_result = self::sync_gam_settings( $ad_units );
+		if ( \is_wp_error( $sync_result ) ) {
+			return $sync_result;
+		}
 		return array_merge( $ad_units, $legacy_ad_units );
 	}
 
@@ -313,7 +316,7 @@ class Newspack_Ads_Model {
 	}
 
 	/**
-	 * Save GAM configuration locally and update GAM settings.
+	 * Save GAM configuration locally.
 	 * First reason is so the GAM API is not queried on frontend requests - information
 	 * about ad units & GAM settings will be read from the DB.
 	 * Second reason is backwards compatibility - in a previous version of the plugin,
@@ -327,10 +330,19 @@ class Newspack_Ads_Model {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
 		if ( null === $settings ) {
-			// Update targeting keys when fetching settings from GAM.
-			Newspack_Ads_GAM::update_custom_targeting_keys();
-			$settings             = Newspack_Ads_GAM::get_gam_settings();
-			$network_code_matches = self::is_network_code_matched();
+			try {
+				$settings             = Newspack_Ads_GAM::get_gam_settings();
+				$network_code_matches = self::is_network_code_matched();
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'newspack_ads_failed_gam_sync',
+					__( 'Unable to synchronize with GAM', 'newspack-ads' ),
+					[
+						'status' => 400,
+						'level'  => 'notice',
+					]
+				);
+			}
 		} else {
 			$network_code_matches = true;
 		}
