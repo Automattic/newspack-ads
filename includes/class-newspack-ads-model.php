@@ -57,6 +57,21 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Initial GAM setup.
+	 *
+	 * @return object|WP_Error Setup results or error if setup fails.
+	 */
+	public static function setup_gam() {
+		$setup_results = array();
+		try {
+			$setup_results['created_targeting_keys'] = Newspack_Ads_GAM::update_custom_targeting_keys();
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
+		}
+		return $setup_results;
+	}
+
+	/**
 	 * Get a single ad unit to display on the page.
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
