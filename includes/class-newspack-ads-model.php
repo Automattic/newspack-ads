@@ -351,11 +351,7 @@ class Newspack_Ads_Model {
 			} catch ( \Exception $e ) {
 				return new WP_Error(
 					'newspack_ads_failed_gam_sync',
-					__( 'Unable to synchronize with GAM', 'newspack-ads' ),
-					[
-						'status' => 400,
-						'level'  => 'notice',
-					]
+					__( 'Unable to synchronize with GAM', 'newspack-ads' )
 				);
 			}
 		} else {
