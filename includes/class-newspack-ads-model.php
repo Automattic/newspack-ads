@@ -57,6 +57,21 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Initial GAM setup.
+	 *
+	 * @return object|WP_Error Setup results or error if setup fails.
+	 */
+	public static function setup_gam() {
+		$setup_results = array();
+		try {
+			$setup_results['created_targeting_keys'] = Newspack_Ads_GAM::update_custom_targeting_keys();
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
+		}
+		return $setup_results;
+	}
+
+	/**
 	 * Get a single ad unit to display on the page.
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
@@ -171,8 +186,11 @@ class Newspack_Ads_Model {
 		if ( ! self::is_gam_connected() ) {
 			return $legacy_ad_units;
 		}
-		$ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
-		self::sync_gam_settings( $ad_units );
+		$ad_units    = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+		$sync_result = self::sync_gam_settings( $ad_units );
+		if ( \is_wp_error( $sync_result ) ) {
+			return $sync_result;
+		}
 		return array_merge( $ad_units, $legacy_ad_units );
 	}
 
@@ -327,8 +345,15 @@ class Newspack_Ads_Model {
 			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
 		}
 		if ( null === $settings ) {
-			$settings             = Newspack_Ads_GAM::get_gam_settings();
-			$network_code_matches = self::is_network_code_matched();
+			try {
+				$settings             = Newspack_Ads_GAM::get_gam_settings();
+				$network_code_matches = self::is_network_code_matched();
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'newspack_ads_failed_gam_sync',
+					__( 'Unable to synchronize with GAM', 'newspack-ads' )
+				);
+			}
 		} else {
 			$network_code_matches = true;
 		}

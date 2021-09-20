@@ -10,6 +10,11 @@ use Google\AdsApi\Common\OAuth2TokenBuilder;
 use Google\AdsApi\AdManager\AdManagerServices;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
+use Google\AdsApi\AdManager\v202102\Statement;
+use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
+use Google\AdsApi\AdManager\v202102\TextValue;
+use Google\AdsApi\AdManager\v202102\SetValue;
+use Google\AdsApi\AdManager\v202102\CustomTargetingKey;
 use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
@@ -42,6 +47,18 @@ class Newspack_Ads_GAM {
 	 * @var AdManagerSession
 	 */
 	private static $session = null;
+
+	/**
+	 * Custom targeting keys.
+	 *
+	 * @var string[]
+	 */
+	public static $custom_targeting_keys = [
+		'ID',
+		'slug',
+		'category',
+		'post_type',
+	];
 
 	/**
 	 * Get service account credentials file path.
@@ -404,6 +421,74 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Update custom targeting keys with predefined values if necessary.
+	 *
+	 * @return string[] Created custom targeting keys names or empty array if none was created.
+	 *
+	 * @throws \Exception If there is an error while communicating with the API.
+	 */
+	public static function update_custom_targeting_keys() {
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+
+		// Find existing keys.
+		$key_map   = [
+			new String_ValueMapEntry(
+				'name',
+				new SetValue(
+					array_map(
+						function ( $key ) {
+							return new TextValue( $key );
+						},
+						self::$custom_targeting_keys
+					)
+				)
+			),
+		];
+		$statement = new Statement( "WHERE name = :name AND status = 'ACTIVE'", $key_map );
+		try {
+			$keys = $service->getCustomTargetingKeysByStatement( $statement );
+		} catch ( \Exception $e ) {
+			throw new \Exception( __( 'Unable to find existing targeting keys', 'newspack-ads' ) );
+		}
+
+		$keys_to_create = array_values(
+			array_diff(
+				self::$custom_targeting_keys,
+				array_map(
+					function ( $key ) {
+						return $key->getName();
+					},
+					(array) $keys->getResults()
+				)
+			)
+		);
+
+		// Create custom targeting keys.
+		if ( ! empty( $keys_to_create ) ) {
+			try {
+				$created_keys = $service->createCustomTargetingKeys(
+					array_map(
+						function ( $key ) {
+								return ( new CustomTargetingKey() )->setName( $key )->setType( 'FREEFORM' );
+						},
+						$keys_to_create
+					)
+				);
+			} catch ( \Exception $e ) {
+				throw new \Exception( __( 'Unable to create custom targeting keys', 'newspack-ads' ) );
+			}
+			return array_map(
+				function( $key ) {
+					return $key->getName();
+				},
+				$created_keys
+			);
+		}
+		return [];
 	}
 
 	/**
