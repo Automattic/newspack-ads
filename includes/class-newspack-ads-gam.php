@@ -5,9 +5,8 @@
  * @package Newspack
  */
 
+use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
-use Google\AdsApi\Common\OAuth2TokenBuilder;
-use Google\AdsApi\AdManager\AdManagerServices;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
 use Google\AdsApi\AdManager\v202102\Statement;
@@ -33,6 +32,8 @@ require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 class Newspack_Ads_GAM {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
 	const GAM_APP_NAME_FOR_LOGS = 'Newspack';
+
+	const CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
 
 	/**
 	 * Codes of networks that the user has access to.
@@ -62,28 +63,31 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get service account credentials file path.
+	 * 
+	 * @return array|bool Associate array or false if not found.
 	 */
-	private static function service_account_credentials_file_path() {
-		return WP_CONTENT_DIR . '/google-service-account-creds.json';
+	private static function get_service_account_credentials() {
+		$credentials = get_option( self::CREDENTIALS_OPTION_NAME, false );
+		return $credentials;
 	}
 
 	/**
 	 * Get OAuth2 credentials.
+	 * 
+	 * @param array $credentials (optional) Credentials array.
 	 *
 	 * @throws \Exception If the user is not authenticated.
 	 * @return object OAuth2 credentials.
 	 */
-	private static function get_google_oauth2_credentials() {
+	public static function get_google_oauth2_credentials( $credentials = false ) {
+		if ( false === $credentials ) {
+			$credentials = self::get_service_account_credentials();
+		}
+		if ( ! $credentials ) {
+			throw new \Exception( __( 'Credentials not found.', 'newspack-ads' ) );
+		}
 		try {
-			$oauth2_config = new Configuration(
-				[
-					'OAUTH2' => [
-						'scopes'          => 'https://www.googleapis.com/auth/dfp', // Google Ad Manager.
-						'jsonKeyFilePath' => self::service_account_credentials_file_path(),
-					],
-				]
-			);
-			return ( new OAuth2TokenBuilder() )->from( $oauth2_config )->build();
+			return new ServiceAccountCredentials( 'https://www.googleapis.com/auth/dfp', $credentials );
 		} catch ( \Exception $e ) {
 			throw new \Exception( $e->getMessage(), 1 );
 		}
@@ -497,7 +501,7 @@ class Newspack_Ads_GAM {
 	 * @return object Object with status information.
 	 */
 	public static function connection_status() {
-		$response = [ 'can_connect' => file_exists( self::service_account_credentials_file_path() ) ];
+		$response = [ 'can_connect' => false !== self::get_service_account_credentials() ];
 		try {
 			$network_code          = self::get_gam_network_code();
 			$response['connected'] = true;
