@@ -811,6 +811,26 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Update GAM credentials.
+	 * 
+	 * @param array $credentials Credentials to update.
+	 * 
+	 * @return object Object with status information.
+	 */
+	public static function update_gam_credentials( $credentials ) {
+		try {
+			Newspack_Ads_GAM::get_google_oauth2_credentials( $credentials );
+		} catch ( \Exception $e ) {
+			return new WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
+		}
+		$updated = update_option( Newspack_Ads_GAM::CREDENTIALS_OPTION_NAME, $credentials );
+		if ( ! $updated ) {
+			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
+		}
+		return self::get_gam_connection_status();
+	}
+
+	/**
 	 * Update global ad suppresion config.
 	 *
 	 * @param array $config Updated config.
