@@ -1,3 +1,11 @@
+# [1.17.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.17.0-alpha.1...v1.17.0-alpha.2) (2021-09-21)
+
+
+### Features
+
+* **gam:** custom targeting key-values on setup ([#172](https://github.com/Automattic/newspack-ads/issues/172)) ([c520aa3](https://github.com/Automattic/newspack-ads/commit/c520aa34e51de03dd5fa8335e87c18ae41a788bc))
+* **gam:** service account credential options ([#181](https://github.com/Automattic/newspack-ads/issues/181)) ([4c7d6fd](https://github.com/Automattic/newspack-ads/commit/4c7d6fdf5f07b607323e6b88c229042b618d8a05))
+
 # [1.17.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.16.0...v1.17.0-alpha.1) (2021-09-16)
 
 
