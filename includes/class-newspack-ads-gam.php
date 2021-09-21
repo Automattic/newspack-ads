@@ -503,8 +503,8 @@ class Newspack_Ads_GAM {
 	public static function connection_status() {
 		$response = [ 'can_connect' => false !== self::get_service_account_credentials() ];
 		try {
-			$network_code          = self::get_gam_network_code();
-			$response['connected'] = true;
+			$response['network_code'] = self::get_gam_network_code();
+			$response['connected']    = true;
 		} catch ( \Exception $e ) {
 			$response['connected'] = false;
 			$response['error']     = $e->getMessage();
