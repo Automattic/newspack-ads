@@ -496,11 +496,32 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Verify WP environment to make sure it's safe to use GAM.
+	 * 
+	 * @return bool Wether it's safe to use GAM.
+	 */
+	public static function is_sdk_compatible() {
+		// Constant Contact Form plugin loads an old version of Guzzle that breaks the SDK.
+		if ( class_exists( 'Constant_Contact' ) ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Get GAM connection status.
 	 *
 	 * @return object Object with status information.
 	 */
 	public static function connection_status() {
+		if ( false === self::is_sdk_compatible() ) {
+			return [
+				'incompatible' => true,
+				'can_connect'  => false,
+				'connected'    => false,
+				'error'        => __( 'Cannot connect to Google Ad Manager.', 'newspack-ads' ),
+			];
+		}
 		$response = [ 'can_connect' => false !== self::get_service_account_credentials() ];
 		try {
 			$response['network_code'] = self::get_gam_network_code();
