@@ -17,7 +17,7 @@ class ModelTest extends WP_UnitTestCase {
 
 	public static function setUpBeforeClass() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		// Set the active network code.
-		update_option( Newspack_Ads_Model::OPTION_NAME_NETWORK_CODE, self::$network_code );
+		update_option( Newspack_Ads_Model::OPTION_NAME_LEGACY_NETWORK_CODE, self::$network_code );
 	}
 
 	public function setUp() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
