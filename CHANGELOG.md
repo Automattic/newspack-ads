@@ -1,3 +1,10 @@
+# [1.17.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.17.0-alpha.2...v1.17.0-alpha.3) (2021-09-22)
+
+
+### Bug Fixes
+
+* handle legacy network code and incompatible plugin ([#184](https://github.com/Automattic/newspack-ads/issues/184)) ([a9a17e4](https://github.com/Automattic/newspack-ads/commit/a9a17e45effa2a72ae53086d3ea87996d8e90b52))
+
 # [1.17.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.17.0-alpha.1...v1.17.0-alpha.2) (2021-09-21)
 
 
