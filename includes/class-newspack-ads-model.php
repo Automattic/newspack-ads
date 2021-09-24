@@ -184,6 +184,20 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Get the GAM orders.
+	 */
+	public static function get_gam_orders() {
+		return Newspack_Ads_GAM::get_serialised_orders();
+	}
+
+	/**
+	 * Get the GAM line items.
+	 */
+	public static function get_gam_line_items() {
+		return Newspack_Ads_GAM::get_serialised_line_items();
+	}
+
+	/**
 	 * Get the ad units.
 	 */
 	public static function get_ad_units() {

@@ -21,6 +21,8 @@ use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction
 use Google\AdsApi\AdManager\v202102\AdUnit;
 use Google\AdsApi\AdManager\v202102\AdUnitSize;
 use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202102\Order;
+use Google\AdsApi\AdManager\v202102\LineItem;
 use Google\AdsApi\AdManager\v202102\EnvironmentType;
 use Google\AdsApi\AdManager\v202102\Size;
 
@@ -179,6 +181,28 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Create inventory service.
+	 *
+	 * @return InventoryService Inventory service.
+	 */
+	private static function get_order_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createOrderService( $session );
+	}
+
+	/**
+	 * Create inventory service.
+	 *
+	 * @return InventoryService Inventory service.
+	 */
+	private static function get_line_item_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createLineItemService( $session );
+	}
+
+	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
 	 * @param int[] $ids Optional array of ad unit ids.
@@ -214,6 +238,99 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return [];
 		}
+	}
+
+	/**
+	 * Get all GAM orders in the user's network.
+	 * 
+	 * @return Order[] Array of Orders.
+	 */
+	private static function get_orders() {
+		$orders                = [];
+		$order_service         = self::get_order_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		$total_result_set_size = 0;
+		do {
+			$page = $order_service->getOrdersByStatement( $statement_builder->toStatement() );
+
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $order ) {
+					$orders[] = $order;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $orders;
+	}
+
+	/**
+	 * Get all orders in the user's network, serialised.
+	 * 
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_orders() {
+		return array_map(
+			function( $order ) {
+				return [
+					'id'            => $order->getId(),
+					'name'          => $order->getName(),
+					'status'        => $order->getStatus(),
+					'is_archived'   => $order->getIsArchived(),
+					'advertiser_id' => $order->getAdvertiserId(),
+					'agency_id'     => $order->getAgencyId(),
+					'creator_id'    => $order->getCreatorId(),
+				];
+			},
+			self::get_orders()
+		);
+	}
+
+	/**
+	 * Get all GAM orders in the user's network.
+	 * 
+	 * @return LineItem[] Array of Orders.
+	 */
+	private static function get_line_items() {
+		$line_items            = [];
+		$service               = self::get_line_item_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getLineItemsByStatement( $statement_builder->toStatement() );
+
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $line_item ) {
+					$line_items[] = $line_item;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all orders in the user's network, serialised.
+	 * 
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_line_items() {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'          => $item->getId(),
+					'orderId'     => $item->getOrderId(),
+					'name'        => $item->getName(),
+					'status'      => $item->getStatus(),
+					'is_archived' => $item->getIsArchived(),
+					'type'        => $item->getLineItemType(),
+				];
+			},
+			self::get_line_items()
+		);
 	}
 
 	/**
