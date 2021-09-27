@@ -25,6 +25,8 @@ use Google\AdsApi\AdManager\v202102\Order;
 use Google\AdsApi\AdManager\v202102\LineItem;
 use Google\AdsApi\AdManager\v202102\EnvironmentType;
 use Google\AdsApi\AdManager\v202102\Size;
+use Google\AdsApi\AdManager\v202102\Company;
+use Google\AdsApi\AdManager\v202102\CompanyType;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -181,9 +183,9 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create inventory service.
+	 * Create order service.
 	 *
-	 * @return InventoryService Inventory service.
+	 * @return OrderService Order service.
 	 */
 	private static function get_order_service() {
 		$service_factory = new ServiceFactory();
@@ -192,14 +194,25 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create inventory service.
+	 * Create line item service.
 	 *
-	 * @return InventoryService Inventory service.
+	 * @return LineItemService Line Item service.
 	 */
 	private static function get_line_item_service() {
 		$service_factory = new ServiceFactory();
 		$session         = self::get_gam_session();
 		return $service_factory->createLineItemService( $session );
+	}
+
+	/**
+	 * Create company service.
+	 *
+	 * @return CompanyService Company service.
+	 */
+	private static function get_company_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createCompanyService( $session );
 	}
 
 	/**
@@ -253,7 +266,6 @@ class Newspack_Ads_GAM {
 		$total_result_set_size = 0;
 		do {
 			$page = $order_service->getOrdersByStatement( $statement_builder->toStatement() );
-
 			if ( $page->getResults() !== null ) {
 				$total_result_set_size = $page->getTotalResultSetSize();
 				foreach ( $page->getResults() as $order ) {
@@ -288,7 +300,7 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get all GAM orders in the user's network.
+	 * Get all GAM Line Items in the user's network.
 	 * 
 	 * @return LineItem[] Array of Orders.
 	 */
@@ -300,7 +312,6 @@ class Newspack_Ads_GAM {
 		$total_result_set_size = 0;
 		do {
 			$page = $service->getLineItemsByStatement( $statement_builder->toStatement() );
-
 			if ( $page->getResults() !== null ) {
 				$total_result_set_size = $page->getTotalResultSetSize();
 				foreach ( $page->getResults() as $line_item ) {
@@ -313,7 +324,7 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get all orders in the user's network, serialised.
+	 * Get all Line Items in the user's network, serialised.
 	 * 
 	 * @return object[] Array of serialised orders.
 	 */
@@ -330,6 +341,47 @@ class Newspack_Ads_GAM {
 				];
 			},
 			self::get_line_items()
+		);
+	}
+
+	/**
+	 * Get all GAM Advertisers in the user's network.
+	 * 
+	 * @return Company[] Array of Companies of typer Advertiser.
+	 */
+	private static function get_advertisers() {
+		$line_items            = [];
+		$service               = self::get_company_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size )->withBindVariableValue( 'type', CompanyType::ADVERTISER );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getCompaniesByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $company ) {
+					$line_items[] = $company;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all Advertisers in the user's network, serialised.
+	 * 
+	 * @return object[] Array of serialised companies.
+	 */
+	public static function get_serialised_advertisers() {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'   => $item->getId(),
+					'name' => $item->getName(),
+				];
+			},
+			self::get_advertisers()
 		);
 	}
 

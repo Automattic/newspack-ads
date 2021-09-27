@@ -191,6 +191,13 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Get the GAM advertisers.
+	 */
+	public static function get_gam_advertisers() {
+		return Newspack_Ads_GAM::get_serialised_advertisers();
+	}
+
+	/**
 	 * Get the GAM line items.
 	 */
 	public static function get_gam_line_items() {
