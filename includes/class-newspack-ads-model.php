@@ -344,6 +344,53 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Add a new order.
+	 *
+	 * @param string $name          Order Name.
+	 * @param string $advertiser_id Order Advertiser ID.
+	 * 
+	 * @return object|WP_Error The new order object or WP_Error on failure.
+	 */
+	public static function add_gam_order( $name, $advertiser_id ) {
+		try {
+			$result = Newspack_Ads_GAM::create_order( $name, $advertiser_id );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_ads_add_gam_order',
+				__( 'Unable to create GAM order', 'newspack-ads' ),
+				[
+					'status' => 400,
+					'level'  => 'notice',
+				]
+			);
+		}
+		return $result;
+	}
+
+	/**
+	 * Update an order.
+	 *
+	 * @param object $order Order configuration.
+	 * 
+	 * @return object|WP_Error Updated order object or WP_Error on failure.
+	 */
+	public static function update_gam_order( $order ) {
+		try {
+			$result = Newspack_Ads_GAM::update_order( $order );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_ads_add_gam_order',
+				__( 'Unable to update GAM order', 'newspack-ads' ),
+				[
+					'status' => 400,
+					'level'  => 'notice',
+				]
+			);
+		}
+		return $result;
+	}
+
+	/**
 	 * Retrieve the active network code.
 	 * This might be updateable in the future to enable handling users with
 	 * multiple GAM networks - for now simply the first available GAM network

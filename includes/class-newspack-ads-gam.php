@@ -9,6 +9,7 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
+use Google\AdsApi\AdManager\AdManagerSession;
 use Google\AdsApi\AdManager\v202102\Statement;
 use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202102\TextValue;
@@ -18,6 +19,7 @@ use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202102\User;
 use Google\AdsApi\AdManager\v202102\AdUnit;
 use Google\AdsApi\AdManager\v202102\AdUnitSize;
 use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
@@ -123,6 +125,18 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Get GAM service account user.
+	 *
+	 * @return User Current user.
+	 */
+	private static function get_current_user() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		$service         = $service_factory->createUserService( $session );
+		return $service->getCurrentUser();
+	}
+
+	/**
 	 * Get user's GAM network. Assumes the user has access to just one.
 	 *
 	 * @return Network GAM network.
@@ -155,7 +169,6 @@ class Newspack_Ads_GAM {
 			return self::$session;
 		}
 		$oauth2_credentials = self::get_google_oauth2_credentials();
-		$service_factory    = new ServiceFactory();
 
 		// Create a new configuration and session, with a network code.
 		$config        = new Configuration(
@@ -255,15 +268,20 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get all GAM orders in the user's network.
+	 *
+	 * @param int[] $ids Optional array of order ids.
 	 * 
 	 * @return Order[] Array of Orders.
 	 */
-	private static function get_orders() {
+	private static function get_orders( $ids = [] ) {
 		$orders                = [];
 		$order_service         = self::get_order_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
-		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
 		$total_result_set_size = 0;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		if ( ! empty( $ids ) ) {
+			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		}
 		do {
 			$page = $order_service->getOrdersByStatement( $statement_builder->toStatement() );
 			if ( $page->getResults() !== null ) {
@@ -279,10 +297,12 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get all orders in the user's network, serialised.
-	 * 
+	 *
+	 * @param Order[] $orders (optional) Array of Orders.
+	 *
 	 * @return object[] Array of serialised orders.
 	 */
-	public static function get_serialised_orders() {
+	public static function get_serialised_orders( $orders = [] ) {
 		return array_map(
 			function( $order ) {
 				return [
@@ -295,7 +315,7 @@ class Newspack_Ads_GAM {
 					'creator_id'    => $order->getCreatorId(),
 				];
 			},
-			self::get_orders()
+			! empty( $orders ) ? $orders : self::get_orders()
 		);
 	}
 
@@ -594,6 +614,41 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Create a GAM Order.
+	 *
+	 * @param string $name          Order Name.
+	 * @param string $advertiser_id Order Advertiser ID.
+	 *
+	 * @return object Created order.
+	 */
+	public static function create_order( $name, $advertiser_id ) {
+		$order = new Order();
+		$order->setName( $name );
+		$order->setAdvertiserId( $advertiser_id );
+		$order->setTraffickerId( self::get_current_user()->getId() );
+		$service        = self::get_order_service();
+		$created_orders = $service->createOrders( [ $order ] );
+		return self::get_serialised_orders( $created_orders )[0];
+	}
+
+	/**
+	 * Update a GAM Order.
+	 *
+	 * @param object $order_config Order configuration.
+	 *
+	 * @return object Updated order.
+	 */
+	public static function update_order( $order_config ) {
+		$order = self::get_orders( [ $order_config['id'] ] )[0];
+		$order->setName( $order_config['name'] );
+		$order->setAdvertiserId( $order_config['advertiser_id'] );
+		$order->setTraffickerId( self::get_current_user()->getId() );
+		$service       = self::get_order_service();
+		$updated_order = $service->updateOrders( [ $order ] );
+		return self::get_serialised_orders( $updated_order )[0];
 	}
 
 	/**
