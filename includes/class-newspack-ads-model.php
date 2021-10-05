@@ -185,22 +185,37 @@ class Newspack_Ads_Model {
 
 	/**
 	 * Get the GAM orders.
+	 *
+	 * @return object[] Array of orders or empty array if not connected.
 	 */
 	public static function get_gam_orders() {
+		if ( ! self::is_gam_connected() ) {
+			return [];
+		}
 		return Newspack_Ads_GAM::get_serialised_orders();
 	}
 
 	/**
 	 * Get the GAM advertisers.
+	 * 
+	 * @return object[] Array of advertisers or empty array if not connected.
 	 */
 	public static function get_gam_advertisers() {
+		if ( ! self::is_gam_connected() ) {
+			return [];
+		}
 		return Newspack_Ads_GAM::get_serialised_advertisers();
 	}
 
 	/**
 	 * Get the GAM line items.
+	 *
+	 * @return object[] Array of line items or empty array if not connected.
 	 */
 	public static function get_gam_line_items() {
+		if ( ! self::is_gam_connected() ) {
+			return [];
+		}
 		return Newspack_Ads_GAM::get_serialised_line_items();
 	}
 
@@ -899,11 +914,25 @@ class Newspack_Ads_Model {
 		try {
 			Newspack_Ads_GAM::get_google_oauth2_credentials( $credentials );
 		} catch ( \Exception $e ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
+			return new WP_Error(
+				'newspack_ads_gam_credentials',
+				$e->getMessage(),
+				[
+					'status' => 400,
+					'level'  => 'notice',
+				]
+			);
 		}
 		$updated = update_option( Newspack_Ads_GAM::CREDENTIALS_OPTION_NAME, $credentials );
 		if ( ! $updated ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
+			return new WP_Error(
+				'newspack_ads_gam_credentials',
+				__( 'Unable to update GAM credentials', 'newspack-ads' ),
+				[
+					'status' => 400,
+					'level'  => 'notice',
+				]
+			);
 		}
 		return self::get_gam_connection_status();
 	}
