@@ -174,6 +174,7 @@ class Newspack_Ads_Blocks {
 				'name'      => esc_attr( $ad_unit['name'] ),
 				'code'      => esc_attr( $ad_unit['code'] ),
 				'sizes'     => array_values( $sizes ),
+				'fluid'     => (bool) $ad_unit['fluid'],
 				'targeting' => $ad_targeting,
 				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
 			];
@@ -198,6 +199,10 @@ class Newspack_Ads_Blocks {
 					// Only set up ad units that are present on the page.
 					if ( ! document.querySelector( '#' + container_id ) ) {
 						continue;
+					}
+
+					if ( ad_unit['fluid'] ) {
+						ad_unit['sizes'].push( 'fluid' );
 					}
 
 					defined_ad_units[ container_id ] = googletag.defineSlot(

@@ -11,6 +11,7 @@
 class Newspack_Ads_Model {
 	const SIZES = 'sizes';
 	const CODE  = 'code';
+	const FLUID = 'fluid';
 
 	// Legacy network code manually inserted.
 	const OPTION_NAME_LEGACY_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
@@ -105,8 +106,9 @@ class Newspack_Ads_Model {
 			$prepared_ad_unit = [
 				'id'    => $ad_unit->ID,
 				'name'  => $ad_unit->post_title,
-				'sizes' => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, 'sizes', true ) ),
-				'code'  => \get_post_meta( $ad_unit->ID, 'code', true ),
+				'code'  => \get_post_meta( $ad_unit->ID, self::CODE, true ),
+				'sizes' => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
+				'fluid' => (bool) \get_post_meta( $ad_unit->ID, self::FLUID, true ),
 			];
 		} else {
 			// Ad units saved in options table. Ad unit ID is the GAM Ad Unit ID.
@@ -122,8 +124,9 @@ class Newspack_Ads_Model {
 				$prepared_ad_unit = [
 					'id'    => $ad_unit['id'],
 					'name'  => $ad_unit['name'],
-					'sizes' => self::sanitize_sizes( $ad_unit['sizes'] ),
 					'code'  => $ad_unit['code'],
+					'sizes' => self::sanitize_sizes( $ad_unit['sizes'] ),
+					'fluid' => isset( $ad_unit['fluid'] ) ? (bool) $ad_unit['fluid'] : false,
 				];
 			}
 		}
@@ -172,8 +175,9 @@ class Newspack_Ads_Model {
 					$legacy_ad_units[] = [
 						'id'        => $post->ID,
 						'name'      => html_entity_decode( $post->post_title, ENT_QUOTES ),
-						'sizes'     => self::sanitize_sizes( \get_post_meta( $post->ID, 'sizes', true ) ),
-						'code'      => esc_html( \get_post_meta( $post->ID, 'code', true ) ),
+						'sizes'     => self::sanitize_sizes( \get_post_meta( $post->ID, self::SIZES, true ) ),
+						'code'      => esc_html( \get_post_meta( $post->ID, self::CODE, true ) ),
+						'fluid'     => (bool) \get_post_meta( $post->ID, self::FLUID, true ),
 						'status'    => 'ACTIVE',
 						'is_legacy' => true,
 					];
@@ -244,12 +248,14 @@ class Newspack_Ads_Model {
 		// Add the code to our new post.
 		\add_post_meta( $ad_unit_post, self::SIZES, $ad_unit[ self::SIZES ] );
 		\add_post_meta( $ad_unit_post, self::CODE, $ad_unit[ self::CODE ] );
+		\add_post_meta( $ad_unit_post, self::FLUID, (bool) $ad_unit[ self::FLUID ] );
 
 		return array(
 			'id'        => $ad_unit_post,
 			'name'      => $ad_unit['name'],
 			self::SIZES => $ad_unit[ self::SIZES ],
 			self::CODE  => $ad_unit[ self::CODE ],
+			self::FLUID => $ad_unit[ self::FLUID ],
 		);
 	}
 
@@ -280,11 +286,13 @@ class Newspack_Ads_Model {
 		);
 		\update_post_meta( $ad_unit['id'], self::SIZES, $ad_unit[ self::SIZES ] );
 		\update_post_meta( $ad_unit['id'], self::CODE, $ad_unit[ self::CODE ] );
+		\update_post_meta( $ad_unit['id'], self::FLUID, (bool) $ad_unit[ self::FLUID ] );
 		return array(
 			'id'        => $ad_unit['id'],
 			'name'      => $ad_unit['name'],
 			self::SIZES => $ad_unit[ self::SIZES ],
 			self::CODE  => $ad_unit[ self::CODE ],
+			self::FLUID => $ad_unit[ self::FLUID ],
 		);
 	}
 
