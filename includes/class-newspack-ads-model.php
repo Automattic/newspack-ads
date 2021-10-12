@@ -360,22 +360,16 @@ class Newspack_Ads_Model {
 		}
 		if ( null === $settings ) {
 			try {
-				$settings             = Newspack_Ads_GAM::get_gam_settings();
-				$network_code_matches = self::is_network_code_matched();
+				$settings = Newspack_Ads_GAM::get_gam_settings();
 			} catch ( \Exception $e ) {
 				return new WP_Error(
 					'newspack_ads_failed_gam_sync',
 					__( 'Unable to synchronize with GAM', 'newspack-ads' )
 				);
 			}
-		} else {
-			$network_code_matches = true;
 		}
 
-		if (
-			$network_code_matches &&
-			isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units )
-		) {
+		if ( isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units ) ) {
 			$synced_gam_items                              = get_option( self::OPTION_NAME_GAM_ITEMS, [] );
 			$network_code                                  = sanitize_text_field( $settings['network_code'] );
 			$synced_gam_items[ $network_code ]['ad_units'] = $serialised_ad_units;
