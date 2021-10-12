@@ -201,13 +201,14 @@ class Newspack_Ads_Blocks {
 						continue;
 					}
 
+					var slotSizes = ad_unit['sizes'];
 					if ( ad_unit['fluid'] ) {
-						ad_unit['sizes'].push( 'fluid' );
+						slotSizes = slotSizes.concat( 'fluid' );
 					}
 
 					defined_ad_units[ container_id ] = googletag.defineSlot(
 						'/' + ad_config['network_code'] + '/' + ad_unit['code'],
-						ad_unit['sizes'],
+						slotSizes,
 						container_id
 					).addService( googletag.pubads() );
 
@@ -273,13 +274,20 @@ class Newspack_Ads_Blocks {
 						}
 					}
 
+					// Default fallback is to not show ads.
+					var fallbackSize = [];
+					// If the ad unit is fluid, fallback to fluid.
+					if( ad_unit['fluid'] ) {
+						fallbackSize = 'fluid';
+					}
+
 					// Sticky ads should only be shown on mobile (screen width <=600px).
 					if ( ad_unit['sticky'] ) {
-						mapping.addSize( [600, 0], [] );
+						mapping.addSize( [600, 0], fallbackSize );
 					}
 
 					// On viewports smaller than the smallest ad size, don't show any ads.
-					mapping.addSize( [0, 0], [] );
+					mapping.addSize( [0, 0], fallbackSize );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
 				}
 
