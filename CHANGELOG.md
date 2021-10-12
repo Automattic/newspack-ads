@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/Automattic/newspack-ads/compare/v1.17.0...v1.17.1) (2021-10-12)
+
+
+### Bug Fixes
+
+* remove network code restriction on sync ([#197](https://github.com/Automattic/newspack-ads/issues/197)) ([d7ebc9b](https://github.com/Automattic/newspack-ads/commit/d7ebc9be6ed61269d4cdb7a75c6716bd78d31838))
+
 # [1.17.0](https://github.com/Automattic/newspack-ads/compare/v1.16.0...v1.17.0) (2021-09-22)
 
 
