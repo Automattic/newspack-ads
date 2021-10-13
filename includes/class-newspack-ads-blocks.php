@@ -245,13 +245,20 @@ class Newspack_Ads_Blocks {
 					var smallest_ad_width = Math.min.apply( Math, Object.keys( unique_widths ).map( Number ) );
 					var largest_ad_width  = Math.max.apply( Math, Object.keys( unique_widths ).map( Number ) );
 
+					// Default base is to not show ads.
+					var baseSizes = [];
+					// If the ad unit is fluid, base includes fluid.
+					if( ad_unit['fluid'] ) {
+						baseSizes = baseSizes.concat( 'fluid' );
+					}
+
 					// If the smallest width is mobile size and the largest width is desktop size,
 					// we want to use some logic to prevent displaying mobile ads on desktop.
 					if ( smallest_ad_width < mobile_cutoff && largest_ad_width >= mobile_cutoff ) {
 						for ( width in unique_widths ) {
 							// On viewports < 500px wide, include all ads smaller than the viewport.
 							if ( parseInt( width ) < mobile_cutoff ) {
-								mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
+								mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( unique_widths[ width ] ) );
 
 								// On viewports >= 500px wide, only include ads with widths >= 500px.
 							} else {
@@ -262,7 +269,7 @@ class Newspack_Ads_Blocks {
 										desktopAds.push( ad_size );
 									}
 								}
-								mapping.addSize( [ parseInt( width ), 0 ], desktopAds );
+								mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( desktopAds ) );
 							}
 						}
 
@@ -270,24 +277,17 @@ class Newspack_Ads_Blocks {
 						// we can just display any ad that is smaller than the viewport.
 					} else {
 						for ( width in unique_widths ) {
-							mapping.addSize( [ parseInt( width ), 0 ], unique_widths[ width ] );
+							mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( unique_widths[ width ] ) );
 						}
-					}
-
-					// Default fallback is to not show ads.
-					var fallbackSize = [];
-					// If the ad unit is fluid, fallback to fluid.
-					if( ad_unit['fluid'] ) {
-						fallbackSize = 'fluid';
 					}
 
 					// Sticky ads should only be shown on mobile (screen width <=600px).
 					if ( ad_unit['sticky'] ) {
-						mapping.addSize( [600, 0], fallbackSize );
+						mapping.addSize( [600, 0], baseSizes );
 					}
 
 					// On viewports smaller than the smallest ad size, don't show any ads.
-					mapping.addSize( [0, 0], fallbackSize );
+					mapping.addSize( [0, 0], baseSizes );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
 				}
 
