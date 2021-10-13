@@ -306,6 +306,21 @@ class Newspack_Ads_Blocks {
 				for ( var container_id in defined_ad_units ) {
 					googletag.display( container_id );
 				}
+				// Identify fluid rendered ad and fix iframe width.
+				// GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
+				// This causes the iframe to be rendered with 0 width.
+				googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
+					var sizes = event.slot.getSizes();
+					if ( Array.isArray( sizes ) && sizes[0] === 'fluid' ) {
+						var container = document.getElementById( event.slot.getSlotElementId() );
+						if ( container ) {
+							var iframe = container.querySelector( 'iframe' );
+							if ( iframe ) {
+								iframe.style.width = '100%';
+							}
+						}
+					}
+				} );
 			} );
 		</script>
 		<?php
