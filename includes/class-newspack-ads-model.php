@@ -521,17 +521,20 @@ class Newspack_Ads_Model {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
 
-		$width  = max( array_column( $sizes, 0 ) );
-		$height = max( array_column( $sizes, 1 ) );
 
-		$ad_size_as_multisize = $width . 'x' . $height;
-		$multisizes           = [];
-		foreach ( $sizes as $size ) {
-			$multisize = $size[0] . 'x' . $size[1];
-			if ( $multisize !== $ad_size_as_multisize ) {
-				$multisizes[] = $multisize;
+		$multisizes = [];
+		if ( count( $sizes ) ) {
+			$width                = max( array_column( $sizes, 0 ) );
+			$height               = max( array_column( $sizes, 1 ) );
+			$ad_size_as_multisize = $width . 'x' . $height;
+			foreach ( $sizes as $size ) {
+				$multisize = $size[0] . 'x' . $size[1];
+				if ( $multisize !== $ad_size_as_multisize ) {
+					$multisizes[] = $multisize;
+				}
 			}
 		}
+
 		$multisize_attribute = '';
 		if ( count( $multisizes ) ) {
 			$multisize_attribute = sprintf(
