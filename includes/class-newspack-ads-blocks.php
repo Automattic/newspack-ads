@@ -311,7 +311,7 @@ class Newspack_Ads_Blocks {
 				// This causes the iframe to be rendered with 0 width.
 				googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
 					var sizes = event.slot.getSizes();
-					if ( Array.isArray( sizes ) && sizes[0] === 'fluid' ) {
+					if ( event.size[0] === 0 && Array.isArray( sizes ) && sizes.indexOf( 'fluid' ) !== -1 ) {
 						var container = document.getElementById( event.slot.getSlotElementId() );
 						if ( container ) {
 							var iframe = container.querySelector( 'iframe' );
