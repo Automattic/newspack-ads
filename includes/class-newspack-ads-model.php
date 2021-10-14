@@ -521,36 +521,49 @@ class Newspack_Ads_Model {
 			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
 		}
 
-
+		$attrs      = [];
 		$multisizes = [];
 		if ( count( $sizes ) ) {
-			$width                = max( array_column( $sizes, 0 ) );
-			$height               = max( array_column( $sizes, 1 ) );
-			$ad_size_as_multisize = $width . 'x' . $height;
+			$attrs['width']       = max( array_column( $sizes, 0 ) );
+			$attrs['height']      = max( array_column( $sizes, 1 ) );
+			$attrs['layout']      = 'fixed';
+			$ad_size_as_multisize = $attrs['width'] . 'x' . $attrs['height'];
 			foreach ( $sizes as $size ) {
 				$multisize = $size[0] . 'x' . $size[1];
 				if ( $multisize !== $ad_size_as_multisize ) {
 					$multisizes[] = $multisize;
 				}
 			}
+		} elseif ( true === $ad_unit['fluid'] ) {
+			$attrs['height'] = 'fluid';
+			$attrs['layout'] = 'fluid';
+		} else {
+			// Unsupported ad unit.
+			return '';
 		}
 
-		$multisize_attribute = '';
 		if ( count( $multisizes ) ) {
-			$multisize_attribute = sprintf(
-				'data-multi-size=\'%s\' data-multi-size-validation=\'false\'',
-				implode( ',', $multisizes )
-			);
+			$attrs['data-multi-size']            = implode( ',', $multisizes );
+			$attrs['data-multi-size-validation'] = 'true';
 		}
+
+		$attrs['type']                  = 'doubleclick';
+		$attrs['data-slot']             = sprintf( '/%s/%s', $network_code, $code );
+		$attrs['data-loading-strategy'] = 'prefer-viewability-over-views';
+		$attrs['json']                  = sprintf( '{"targeting": %s}', wp_json_encode( $targeting ) );
 
 		$code = sprintf(
-			'<amp-ad width=%s height=%s type="doubleclick" data-slot="/%s/%s" data-loading-strategy="prefer-viewability-over-views" json=\'{"targeting":%s}\' %s></amp-ad>',
-			$width,
-			$height,
-			$network_code,
-			$code,
-			wp_json_encode( $targeting ),
-			$multisize_attribute
+			'<amp-ad %s></amp-ad>',
+			implode(
+				' ',
+				array_map(
+					function( $key, $value ) {
+						return sprintf( "%s='%s'", $key, $value );
+					},
+					array_keys( $attrs ),
+					array_values( $attrs )
+				)
+			)
 		);
 
 		return $code;
