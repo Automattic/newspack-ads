@@ -92,7 +92,7 @@ class ModelTest extends WP_UnitTestCase {
 			'The ad code for the legacy ad unit contains a comment with network ID and ad uni code.'
 		);
 		self::assertContains(
-			'data-slot="/' . self::$network_code . '/' . self::$ad_code_1 . '"',
+			'data-slot=\'/' . self::$network_code . '/' . self::$ad_code_1 . '\'',
 			$legacy_ad_unit['amp_ad_code'],
 			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad uni code.'
 		);
@@ -104,7 +104,7 @@ class ModelTest extends WP_UnitTestCase {
 			'The ad code contains a comment with network ID and ad uni code.'
 		);
 		self::assertContains(
-			'data-slot="/' . self::$network_code . '/' . $gam_ad_unit['code'] . '"',
+			'data-slot=\'/' . self::$network_code . '/' . $gam_ad_unit['code'] . '\'',
 			$gam_ad_unit['amp_ad_code'],
 			'The AMP ad code contains an attribute with network ID and ad uni code.'
 		);
