@@ -523,26 +523,25 @@ class Newspack_Ads_Model {
 
 		$attrs      = [];
 		$multisizes = [];
-		if ( count( $sizes ) ) {
-			$attrs['width']       = max( array_column( $sizes, 0 ) );
-			$attrs['height']      = max( array_column( $sizes, 1 ) );
-			$attrs['layout']      = 'fixed';
-			$ad_size_as_multisize = $attrs['width'] . 'x' . $attrs['height'];
-			foreach ( $sizes as $size ) {
-				$multisize = $size[0] . 'x' . $size[1];
-				if ( $multisize !== $ad_size_as_multisize ) {
-					$multisizes[] = $multisize;
-				}
-			}
-		} elseif ( true === $ad_unit['fluid'] ) {
+
+		if ( true === $ad_unit['fluid'] ) {
 			$attrs['height'] = 'fluid';
 			$attrs['layout'] = 'fluid';
-		} else {
-			// Unsupported ad unit.
-			return '';
+			$multisizes[]    = 'fluid';
 		}
 
-		if ( count( $multisizes ) ) {
+		if ( count( $sizes ) ) {
+			if ( ! isset( $attrs['layout'] ) ) {
+				$attrs['width']  = max( array_column( $sizes, 0 ) );
+				$attrs['height'] = max( array_column( $sizes, 1 ) );
+				$attrs['layout'] = 'fixed';
+			}
+			foreach ( $sizes as $size ) {
+				$multisizes[] = $size[0] . 'x' . $size[1];
+			}
+		}
+
+		if ( 1 < count( $multisizes ) ) {
 			$attrs['data-multi-size']            = implode( ',', $multisizes );
 			$attrs['data-multi-size-validation'] = 'true';
 		}
