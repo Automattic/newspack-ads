@@ -1,3 +1,10 @@
+# [1.18.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.18.0-alpha.1...v1.18.0-alpha.2) (2021-10-19)
+
+
+### Features
+
+* **gam:** oauth connection ([#203](https://github.com/Automattic/newspack-ads/issues/203)) ([ad5a5ac](https://github.com/Automattic/newspack-ads/commit/ad5a5ac4dc6c59602f9b71f4ea78c337e3c55507))
+
 # [1.18.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.17.1...v1.18.0-alpha.1) (2021-10-19)
 
 
