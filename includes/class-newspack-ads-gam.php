@@ -303,6 +303,7 @@ class Newspack_Ads_GAM {
 			'code'   => $gam_ad_unit->getAdUnitCode(),
 			'status' => $gam_ad_unit->getStatus(),
 			'name'   => $gam_ad_unit->getName(),
+			'fluid'  => $gam_ad_unit->getIsFluid(),
 			'sizes'  => [],
 		];
 		$sizes   = $gam_ad_unit->getAdUnitSizes();
@@ -325,9 +326,10 @@ class Newspack_Ads_GAM {
 	 * @return AdUnit Ad Unit.
 	 */
 	private static function modify_ad_unit( $ad_unit_config, $ad_unit = null ) {
-		$name  = $ad_unit_config['name'];
-		$sizes = $ad_unit_config['sizes'];
-		$slug  = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
+		$name     = $ad_unit_config['name'];
+		$sizes    = $ad_unit_config['sizes'];
+		$is_fluid = isset( $ad_unit_config['fluid'] ) && $ad_unit_config['fluid'];
+		$slug     = substr( sanitize_title( $name ), 0, 80 ); // Ad unit code can have 100 characters at most.
 
 		if ( null === $ad_unit ) {
 			$ad_unit = new AdUnit();
@@ -338,6 +340,7 @@ class Newspack_Ads_GAM {
 		}
 
 		$ad_unit->setName( $name );
+		$ad_unit->setIsFluid( $is_fluid );
 
 		$ad_unit_sizes = [];
 		foreach ( $sizes as $size_spec ) {
