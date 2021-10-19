@@ -73,7 +73,7 @@ class Newspack_Ads_GAM {
 			case 'service_account':
 				return self::get_service_account_credentials();
 			case 'legacy':
-				throw new \Exception( __( 'No redentials not found.', 'newspack-ads' ) );
+				throw new \Exception( __( 'Credentials not found.', 'newspack-ads' ) );
 		}
 	}
 
