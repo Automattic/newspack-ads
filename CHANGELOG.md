@@ -1,3 +1,15 @@
+# [1.18.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.17.1...v1.18.0-alpha.1) (2021-10-19)
+
+
+### Features
+
+* **gam:** support fluid ad unit sizing ([#196](https://github.com/Automattic/newspack-ads/issues/196)) ([cf80344](https://github.com/Automattic/newspack-ads/commit/cf80344c6679427b335f1fd59c0473aa474ee34b))
+
+
+### Performance Improvements
+
+* cache ad units ([#202](https://github.com/Automattic/newspack-ads/issues/202)) ([e36d2cb](https://github.com/Automattic/newspack-ads/commit/e36d2cb05c4d1bf45e6d19ac2ad82e69cefd56f1))
+
 ## [1.17.1](https://github.com/Automattic/newspack-ads/compare/v1.17.0...v1.17.1) (2021-10-12)
 
 
