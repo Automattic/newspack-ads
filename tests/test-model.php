@@ -37,9 +37,19 @@ class ModelTest extends WP_UnitTestCase {
 		self::$mock_gam_ad_units = [
 			self::createMockGAMAdUnit(
 				[
-					'id'   => '12345',
-					'code' => 'code2',
-					'name' => 'GAM Ad Unit 1',
+					'id'    => '12345',
+					'code'  => 'code2',
+					'name'  => 'GAM Ad Unit 1',
+					'sizes' => self::$sizes_1,
+				]
+			),
+			self::createMockGAMAdUnit(
+				[
+					'id'    => '54321',
+					'code'  => 'code3',
+					'name'  => 'GAM Ad Unit 2',
+					'sizes' => [],
+					'fluid' => true,
 				]
 			),
 		];
@@ -59,7 +69,6 @@ class ModelTest extends WP_UnitTestCase {
 			[
 				'id'     => uniqid(),
 				'status' => 'ACTIVE',
-				'sizes'  => self::$sizes_1,
 			],
 			$config
 		);
@@ -89,24 +98,31 @@ class ModelTest extends WP_UnitTestCase {
 		self::assertContains(
 			'<!-- /' . self::$network_code . '/' . self::$ad_code_1 . ' -->',
 			$legacy_ad_unit['ad_code'],
-			'The ad code for the legacy ad unit contains a comment with network ID and ad uni code.'
+			'The ad code for the legacy ad unit contains a comment with network ID and ad unit code.'
 		);
 		self::assertContains(
-			'data-slot="/' . self::$network_code . '/' . self::$ad_code_1 . '"',
+			'data-slot=\'/' . self::$network_code . '/' . self::$ad_code_1 . '\'',
 			$legacy_ad_unit['amp_ad_code'],
-			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad uni code.'
+			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad unit code.'
 		);
 
 		$gam_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
 		self::assertContains(
 			'<!-- /' . self::$network_code . '/' . $gam_ad_unit['code'] . ' -->',
 			$gam_ad_unit['ad_code'],
-			'The ad code contains a comment with network ID and ad uni code.'
+			'The ad code contains a comment with network ID and ad unit code.'
 		);
 		self::assertContains(
-			'data-slot="/' . self::$network_code . '/' . $gam_ad_unit['code'] . '"',
+			'data-slot=\'/' . self::$network_code . '/' . $gam_ad_unit['code'] . '\'',
 			$gam_ad_unit['amp_ad_code'],
-			'The AMP ad code contains an attribute with network ID and ad uni code.'
+			'The AMP ad code contains an attribute with network ID and ad unit code.'
+		);
+
+		$fluid_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[1]['id'] );
+		self::assertContains(
+			'layout=\'fluid\'',
+			$fluid_ad_unit['amp_ad_code'],
+			'The AMP ad code for the fluid ad unit contains fluid layout.'
 		);
 	}
 
