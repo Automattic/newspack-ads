@@ -191,6 +191,7 @@ class Newspack_Ads_Blocks {
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
+				var ad_settings      = <?php echo wp_json_encode( Newspack_Ads_Settings::get_settings() ); ?>;
 				var defined_ad_units = {};
 
 				for ( var container_id in all_ad_units ) {
@@ -296,11 +297,13 @@ class Newspack_Ads_Blocks {
 				}
 				googletag.pubads().collapseEmptyDivs();
 				googletag.pubads().enableSingleRequest();
-				googletag.pubads().enableLazyLoad( {
-					fetchMarginPercent: 500,   // Fetch slots within 5 viewports.
-					renderMarginPercent: 200,  // Render slots within 2 viewports.
-					mobileScaling: 2.0         // Double the above values on mobile.
-				} );
+				if ( ad_settings.lazy_load.active ) {
+					googletag.pubads().enableLazyLoad( {
+						fetchMarginPercent: ad_settings.lazy_load.fetch_margin_percent,
+						renderMarginPercent: ad_settings.lazy_load.render_margin_percent,
+						mobileScaling: ad_settings.lazy_load.mobile_scaling
+					} );
+				}
 				googletag.enableServices();
 
 				for ( var container_id in defined_ad_units ) {
