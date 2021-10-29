@@ -39,6 +39,7 @@ class Newspack_Ads_Settings {
 				'key'         => 'active',
 				'type'        => 'boolean',
 				'default'     => true,
+				'public'      => true,
 			),
 			array(
 				'description' => __( 'Fetch margin percent', 'newspack-ads' ),
@@ -47,6 +48,7 @@ class Newspack_Ads_Settings {
 				'key'         => 'fetch_margin_percent',
 				'type'        => 'int',
 				'default'     => 100,
+				'public'      => true,
 			),
 			array(
 				'description' => __( 'Render margin percent', 'newspack-ads' ),
@@ -55,6 +57,7 @@ class Newspack_Ads_Settings {
 				'key'         => 'render_margin_percent',
 				'type'        => 'int',
 				'default'     => 0,
+				'public'      => true,
 			),
 			array(
 				'description' => __( 'Mobile scaling', 'newspack-ads' ),
@@ -63,6 +66,7 @@ class Newspack_Ads_Settings {
 				'key'         => 'mobile_scaling',
 				'type'        => 'float',
 				'default'     => 2,
+				'public'      => true,
 			),
 		);
 
@@ -126,14 +130,19 @@ class Newspack_Ads_Settings {
 	/**
 	 * Get settings values organized by sections.
 	 *
+	 * @param boolean $is_public Whether to return only public settings.
+	 *
 	 * @return object Associative array containing settings values.
 	 */
-	public static function get_settings() {
+	public static function get_settings( $is_public = false ) {
 		$list   = self::get_settings_list();
 		$values = [];
 		foreach ( $list as $setting ) {
 			if ( ! isset( $values[ $setting['section'] ] ) ) {
 				$values[ $setting['section'] ] = [];
+			}
+			if ( true === $is_public && true !== $setting['public'] ) {
+				continue;
 			}
 			settype( $setting['value'], $setting['type'] );
 			$values[ $setting['section'] ][ $setting['key'] ] = $setting['value'];

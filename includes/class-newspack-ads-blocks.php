@@ -191,7 +191,7 @@ class Newspack_Ads_Blocks {
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
-				var ad_settings      = <?php echo wp_json_encode( Newspack_Ads_Settings::get_settings() ); ?>;
+				var ad_settings      = <?php echo wp_json_encode( Newspack_Ads_Settings::get_settings( true ) ); ?>;
 				var defined_ad_units = {};
 
 				for ( var container_id in all_ad_units ) {
