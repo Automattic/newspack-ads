@@ -19,7 +19,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @param object $setting The setting to retrieve the key from.
 	 *
-	 * @return string Setting key. 
+	 * @return string Option key. 
 	 */
 	private static function get_setting_option_key( $setting ) {
 		return self::OPTION_KEY_PREFIX . $setting['section'] . '_' . $setting['key'];
@@ -75,7 +75,7 @@ class Newspack_Ads_Settings {
 			$settings_list
 		);
 
-		return $settings_list;
+		return apply_filters( 'newspack_ads_settings_list', $settings_list );
 	}
 
 	/**

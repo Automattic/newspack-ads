@@ -297,7 +297,7 @@ class Newspack_Ads_Blocks {
 				}
 				googletag.pubads().collapseEmptyDivs();
 				googletag.pubads().enableSingleRequest();
-				if ( ad_settings.lazy_load.active ) {
+				if ( ad_settings.lazy_load && ad_settings.lazy_load.active ) {
 					googletag.pubads().enableLazyLoad( {
 						fetchMarginPercent: ad_settings.lazy_load.fetch_margin_percent,
 						renderMarginPercent: ad_settings.lazy_load.render_margin_percent,
