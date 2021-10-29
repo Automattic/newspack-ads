@@ -79,6 +79,51 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
+	 * Update a setting from a provided section.
+	 *
+	 * @param string $section The section to update.
+	 * @param string $key     The key to update.
+	 * @param mixed  $value   The value to update.
+	 *
+	 * @return bool|WP_Error Whether the value was updated or error if key does not match settings configuration.
+	 */
+	private static function update_setting( $section, $key, $value ) {
+		$settings_list = self::get_settings_list();
+		$config        = array_shift(
+			array_filter(
+				$settings_list,
+				function( $setting ) use ( $section, $key ) {
+					return $key === $setting['key'] && $section === $setting['section'];
+				} 
+			)
+		);
+		if ( $config ) {
+			settype( $value, $config['type'] );
+			return update_option( self::get_setting_option_key( $config ), $value );
+		} else {
+			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
+		}
+	}
+
+	/**
+	 * Update settings from a specific section.
+	 *
+	 * @param string $section  The key for the section to update.
+	 * @param object $settings The new settings to update.
+	 *
+	 * @return object All settings.
+	 */
+	public static function update_section( $section, $settings ) {
+		foreach ( $settings as $key => $value ) {
+			$updated = self::update_setting( $section, $key, $value );
+			if ( is_wp_error( $updated ) ) {
+				return $updated;
+			}
+		}
+		return self::get_settings_list();
+	}
+
+	/**
 	 * Get settings values organized by sections.
 	 *
 	 * @return object Associative array containing settings values.
