@@ -101,12 +101,18 @@ class Newspack_Ads_Settings {
 				} 
 			)
 		);
-		if ( $config ) {
-			settype( $value, $config['type'] );
-			return update_option( self::get_setting_option_name( $config ), $value );
-		} else {
+		// Don't update a setting that don't exist.
+		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
+		// Don't update a value that change on typecast.
+		$value_with_type = $value;
+		settype( $value_with_type, $config['type'] );
+		if ( $value_with_type != $value ) {
+			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid value type.', 'newspack-ads' ) );
+		}
+		settype( $value, $config['type'] );
+		return update_option( self::get_setting_option_name( $config ), $value );
 	}
 
 	/**
