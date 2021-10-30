@@ -12,17 +12,17 @@ defined( 'ABSPATH' ) || exit;
  */
 class Newspack_Ads_Settings {
 
-	const OPTION_KEY_PREFIX = '_newspack_ads_';
+	const OPTION_NAME_PREFIX = '_newspack_ads_';
 
 	/**
-	 * Get the setting key to be used on the options table.
+	 * Get the setting option name to be used on the options table.
 	 *
-	 * @param object $setting The setting to retrieve the key from.
+	 * @param object $setting The setting object to retrieve the key from.
 	 *
-	 * @return string Option key. 
+	 * @return string Option name. 
 	 */
-	private static function get_setting_option_key( $setting ) {
-		return self::OPTION_KEY_PREFIX . $setting['section'] . '_' . $setting['key'];
+	private static function get_setting_option_name( $setting ) {
+		return self::OPTION_NAME_PREFIX . $setting['section'] . '_' . $setting['key'];
 	}
 
 	/**
@@ -73,7 +73,7 @@ class Newspack_Ads_Settings {
 		$settings_list = array_map(
 			function ( $item ) {
 				$default       = ! empty( $item['default'] ) ? $item['default'] : false;
-				$item['value'] = get_option( self::get_setting_option_key( $item ), $default );
+				$item['value'] = get_option( self::get_setting_option_name( $item ), $default );
 				return $item;
 			},
 			$settings_list
@@ -103,7 +103,7 @@ class Newspack_Ads_Settings {
 		);
 		if ( $config ) {
 			settype( $value, $config['type'] );
-			return update_option( self::get_setting_option_key( $config ), $value );
+			return update_option( self::get_setting_option_name( $config ), $value );
 		} else {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
@@ -128,26 +128,36 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
-	 * Get settings values organized by sections.
+	 * Get settings values grouped by sections.
 	 *
+	 * @param string  $section   The section to retrieve settings from.
 	 * @param boolean $is_public Whether to return only public settings.
 	 *
-	 * @return object Associative array containing settings values.
+	 * @return object Settings values or empty array if no values were found.
 	 */
-	public static function get_settings( $is_public = false ) {
+	public static function get_settings( $section = '', $is_public = false ) {
 		$list   = self::get_settings_list();
 		$values = [];
 		foreach ( $list as $setting ) {
 			if ( ! isset( $values[ $setting['section'] ] ) ) {
 				$values[ $setting['section'] ] = [];
 			}
-			if ( true === $is_public && true !== $setting['public'] ) {
+			// Skip non-public settings if specified.
+			if ( true === $is_public && ( ! isset( $setting['public'] ) || true !== $setting['public'] ) ) {
+				continue;
+			}
+			// Skip settings without key or value.
+			if ( ! isset( $setting['key'] ) || ! isset( $setting['value'] ) ) {
 				continue;
 			}
 			settype( $setting['value'], $setting['type'] );
 			$values[ $setting['section'] ][ $setting['key'] ] = $setting['value'];
 		}
-		return $values;
+		if ( $section ) {
+			return isset( $values[ $section ] ) ? $values[ $section ] : [];
+		} else {
+			return $values;
+		}
 	}
 
 }
