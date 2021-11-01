@@ -7,7 +7,7 @@ commands:
       - run:
           name: Install PHP extensions
           command: |
-            sudo apt-get update && sudo apt-get install -y libxml2-dev
+            sudo apt-get update && sudo apt-get install -y libxml2-dev php-soap
       - attach_workspace:
           at: ~/
 
@@ -60,8 +60,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install subversion
-            sudo apt-get update && sudo apt-get install default-mysql-client
+            sudo apt-get update && sudo apt-get install -y subversion default-mysql-client
       - run:
           name: Run Tests
           command: |
