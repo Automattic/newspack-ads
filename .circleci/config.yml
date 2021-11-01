@@ -15,7 +15,7 @@ commands:
 jobs:
   build:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -29,7 +29,7 @@ jobs:
   # Linting
   lint:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -76,7 +76,7 @@ jobs:
   # Release job
   release:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -92,7 +92,7 @@ jobs:
   # Reset alpha branch after a release
   post_release:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - checkout
       - run:
