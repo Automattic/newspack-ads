@@ -7,15 +7,14 @@ commands:
       - run:
           name: Install PHP extensions
           command: |
-            sudo apt-get update && sudo apt-get install -y libxml2-dev
-            sudo -E docker-php-ext-install soap
+            sudo apt-get update && sudo apt-get install -y libxml2-dev php7.4-soap
       - attach_workspace:
           at: ~/
 
 jobs:
   build:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -29,7 +28,7 @@ jobs:
   # Linting
   lint:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -46,7 +45,7 @@ jobs:
 
   test-php:
     docker:
-      - image: circleci/php:7.3
+      - image: cimg/php:7.4
       - image: circleci/mysql:5.6
     environment:
       - WP_TESTS_DIR: '/tmp/wordpress-tests-lib'
@@ -61,9 +60,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install subversion
-            sudo -E docker-php-ext-install mysqli
-            sudo apt-get update && sudo apt-get install default-mysql-client
+            sudo apt-get update && sudo apt-get install -y subversion default-mysql-client
       - run:
           name: Run Tests
           command: |
@@ -76,7 +73,7 @@ jobs:
   # Release job
   release:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -92,7 +89,7 @@ jobs:
   # Reset alpha branch after a release
   post_release:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout
       - run:
