@@ -72,8 +72,9 @@ class Newspack_Ads_Settings {
 
 		$settings_list = array_map(
 			function ( $item ) {
-				$default       = ! empty( $item['default'] ) ? $item['default'] : false;
+				$default       = isset( $item['default'] ) ? $item['default'] : false;
 				$item['value'] = get_option( self::get_setting_option_name( $item ), $default );
+				settype( $item['value'], $item['type'] );
 				return $item;
 			},
 			$settings_list
@@ -97,7 +98,7 @@ class Newspack_Ads_Settings {
 			array_filter(
 				$settings_list,
 				function( $setting ) use ( $section, $key ) {
-					return $key === $setting['key'] && $section === $setting['section'];
+					return isset( $setting['key'] ) && $key === $setting['key'] && isset( $setting['section'] ) && $section === $setting['section'];
 				} 
 			)
 		);
@@ -150,7 +151,6 @@ class Newspack_Ads_Settings {
 			if ( ! isset( $setting['key'] ) || ! isset( $setting['value'] ) ) {
 				continue;
 			}
-			settype( $setting['value'], $setting['type'] );
 			$values[ $setting['section'] ][ $setting['key'] ] = $setting['value'];
 		}
 		if ( $section ) {
