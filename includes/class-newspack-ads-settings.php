@@ -26,9 +26,23 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
-	 * Retreives list of settings.
+	 * Retrieves list of configured settings.
 	 *
-	 * @return array Settings list.
+	 * A setting is an array with the following keys:
+	 * - description: The description of the setting.
+	 * - help: The help text for the setting.
+	 * - section: The section the setting is in.
+	 * - key: The key of the setting. Should be used along with the section name.
+	 * - type: The type of the setting. Used to typecast the value.
+	 * - default: The default value of the setting.
+	 * - options: Options to be used for a select field. Values outside of this array will not update.
+	 * - public: Whether the setting value is allowed to be displayed publicly on the frontend.
+	 *
+	 * Settings without `key` or with the `key` of value `active` should be
+	 * intepreted as section headers on the UI. In the case of `active`, it is a
+	 * module that can be activated or deactivated.
+	 *
+	 * @return array List of configured settings.
 	 */
 	public static function get_settings_list() {
 		$settings_list = array(
