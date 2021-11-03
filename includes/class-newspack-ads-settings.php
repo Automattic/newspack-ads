@@ -95,16 +95,14 @@ class Newspack_Ads_Settings {
 	 * @return bool|WP_Error Whether the value was updated or error if key does not match settings configuration.
 	 */
 	private static function update_setting( $section, $key, $value ) {
-		$settings_list = self::get_settings_list();
-		$config        = array_shift(
-			array_filter(
-				$settings_list,
-				function( $setting ) use ( $section, $key ) {
-					return isset( $setting['key'] ) && $key === $setting['key'] && isset( $setting['section'] ) && $section === $setting['section'];
-				} 
-			)
+		$settings_list    = self::get_settings_list();
+		$filtered_configs = array_filter(
+			$settings_list,
+			function( $setting ) use ( $section, $key ) {
+				return isset( $setting['key'] ) && $key === $setting['key'] && isset( $setting['section'] ) && $section === $setting['section'];
+			}
 		);
-		// Don't update a setting that don't exist.
+		$config           = array_shift( $filtered_configs );
 		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}

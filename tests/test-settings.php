@@ -83,7 +83,6 @@ class SettingsTest extends WP_UnitTestCase {
 		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
 		$values = [
 			'active'        => '1',
-			'first_field'   => '0',
 			'number_field'  => '200',
 			'private_field' => true,
 		];
@@ -92,11 +91,6 @@ class SettingsTest extends WP_UnitTestCase {
 		self::assertSame(
 			$settings['active'],
 			true,
-			'Boolean value should be updated with proper type'
-		);
-		self::assertSame(
-			$settings['first_field'],
-			false,
 			'Boolean value should be updated with proper type'
 		);
 		self::assertSame(
