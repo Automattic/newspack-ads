@@ -81,15 +81,13 @@ class SettingsTest extends WP_UnitTestCase {
 	 */
 	public function test_update_value() {
 		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
-		Newspack_Ads_Settings::update_section(
-			'test_section',
-			[
-				'active'        => '1',
-				'first_field'   => '0',
-				'number_field'  => '200',
-				'private_field' => true,
-			]
-		);
+		$values = [
+			'active'        => '1',
+			'first_field'   => '0',
+			'number_field'  => '200',
+			'private_field' => true,
+		];
+		Newspack_Ads_Settings::update_section( 'test_section', $values );
 		$settings = Newspack_Ads_Settings::get_settings( 'test_section' );
 		self::assertSame(
 			$settings['active'],
