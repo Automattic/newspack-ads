@@ -32,7 +32,7 @@ class Newspack_Ads_Settings {
 			self::API_NAMESPACE,
 			'/settings-list',
 			[
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_settings_list' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
 			]
