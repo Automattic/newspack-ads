@@ -70,6 +70,8 @@ class Newspack_Ads_Settings {
 			),
 		);
 
+		$settings_list = apply_filters( 'newspack_ads_settings_list', $settings_list );
+
 		$settings_list = array_map(
 			function ( $item ) {
 				$default       = isset( $item['default'] ) ? $item['default'] : false;
@@ -80,7 +82,7 @@ class Newspack_Ads_Settings {
 			$settings_list
 		);
 
-		return apply_filters( 'newspack_ads_settings_list', $settings_list );
+		return $settings_list;
 	}
 
 	/**
