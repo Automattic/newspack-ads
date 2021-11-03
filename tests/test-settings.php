@@ -61,7 +61,7 @@ class SettingsTest extends WP_UnitTestCase {
 	 * @return array Updated settings list.
 	 */
 	public static function set_settings_list( $settings_list ) {
-		return $settings_list + self::$settings_list;
+		return array_merge( $settings_list, self::$settings_list );
 	}
   
 	/**
