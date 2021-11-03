@@ -276,7 +276,7 @@ class Newspack_Ads_Settings {
 	 * @param string $section  The key for the section to update.
 	 * @param object $settings The new settings to update.
 	 *
-	 * @return object All settings.
+	 * @return object|WP_Error The settings list or error if a setting update fails.
 	 */
 	public static function update_section( $section, $settings ) {
 		foreach ( $settings as $key => $value ) {
