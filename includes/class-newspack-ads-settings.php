@@ -12,7 +12,136 @@ defined( 'ABSPATH' ) || exit;
  */
 class Newspack_Ads_Settings {
 
+	const API_NAMESPACE      = 'newspack-ads/v1';
+	const API_CAPABILITY     = 'manage_options';
 	const OPTION_NAME_PREFIX = '_newspack_ads_';
+
+	/**
+	 * Initialize settings.
+	 */
+	public static function init() {
+		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+	}
+
+	/**
+	 * Register the endpoints needed to fetch and update settings.
+	 */
+	public static function register_api_endpoints() {
+
+		register_rest_route(
+			self::API_NAMESPACE,
+			'/settings-list',
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_settings_list' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+			]
+		);
+
+		register_rest_route(
+			self::API_NAMESPACE,
+			'/settings',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_settings' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'section' => [
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+
+		register_rest_route(
+			self::API_NAMESPACE,
+			'/settings',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_update_section' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'section'  => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'settings' => [
+						'required'          => true,
+						'sanitize_callback' => [ __CLASS__, 'api_sanitize_settings' ],
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Check capabilities for using API.
+	 *
+	 * @return bool|WP_Error True or error object.
+	 */
+	public static function api_permissions_check() {
+		if ( ! current_user_can( self::API_CAPABILITY ) ) {
+			return new \WP_Error(
+				'newspack_ads_rest_forbidden',
+				esc_html__( 'You cannot use this resource.', 'newspack-ads' ),
+				[
+					'status' => 403,
+				]
+			);
+		}
+		return true;
+	}
+
+	/**
+	 * Sanitize settings coming from the API.
+	 *
+	 * @param array           $settings Settings to sanitize.
+	 * @param WP_REST_Request $request  Full details about the request.
+	 *
+	 * @return array Sanitized settings.
+	 */
+	public static function api_sanitize_settings( $settings, $request ) {
+		$section            = (string) $request['section'];
+		$sanitized_settings = [];
+		foreach ( $settings as $key => $value ) {
+			$config = self::get_setting_config( $section, $key );
+			settype( $value, $config['type'] );
+			$sanitized_settings[ $key ] = $value;
+		}
+		return $sanitized_settings;
+	}
+
+	/**
+	 * Update setting section.
+	 *
+	 * @return WP_REST_Response containing the settings list.
+	 */
+	public static function api_get_settings_list() {
+		return \rest_ensure_response( self::get_settings_list() );
+	}
+
+	/**
+	 * Update setting section.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the settings list.
+	 */
+	public static function api_get_settings( $request ) {
+		return \rest_ensure_response( self::get_settings( $request['section'] ) );
+	}
+
+	/**
+	 * Update setting section.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the settings list.
+	 */
+	public static function api_update_section( $request ) {
+		return \rest_ensure_response( self::update_section( $request['section'], $request['settings'] ) );
+	}
 
 	/**
 	 * Get the setting option name to be used on the options table.
@@ -102,6 +231,25 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
+	 * Retrieves a setting configuration.
+	 *
+	 * @param string $section The section the setting is in.
+	 * @param string $key The key of the setting.
+	 *
+	 * @return object|null Setting configuration or null if not found.
+	 */
+	private static function get_setting_config( $section, $key ) {
+		$settings_list    = self::get_settings_list();
+		$filtered_configs = array_filter(
+			$settings_list,
+			function( $setting ) use ( $section, $key ) {
+				return isset( $setting['key'] ) && $key === $setting['key'] && isset( $setting['section'] ) && $section === $setting['section'];
+			}
+		);
+		return array_shift( $filtered_configs );
+	}
+
+	/**
 	 * Update a setting from a provided section.
 	 *
 	 * @param string $section The section to update.
@@ -111,14 +259,7 @@ class Newspack_Ads_Settings {
 	 * @return bool|WP_Error Whether the value was updated or error if key does not match settings configuration.
 	 */
 	private static function update_setting( $section, $key, $value ) {
-		$settings_list    = self::get_settings_list();
-		$filtered_configs = array_filter(
-			$settings_list,
-			function( $setting ) use ( $section, $key ) {
-				return isset( $setting['key'] ) && $key === $setting['key'] && isset( $setting['section'] ) && $section === $setting['section'];
-			}
-		);
-		$config           = array_shift( $filtered_configs );
+		$config = self::get_setting_config( $section, $key );
 		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
@@ -180,3 +321,4 @@ class Newspack_Ads_Settings {
 	}
 
 }
+Newspack_Ads_Settings::init();
