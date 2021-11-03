@@ -54,18 +54,10 @@ class SettingsTest extends WP_UnitTestCase {
 	];
 
 	/**
-	 * Set up stuff for testing.
-	 */
-	public function setUp() {
-		parent::setUp();
-		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
-	}
-
-	/**
 	 * Add sample settings list.
-	 * 
+	 *
 	 * @param array $settings_list List of settings.
-	 * 
+	 *
 	 * @return array Updated settings list.
 	 */
 	public static function set_settings_list( $settings_list ) {
@@ -76,6 +68,7 @@ class SettingsTest extends WP_UnitTestCase {
 	 * Test that the returned settings values does not contain non-public values.
 	 */
 	public function test_get_public_settings() {
+		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
 		$settings = Newspack_Ads_Settings::get_settings( 'test_section', true );
 		self::assertFalse(
 			isset( $settings['private_field'] ),
@@ -87,6 +80,7 @@ class SettingsTest extends WP_UnitTestCase {
 	 * Test that the values are properly updated with configured type.
 	 */
 	public function test_update_value() {
+		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
 		Newspack_Ads_Settings::update_section(
 			'test_section',
 			[
