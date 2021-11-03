@@ -36,6 +36,8 @@ class Newspack_Ads_Settings {
 	 * - type: The type of the setting. Used to typecast the value.
 	 * - default: The default value of the setting.
 	 * - options: Options to be used for a select field. Values outside of this array will not update.
+	 *   - name: The name of the option.
+	 *   - value: The value of the option.
 	 * - public: Whether the setting value is allowed to be displayed publicly on the frontend.
 	 *
 	 * Settings without `key` or with the `key` of value `active` should be
