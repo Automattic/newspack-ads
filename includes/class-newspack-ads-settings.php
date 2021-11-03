@@ -107,6 +107,9 @@ class Newspack_Ads_Settings {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
 		settype( $value, $config['type'] );
+		if ( isset( $config['options'] ) && is_array( $config['options'] ) && ! in_array( $value, $config['options'] ) ) {
+			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting value.', 'newspack-ads' ) );
+		}
 		return update_option( self::get_setting_option_name( $config ), $value );
 	}
 

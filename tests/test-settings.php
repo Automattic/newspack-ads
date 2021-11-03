@@ -51,6 +51,23 @@ class SettingsTest extends WP_UnitTestCase {
 			'default'     => '',
 			'public'      => false,
 		],
+		[
+			'description' => 'A select field',
+			'help'        => 'Help text',
+			'section'     => 'test_section',
+			'key'         => 'select_field',
+			'type'        => 'string',
+			'options'     => [
+				[
+					'value' => 'option1',
+					'name'  => 'Option 1',
+				],
+				[
+					'value' => 'option2',
+					'name'  => 'Option 2',
+				],
+			],
+		],
 	];
 
 	/**
@@ -102,6 +119,21 @@ class SettingsTest extends WP_UnitTestCase {
 			$settings['private_field'],
 			'1',
 			'String value should be updated with proper type'
+		);
+	}
+
+	/**
+	 * Test that a value update should be restricted to available options.
+	 */
+	public function test_update_value_within_options() {
+		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
+		$values = [
+			'select_field' => 'not_an_option',
+		];
+		$result = Newspack_Ads_Settings::update_section( 'test_section', $values );
+		self::assertTrue(
+			is_wp_error( $result ),
+			'Should not update a value outside of existing options.'
 		);
 	}
 }
