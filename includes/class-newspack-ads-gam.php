@@ -536,9 +536,11 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Can this instance use Service Account for authentication?
+	 * OAuth is the preferred method, but if it's not available, a fallback to Service
+	 * Account is handy.
 	 */
 	private static function can_use_service_account() {
-		return defined( 'NEWSPACK_ADS_SERVICE_ACCOUNT_CONNECTION' ) && NEWSPACK_ADS_SERVICE_ACCOUNT_CONNECTION;
+		return ! self::can_use_oauth();
 	}
 
 	/**
