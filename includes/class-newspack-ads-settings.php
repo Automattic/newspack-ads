@@ -232,7 +232,7 @@ class Newspack_Ads_Settings {
 		// Add default settings and get values.
 		$settings_list = array_map(
 			function ( $item ) use ( $default_setting ) {
-				$item          = array_merge( $default_setting, $item );
+				$item          = wp_parse_args( $item, $default_setting );
 				$default_value = isset( $item['default'] ) ? $item['default'] : false;
 				$value         = get_option( self::get_setting_option_name( $item ), $default_value );
 				if ( false !== $value ) {
