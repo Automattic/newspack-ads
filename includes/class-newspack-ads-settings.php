@@ -219,10 +219,13 @@ class Newspack_Ads_Settings {
 
 		$settings_list = array_map(
 			function ( $item ) {
-				$default       = isset( $item['default'] ) ? $item['default'] : false;
-				$item['type']  = isset( $item['type'] ) ? $item['type'] : 'string';
-				$item['value'] = get_option( self::get_setting_option_name( $item ), $default );
-				settype( $item['value'], $item['type'] );
+				$item['type'] = isset( $item['type'] ) ? $item['type'] : 'string';
+				$default      = isset( $item['default'] ) ? $item['default'] : false;
+				$value        = get_option( self::get_setting_option_name( $item ), $default );
+				if ( false !== $value ) {
+					settype( $value, $item['type'] );
+					$item['value'] = $value;
+				}
 				return $item;
 			},
 			$settings_list
