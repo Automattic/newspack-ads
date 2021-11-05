@@ -118,7 +118,7 @@ class Newspack_Ads_Settings {
 	 * @return WP_REST_Response containing the settings list.
 	 */
 	public static function api_get_settings_list() {
-		return \rest_ensure_response( self::get_settings_list() );
+		return \rest_ensure_response( self::get_settings_list( true ) );
 	}
 
 	/**
@@ -140,7 +140,11 @@ class Newspack_Ads_Settings {
 	 * @return WP_REST_Response containing the settings list.
 	 */
 	public static function api_update_section( $request ) {
-		return \rest_ensure_response( self::update_section( $request['section'], $request['settings'] ) );
+		$result = self::update_section( $request['section'], $request['settings'] );
+		if ( is_wp_error( $result ) ) {
+			return \rest_ensure_response( $result );
+		}
+		return \rest_ensure_response( self::get_settings_list( true ) );
 	}
 
 	/**
@@ -173,9 +177,11 @@ class Newspack_Ads_Settings {
 	 * intepreted as section headers on the UI. In the case of `active`, it is a
 	 * module that can be activated or deactivated.
 	 *
-	 * @return array List of configured settings.
+	 * @param boolean $assoc Whether to return an associative array with the section as key or indexed array.
+	 *
+	 * @return array Indexed or associative array of configured settings grouped by section name.
 	 */
-	public static function get_settings_list() {
+	public static function get_settings_list( $assoc = false ) {
 		$settings_list = array(
 			array(
 				'description' => __( 'Lazy loading', 'newspack-ads' ),
@@ -237,6 +243,17 @@ class Newspack_Ads_Settings {
 			},
 			$settings_list
 		);
+
+		if ( $assoc ) {
+			$settings_list = array_reduce(
+				$settings_list,
+				function ( $carry, $item ) {
+					$carry[ $item['section'] ][] = $item;
+					return $carry;
+				},
+				array()
+			);
+		}
 
 		return $settings_list;
 	}
