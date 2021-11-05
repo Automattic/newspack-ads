@@ -68,6 +68,12 @@ class SettingsTest extends WP_UnitTestCase {
 				],
 			],
 		],
+		[
+			'description' => 'A field without type',
+			'help'        => 'Help text',
+			'section'     => 'test_section',
+			'key'         => 'typeless_field',
+		],
 	];
 
 	/**
@@ -134,6 +140,23 @@ class SettingsTest extends WP_UnitTestCase {
 		self::assertTrue(
 			is_wp_error( $result ),
 			'Should not update a value outside of existing options.'
+		);
+	}
+
+	/**
+	 * Test that a setting should always have a default type.
+	 */
+	public function test_setting_default_type() {
+		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
+		$config = Newspack_Ads_Settings::get_setting_config( 'test_section', 'typeless_field' );
+		self::assertTrue(
+			isset( $config['type'] ),
+			'Should have a default type'
+		);
+		self::assertSame(
+			$config['type'],
+			'string',
+			'Should have a default type of string'
 		);
 	}
 }

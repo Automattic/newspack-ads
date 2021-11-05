@@ -220,6 +220,7 @@ class Newspack_Ads_Settings {
 		$settings_list = array_map(
 			function ( $item ) {
 				$default       = isset( $item['default'] ) ? $item['default'] : false;
+				$item['type']  = isset( $item['type'] ) ? $item['type'] : 'string';
 				$item['value'] = get_option( self::get_setting_option_name( $item ), $default );
 				settype( $item['value'], $item['type'] );
 				return $item;
@@ -238,7 +239,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @return object|null Setting configuration or null if not found.
 	 */
-	private static function get_setting_config( $section, $key ) {
+	public static function get_setting_config( $section, $key ) {
 		$settings_list    = self::get_settings_list();
 		$filtered_configs = array_filter(
 			$settings_list,
