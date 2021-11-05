@@ -215,13 +215,20 @@ class Newspack_Ads_Settings {
 			),
 		);
 
+		$default_setting = array(
+			'section' => '',
+			'type'    => 'string',
+			'public'  => false,
+		);
+
 		$settings_list = apply_filters( 'newspack_ads_settings_list', $settings_list );
 
+		// Add default settings and get values.
 		$settings_list = array_map(
-			function ( $item ) {
-				$item['type'] = isset( $item['type'] ) ? $item['type'] : 'string';
-				$default      = isset( $item['default'] ) ? $item['default'] : false;
-				$value        = get_option( self::get_setting_option_name( $item ), $default );
+			function ( $item ) use ( $default_setting ) {
+				$item          = array_merge( $default_setting, $item );
+				$default_value = isset( $item['default'] ) ? $item['default'] : false;
+				$value         = get_option( self::get_setting_option_name( $item ), $default_value );
 				if ( false !== $value ) {
 					settype( $value, $item['type'] );
 					$item['value'] = $value;
