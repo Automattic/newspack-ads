@@ -250,6 +250,29 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
+	 * Retrieves a sanitized setting value to be stored as wp_option.
+	 *
+	 * @param string $type The type of the setting.
+	 * @param mixed  $value The value to sanitize.
+	 * 
+	 * @return mixed The sanitized value.
+	 */
+	private static function sanitize_setting_option( $type, $value ) {
+		switch ( $type ) {
+			case 'int':
+			case 'integer':
+			case 'boolean':
+				return (int) $value;
+			case 'float':
+				return (float) $value;
+			case 'string':
+				return sanitize_text_field( $value );
+			default:
+				return '';
+		}
+	}
+
+	/**
 	 * Update a setting from a provided section.
 	 *
 	 * @param string $section The section to update.
@@ -263,11 +286,10 @@ class Newspack_Ads_Settings {
 		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
-		settype( $value, $config['type'] );
 		if ( isset( $config['options'] ) && is_array( $config['options'] ) && ! in_array( $value, $config['options'] ) ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting value.', 'newspack-ads' ) );
 		}
-		return update_option( self::get_setting_option_name( $config ), $value );
+		return update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
 	}
 
 	/**
