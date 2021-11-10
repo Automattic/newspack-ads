@@ -16,14 +16,18 @@ class Newspack_Ads_Sidebar_Placements {
 	 * Initialize settings.
 	 */
 	public static function init() {
-		add_action( 'init', [ __CLASS__, 'register_sidebar_placements' ] );
 		add_action( 'dynamic_sidebar_before', [ __CLASS__, 'create_sidebar_action' ], 10, 2 );
+		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_sidebar_placements' ], 5, 1 );
 	}
 
 	/**
-	 * Register sidebars as global placements.
+	 * Register sidebars as ad placements.
+	 *
+	 * @param array $placements List of placements.
+	 *
+	 * @return array Updated list of placements.
 	 */
-	public static function register_sidebar_placements() {
+	public static function add_sidebar_placements( $placements ) {
 		$sidebars           = $GLOBALS['wp_registered_sidebars'];
 		$sidebar_placements = [];
 		foreach ( $sidebars as $sidebar ) {
@@ -32,19 +36,12 @@ class Newspack_Ads_Sidebar_Placements {
 				$sidebar_placements[ $placement_key ] = [
 					/* translators: %s: Sidebar name */
 					'name'        => sprintf( __( 'Widget Area: %s', 'newspack-ads' ), $sidebar['name'] ),
-					'description' => __( 'Choose an ad unit to be displayed before the this widget area', 'newspack-ads' ),
+					'description' => __( 'Choose an ad unit to be displayed before this widget area', 'newspack-ads' ),
 					'hook_name'   => sprintf( self::SIDEBAR_HOOK_NAME, $sidebar['id'] ),
 				];
 			}
 		}
-		if ( count( $sidebar_placements ) ) {
-			add_filter(
-				'newspack_ads_placements',
-				function ( $placements ) use ( $sidebar_placements ) {
-					return array_merge( $placements, $sidebar_placements );
-				} 
-			);
-		}
+		return array_merge( $placements, $sidebar_placements );
 	}
 
 	/**
