@@ -10,7 +10,7 @@
  */
 class Newspack_Ads_Sidebar_Placements {
 
-	const SIDEBAR_HOOK_NAME = 'newspack_ads_dynamic_sidebar_placement_%s';
+	const SIDEBAR_HOOK_NAME = 'newspack_ads_sidebar_placement_%s';
 
 	/**
 	 * Initialize settings.
@@ -50,8 +50,8 @@ class Newspack_Ads_Sidebar_Placements {
 	/**
 	 * Create a dynamic sidebar action appropriate for ad unit insertion.
 	 *
-	 * @param int|string $index         Index, name, or ID of the dynamic sidebar.
-	 * @param boolean    $has_widgets   Whether the sidebar is populated with widgets. Default true.
+	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
+	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
 	 */
 	public static function create_sidebar_action( $index, $has_widgets ) {
 		if ( $has_widgets ) {
