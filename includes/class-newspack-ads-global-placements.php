@@ -43,7 +43,7 @@ class Newspack_Ads_Global_Placements {
 	 * @return string Option name. 
 	 */
 	private static function get_option_name( $placement_key ) {
-		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . '_placement_' . $placement_key;
+		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
 	}
 
 	/**
