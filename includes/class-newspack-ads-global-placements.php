@@ -6,7 +6,7 @@
  */
 
 /**
- * Newspack Ads Blocks Global Placements
+ * Newspack Ads Global Placements
  */
 class Newspack_Ads_Global_Placements {
 
@@ -15,13 +15,13 @@ class Newspack_Ads_Global_Placements {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
-		self::setup_placements_hooks();
+		add_action( 'wp_head', [ __CLASS__, 'setup_placements_hooks' ] );
 	}
 
 	/**
 	 * Setup hooks for placements that have `wp_action_name` configured.
 	 */
-	private static function setup_placements_hooks() {
+	public static function setup_placements_hooks() {
 		$placements = self::get_placements();
 		foreach ( $placements as $placement_key => $placement ) {
 			if ( isset( $placement['wp_action_name'] ) ) {
