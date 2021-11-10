@@ -104,7 +104,7 @@ class Newspack_Ads_Model {
 		}
 
 		$ad_unit               = \get_post( $id );
-		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
+		$responsive_placements = [ 'above_header', 'below_header', 'above_footer' ];
 
 		$prepared_ad_unit = [];
 
