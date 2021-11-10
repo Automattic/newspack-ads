@@ -30,27 +30,11 @@ class Newspack_Ads_Settings {
 
 		register_rest_route(
 			self::API_NAMESPACE,
-			'/settings-list',
+			'/settings',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_settings_list' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
-			]
-		);
-
-		register_rest_route(
-			self::API_NAMESPACE,
-			'/settings',
-			[
-				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ __CLASS__, 'api_get_settings' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
-				'args'                => [
-					'section' => [
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
 			]
 		);
 
@@ -113,23 +97,12 @@ class Newspack_Ads_Settings {
 	}
 
 	/**
-	 * Update setting section.
+	 * Get settings list.
 	 *
 	 * @return WP_REST_Response containing the settings list.
 	 */
 	public static function api_get_settings_list() {
 		return \rest_ensure_response( self::get_settings_list( true ) );
-	}
-
-	/**
-	 * Update setting section.
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_REST_Response containing the settings list.
-	 */
-	public static function api_get_settings( $request ) {
-		return \rest_ensure_response( self::get_settings( $request['section'] ) );
 	}
 
 	/**
