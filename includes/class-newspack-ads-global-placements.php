@@ -94,7 +94,7 @@ class Newspack_Ads_Global_Placements {
 
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
-			'/wizard/advertising/placement/(?P<placement>[\a-z]+)',
+			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_placement' ],
@@ -109,7 +109,7 @@ class Newspack_Ads_Global_Placements {
 
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
-			'/wizard/advertising/placement/(?P<placement>[\a-z]+)',
+			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ __CLASS__, 'api_disable_placement' ],
@@ -299,7 +299,7 @@ class Newspack_Ads_Global_Placements {
 			return;
 		}
 
-		$is_amp = ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) && ! AMP_Enhancements::should_use_amp_plus( 'gam' );
+		$is_amp = ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) && class_exists( 'AMP_Enhancements' ) && ! AMP_Enhancements::should_use_amp_plus( 'gam' );
 		$code   = $is_amp ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
 		if ( empty( $code ) ) {
 			return;
