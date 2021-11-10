@@ -1,14 +1,14 @@
 <?php
 /**
- * Newspack Ads Global Placements
+ * Newspack Ads Placements
  *
  * @package Newspack
  */
 
 /**
- * Newspack Ads Global Placements
+ * Newspack Ads Placements
  */
-class Newspack_Ads_Global_Placements {
+class Newspack_Ads_Placements {
 
 	/**
 	 * Initialize settings.
@@ -166,14 +166,14 @@ class Newspack_Ads_Global_Placements {
 	}
 
 	/**
-	 * Get the available global placements.
+	 * Get the available placements.
 	 *
 	 * A placement is an array with the following keys:
 	 * - name: The name of the placement.
 	 * - description: A description of the placement.
 	 * - default_ad_unit: A default ad unit name to be used for this placement.
 	 *
-	 * @return array Global placement objects.
+	 * @return array Placement objects.
 	 */
 	public static function get_placements() {
 		$placements = array(
@@ -203,7 +203,7 @@ class Newspack_Ads_Global_Placements {
 			),
 		);
 
-		$placements = apply_filters( 'newspack_ads_global_placements', $placements );
+		$placements = apply_filters( 'newspack_ads_placements', $placements );
 
 		array_walk(
 			$placements,
@@ -318,4 +318,4 @@ class Newspack_Ads_Global_Placements {
 		endif;
 	}
 }
-Newspack_Ads_Global_Placements::init();
+Newspack_Ads_Placements::init();

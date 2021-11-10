@@ -39,7 +39,7 @@ class Newspack_Ads_Sidebar_Placements {
 		}
 		if ( count( $sidebar_placements ) ) {
 			add_filter(
-				'newspack_ads_global_placements',
+				'newspack_ads_placements',
 				function ( $placements ) use ( $sidebar_placements ) {
 					return array_merge( $placements, $sidebar_placements );
 				} 
