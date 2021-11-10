@@ -19,14 +19,14 @@ class Newspack_Ads_Global_Placements {
 	}
 
 	/**
-	 * Setup hooks for placements that have `wp_action_name` configured.
+	 * Setup hooks for placements that have `hook_name` configured.
 	 */
 	public static function setup_placements_hooks() {
 		$placements = self::get_placements();
 		foreach ( $placements as $placement_key => $placement ) {
-			if ( isset( $placement['wp_action_name'] ) ) {
+			if ( isset( $placement['hook_name'] ) ) {
 				add_action(
-					$placement['wp_action_name'],
+					$placement['hook_name'],
 					function () use ( $placement_key ) {
 						self::inject_placement_ad_unit( $placement_key );
 					}
@@ -191,25 +191,25 @@ class Newspack_Ads_Global_Placements {
 				'name'            => __( 'Global: Above Header', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display above the header', 'newspack-ads' ),
 				'default_ad_unit' => 'newspack_above_header',
-				'wp_action_name'  => 'before_header',
+				'hook_name'       => 'before_header',
 			),
 			'below_header' => array(
 				'name'            => __( 'Global: Below Header', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display below the header', 'newspack-ads' ),
 				'default_ad_unit' => 'newspack_below_header',
-				'wp_action_name'  => 'after_header',
+				'hook_name'       => 'after_header',
 			),
 			'above_footer' => array(
 				'name'            => __( 'Global: Above Footer', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display above the footer', 'newspack-ads' ),
 				'default_ad_unit' => 'newspack_above_footer',
-				'wp_action_name'  => 'before_footer',
+				'hook_name'       => 'before_footer',
 			),
 			'sticky'       => array(
 				'name'            => __( 'Sticky', 'newspack-ads' ),
 				'description'     => __( 'Choose a sticky ad unit to display at the bottom of the viewport', 'newspack-ads' ),
 				'default_ad_unit' => 'newspack_sticky',
-				'wp_action_name'  => 'before_footer',
+				'hook_name'       => 'before_footer',
 			),
 		);
 

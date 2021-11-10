@@ -10,7 +10,7 @@
  */
 class Newspack_Ads_Sidebar_Placements {
 
-	const SIDEBAR_ACTION_NAME = 'newspack_ads_dynamic_sidebar_placement_%s';
+	const SIDEBAR_HOOK_NAME = 'newspack_ads_dynamic_sidebar_placement_%s';
 
 	/**
 	 * Initialize settings.
@@ -31,9 +31,9 @@ class Newspack_Ads_Sidebar_Placements {
 				$placement_key                        = 'sidebar_' . $sidebar['id'];
 				$sidebar_placements[ $placement_key ] = [
 					/* translators: %s: Sidebar name */
-					'name'           => sprintf( __( 'Widget Area: %s', 'newspack-ads' ), $sidebar['name'] ),
-					'description'    => __( 'Choose an ad unit to be displayed before the this widget area', 'newspack-ads' ),
-					'wp_action_name' => sprintf( self::SIDEBAR_ACTION_NAME, $sidebar['id'] ),
+					'name'        => sprintf( __( 'Widget Area: %s', 'newspack-ads' ), $sidebar['name'] ),
+					'description' => __( 'Choose an ad unit to be displayed before the this widget area', 'newspack-ads' ),
+					'hook_name'   => sprintf( self::SIDEBAR_HOOK_NAME, $sidebar['id'] ),
 				];
 			}
 		}
@@ -55,7 +55,7 @@ class Newspack_Ads_Sidebar_Placements {
 	 */
 	public static function create_sidebar_action( $index, $has_widgets ) {
 		if ( $has_widgets ) {
-			do_action( sprintf( self::SIDEBAR_ACTION_NAME, $index ) );
+			do_action( sprintf( self::SIDEBAR_HOOK_NAME, $index ) );
 		}
 	}
 
