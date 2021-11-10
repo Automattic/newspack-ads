@@ -19,6 +19,94 @@ class Newspack_Ads_Global_Placements {
 	}
 
 	/**
+	 * Register the endpoints needed to fetch and update settings.
+	 */
+	public static function register_api_endpoints() {
+
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/placements',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_placements' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+			]
+		);
+
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/placements/(?P<placement>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_update_placement' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'placement' => [
+						'sanitize_callback' => 'sanitize_title',
+					],
+					'ad_unit'   => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/placements/(?P<placement>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::DELETABLE,
+				'callback'            => [ __CLASS__, 'api_disable_placement' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'placement' => [
+						'sanitize_callback' => 'sanitize_title',
+					],
+				],
+			]
+		);
+	}
+	
+	/**
+	 * Get placements.
+	 *
+	 * @return WP_REST_Response containing the configured placements.
+	 */
+	public static function api_get_placements() {
+		return \rest_ensure_response( self::get_placements() );
+	}
+
+	/**
+	 * Update a placement.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the configured placements.
+	 */
+	public static function api_update_placement( $request ) {
+		$result = self::update_placement( $request['placement'], $request['ad_unit'] );
+		if ( is_wp_error( $result ) ) {
+			return \rest_ensure_response( $result );
+		}
+		return \rest_ensure_response( self::get_placements() );
+	}
+
+	/**
+	 * Disable a placement.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the configured placements.
+	 */
+	public static function api_disable_placement( $request ) {
+		$result = self::disable_placement( $request['placement'] );
+		if ( is_wp_error( $result ) ) {
+			return \rest_ensure_response( $result );
+		}
+		return \rest_ensure_response( self::get_placements() );
+	}
+
+	/**
 	 * Setup hooks for placements that have `hook_name` configured.
 	 */
 	public static function setup_placements_hooks() {
@@ -75,104 +163,6 @@ class Newspack_Ads_Global_Placements {
 		}
 
 		return json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? $default_data;
-	}
-
-	/**
-	 * Register the endpoints needed to fetch and update settings.
-	 */
-	public static function register_api_endpoints() {
-
-		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
-			'/placements',
-			[
-				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ __CLASS__, 'api_get_placements' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
-			]
-		);
-
-		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
-			'/placements/(?P<placement>[\a-z]+)',
-			[
-				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_update_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
-				'args'                => [
-					'placement' => [
-						'sanitize_callback' => [ __CLASS__, 'sanitize_placement_key' ],
-					],
-					'ad_unit'   => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-			]
-		);
-
-		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
-			'/placements/(?P<placement>[\a-z]+)',
-			[
-				'methods'             => \WP_REST_Server::DELETABLE,
-				'callback'            => [ __CLASS__, 'api_disable_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
-				'args'                => [
-					'placement' => [
-						'sanitize_callback' => [ __CLASS__, 'sanitize_placement_key' ],
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Get placements.
-	 *
-	 * @return WP_REST_Response containing the configured placements.
-	 */
-	public static function api_get_placements() {
-		return \rest_ensure_response( self::get_placements() );
-	}
-
-	/**
-	 * Update a placement.
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_REST_Response containing the configured placements.
-	 */
-	public static function api_update_placement( $request ) {
-		$result = self::update_placement( $request['placement'], $request['ad_unit'] );
-		if ( is_wp_error( $result ) ) {
-			return \rest_ensure_response( $result );
-		}
-		return \rest_ensure_response( self::get_placements() );
-	}
-
-	/**
-	 * Disable a placement.
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 *
-	 * @return WP_REST_Response containing the configured placements.
-	 */
-	public static function api_disable_placement( $request ) {
-		$result = self::disable_placement( $request['placement'] );
-		if ( is_wp_error( $result ) ) {
-			return \rest_ensure_response( $result );
-		}
-		return \rest_ensure_response( self::get_placements() );
-	}
-	
-	/**
-	 * Sanitize placement key.
-	 *
-	 * @param string $placement_key Placement key.
-	 * @return string
-	 */
-	public function sanitize_placement_key( $placement_key ) {
-		return sanitize_title( $placement_key );
 	}
 
 	/**
