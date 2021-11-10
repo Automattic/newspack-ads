@@ -61,7 +61,6 @@ class Newspack_Ads_Global_Placements {
 		$default_data = [
 			'enabled' => true,
 			'ad_unit' => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
-			'service' => isset( $config['default_service'] ) ? $config['default_service'] : 'google_ad_manager',
 		];
 		
 		/**
@@ -93,7 +92,6 @@ class Newspack_Ads_Global_Placements {
 			]
 		);
 
-		// Update placement.
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
 			'/wizard/advertising/placement/(?P<placement>[\a-z]+)',
@@ -109,7 +107,6 @@ class Newspack_Ads_Global_Placements {
 			]
 		);
 
-		// Disable placement.
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
 			'/wizard/advertising/placement/(?P<placement>[\a-z]+)',
@@ -143,7 +140,7 @@ class Newspack_Ads_Global_Placements {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_update_placement( $request ) {
-		$result = self::update_placement( $request['placement'], $request['service'], $request['ad_unit'] );
+		$result = self::update_placement( $request['placement'], $request['ad_unit'] );
 		if ( is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
@@ -228,15 +225,14 @@ class Newspack_Ads_Global_Placements {
 	}
 
 	/**
-	 * Update a placement with service and ad unit. Enables the placement by default.
+	 * Update a placement with an ad unit. Enables the placement by default.
 	 * 
 	 * @param string $placement_key Placement key.
-	 * @param string $service Placement object containing data to update.
 	 * @param string $ad_unit Placement object containing data to update.
 	 *
 	 * @return bool Whether the placement has been updated or not.
 	 */
-	public static function update_placement( $placement_key, $service, $ad_unit ) {
+	public static function update_placement( $placement_key, $ad_unit ) {
 		$placements = self::get_placements();
 		if ( ! isset( $placements[ $placement_key ] ) ) {
 			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist', 'newspack-ads' ) );
@@ -248,7 +244,6 @@ class Newspack_Ads_Global_Placements {
 				wp_parse_args(
 					array(
 						'enabled' => true,
-						'service' => $service,
 						'ad_unit' => $ad_unit,
 					),
 					$placement_data 
