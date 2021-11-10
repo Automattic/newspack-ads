@@ -21,6 +21,18 @@ class Newspack_Ads_Sidebar_Placements {
 	}
 
 	/**
+	 * Create a dynamic sidebar action appropriate for ad unit insertion.
+	 *
+	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
+	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
+	 */
+	public static function create_sidebar_action( $index, $has_widgets ) {
+		if ( $has_widgets ) {
+			do_action( sprintf( self::SIDEBAR_HOOK_NAME, $index ) );
+		}
+	}
+
+	/**
 	 * Register sidebars as ad placements.
 	 *
 	 * @param array $placements List of placements.
@@ -42,18 +54,6 @@ class Newspack_Ads_Sidebar_Placements {
 			}
 		}
 		return array_merge( $placements, $sidebar_placements );
-	}
-
-	/**
-	 * Create a dynamic sidebar action appropriate for ad unit insertion.
-	 *
-	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
-	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
-	 */
-	public static function create_sidebar_action( $index, $has_widgets ) {
-		if ( $has_widgets ) {
-			do_action( sprintf( self::SIDEBAR_HOOK_NAME, $index ) );
-		}
 	}
 
 }
