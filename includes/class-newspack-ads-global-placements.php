@@ -103,6 +103,9 @@ class Newspack_Ads_Global_Placements {
 					'placement' => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_placement_key' ],
 					],
+					'ad_unit'   => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
 				],
 			]
 		);
