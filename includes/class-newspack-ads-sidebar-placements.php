@@ -69,16 +69,16 @@ class Newspack_Ads_Sidebar_Placements {
 	public static function add_sidebar_placements( $placements ) {
 		$sidebars           = $GLOBALS['wp_registered_sidebars'];
 		$sidebar_placements = [];
+
+		$disallowed_sidebars  = array_flip( apply_filters( 'newspack_ads_disallowed_sidebar_placements', self::DISALLOWED_SIDEBARS ) );
+		$single_unit_sidebars = array_flip( apply_filters( 'newspack_ads_single_unit_sidebar_placements', self::SINGLE_UNIT_SIDEBARS ) );
+
 		foreach ( $sidebars as $sidebar ) {
 			if ( isset( $sidebar['id'] ) ) {
 				$placement_key = 'sidebar_' . $sidebar['id'];
 
 				// Skip disallowed sidebar placements.
-				$is_disallowed = in_array(
-					$sidebar['id'],
-					apply_filters( 'newspack_ads_disallowed_sidebar_placements', self::DISALLOWED_SIDEBARS ),
-					true
-				);
+				$is_disallowed = isset( $disallowed_sidebars[ $sidebar['id'] ] );
 
 				// Disable SCAIP sidebars.
 				if ( 'scaip' === substr( $sidebar['id'], 0, 5 ) ) {
@@ -93,12 +93,7 @@ class Newspack_Ads_Sidebar_Placements {
 					'name' => $sidebar['name'],
 				];
 				
-				$is_single_unit_sidebar = in_array(
-					$sidebar['id'],
-					apply_filters( 'newspack_ads_single_unit_sidebar_placements', self::SINGLE_UNIT_SIDEBARS ),
-					true
-				);
-				if ( $is_single_unit_sidebar ) {
+				if ( isset( $single_unit_sidebars[ $sidebar['id'] ] ) ) {
 					$placement_config['hook_name'] = sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] );
 				} else {
 					$placement_config['hooks'] = [
