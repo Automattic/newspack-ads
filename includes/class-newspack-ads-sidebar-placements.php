@@ -10,25 +10,52 @@
  */
 class Newspack_Ads_Sidebar_Placements {
 
-	const SIDEBAR_HOOK_NAME = 'newspack_ads_sidebar_placement_%s';
+	// Hook names to be used for ad placement.
+	const SIDEBAR_BEFORE_HOOK_NAME = 'newspack_ads_sidebar_before_placement_%s';
+	const SIDEBAR_AFTER_HOOK_NAME  = 'newspack_ads_sidebar_after_placement_%s';
+
+	// Sidebars that should have a single ad unit instead of "before" and "after" hooks.
+	const SINGLE_UNIT_SIDEBARS = [
+		'footer-2',
+	];
+
+	// Sidebars to not create ad placement.
+	const DISALLOWED_SIDEBARS = [
+		'header-2',
+		'header-3',
+		'footer-3',
+	];
 
 	/**
 	 * Initialize settings.
 	 */
 	public static function init() {
-		add_action( 'dynamic_sidebar_before', [ __CLASS__, 'create_sidebar_action' ], 10, 2 );
+		add_action( 'dynamic_sidebar_before', [ __CLASS__, 'create_sidebar_before_action' ], 10, 2 );
+		add_action( 'dynamic_sidebar_after', [ __CLASS__, 'create_sidebar_after_action' ], 10, 2 );
 		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_sidebar_placements' ], 5, 1 );
 	}
 
 	/**
-	 * Create a dynamic sidebar action appropriate for ad unit insertion.
+	 * Create a dynamic sidebar before action appropriate for ad unit insertion.
 	 *
 	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
 	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
 	 */
-	public static function create_sidebar_action( $index, $has_widgets ) {
+	public static function create_sidebar_before_action( $index, $has_widgets ) {
 		if ( $has_widgets ) {
-			do_action( sprintf( self::SIDEBAR_HOOK_NAME, $index ) );
+			do_action( sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $index ) );
+		}
+	}
+	
+	/**
+	 * Create a dynamic sidebar after action appropriate for ad unit insertion.
+	 *
+	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
+	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
+	 */
+	public static function create_sidebar_after_action( $index, $has_widgets ) {
+		if ( $has_widgets ) {
+			do_action( sprintf( self::SIDEBAR_AFTER_HOOK_NAME, $index ) );
 		}
 	}
 
@@ -44,13 +71,49 @@ class Newspack_Ads_Sidebar_Placements {
 		$sidebar_placements = [];
 		foreach ( $sidebars as $sidebar ) {
 			if ( isset( $sidebar['id'] ) ) {
-				$placement_key                        = 'sidebar_' . $sidebar['id'];
-				$sidebar_placements[ $placement_key ] = [
-					/* translators: %s: Sidebar name */
-					'name'        => sprintf( __( 'Widget Area: %s', 'newspack-ads' ), $sidebar['name'] ),
-					'description' => __( 'Choose an ad unit to be displayed before this widget area', 'newspack-ads' ),
-					'hook_name'   => sprintf( self::SIDEBAR_HOOK_NAME, $sidebar['id'] ),
+				$placement_key = 'sidebar_' . $sidebar['id'];
+
+				// Skip disallowed sidebar placements.
+				$is_disallowed = in_array(
+					$sidebar['id'],
+					apply_filters( 'newspack_ads_disallowed_sidebar_placements', self::DISALLOWED_SIDEBARS ),
+					true
+				);
+
+				// Disable SCAIP sidebars.
+				if ( 'scaip' === substr( $sidebar['id'], 0, 5 ) ) {
+					$is_disallowed = true;
+				}
+
+				if ( $is_disallowed ) {
+					continue;
+				}
+
+				$placement_config = [
+					'name' => $sidebar['name'],
 				];
+				
+				$is_single_unit_sidebar = in_array(
+					$sidebar['id'],
+					apply_filters( 'newspack_ads_single_unit_sidebar_placements', self::SINGLE_UNIT_SIDEBARS ),
+					true
+				);
+				if ( $is_single_unit_sidebar ) {
+					$placement_config['hook_name'] = sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] );
+				} else {
+					$placement_config['hooks'] = [
+						'before' => [
+							'name'      => __( 'Before widget area', 'newspack-ads' ),
+							'hook_name' => sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] ),
+						],
+						'after'  => [
+							'name'      => __( 'After widget area', 'newspack-ads' ),
+							'hook_name' => sprintf( self::SIDEBAR_AFTER_HOOK_NAME, $sidebar['id'] ),
+						],
+					];
+				}
+				
+				$sidebar_placements[ $placement_key ] = $placement_config;
 			}
 		}
 		return array_merge( $placements, $sidebar_placements );
