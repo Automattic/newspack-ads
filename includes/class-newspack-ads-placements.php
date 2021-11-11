@@ -198,7 +198,12 @@ class Newspack_Ads_Placements {
 	 * A placement is an array with the following keys:
 	 * - name: The name of the placement.
 	 * - description: A description of the placement.
+	 * - default_enabled: Whether this placement should be enabled by default.
 	 * - default_ad_unit: A default ad unit name to be used for this placement.
+	 * - hook_name: The name of the WordPress action hook to inject an ad unit into.
+	 * - hooks: An array of action hooks to inject an ad unit into.
+	 *   - name: The friendly name of the hook.
+	 *   - hook_name: The name of the WordPress action hook to inject the ad unit into.
 	 *
 	 * @return array Placement objects.
 	 */
