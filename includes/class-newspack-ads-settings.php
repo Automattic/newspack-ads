@@ -128,7 +128,7 @@ class Newspack_Ads_Settings {
 	 * @return string Option name. 
 	 */
 	private static function get_setting_option_name( $setting ) {
-		return self::OPTION_NAME_PREFIX . $setting['section'] . '_' . $setting['key'];
+		return apply_filters( 'newspack_ads_setting_option_name', self::OPTION_NAME_PREFIX . $setting['section'] . '_' . $setting['key'], $setting );
 	}
 
 	/**
