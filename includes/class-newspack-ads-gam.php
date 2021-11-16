@@ -284,7 +284,7 @@ class Newspack_Ads_GAM {
 			return $ad_units_serialised;
 		} catch ( \Exception $e ) {
 			$error_message = $e->getMessage();
-			if ( 0 < strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
+			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
 				$network_code  = self::get_gam_network_code();
 				$settings_link = "https://admanager.google.com/${network_code}#admin/settings/network";
 				$error_message = __( 'API access for this GAM intance is disabled.', 'newspack-ads' ) .
