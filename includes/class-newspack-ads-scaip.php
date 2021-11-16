@@ -88,7 +88,7 @@ class Newspack_Ads_SCAIP {
 	 * @return string Updated option name.
 	 */
 	public static function map_option_name( $option_name, $setting ) {
-		if ( 'scaip' === $setting['section'] && isset( self::OPTIONS_MAP[ $setting['key'] ] ) ) {
+		if ( 'scaip' === $setting['section'] && isset( $setting['key'] ) && isset( self::OPTIONS_MAP[ $setting['key'] ] ) ) {
 			return self::OPTIONS_MAP[ $setting['key'] ];
 		}
 		return $option_name;
