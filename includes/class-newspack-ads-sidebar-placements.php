@@ -90,7 +90,9 @@ class Newspack_Ads_Sidebar_Placements {
 				}
 
 				$placement_config = [
-					'name' => $sidebar['name'],
+					'name'        => $sidebar['name'],
+					// Translators: %s: The name of the sidebar.
+					'description' => sprintf( __( 'Choose an ad unit to display in the "%s" widget area.', 'newspack-ads' ), $sidebar['name'] ),
 				];
 				
 				if ( isset( $single_unit_sidebars[ $sidebar['id'] ] ) ) {
