@@ -231,8 +231,8 @@ class Newspack_Ads_Placements {
 				'hook_name'       => 'before_footer',
 			),
 			'sticky'              => array(
-				'name'            => __( 'Sticky', 'newspack-ads' ),
-				'description'     => __( 'Choose an ad unit to stick at the bottom of the viewport on mobile.', 'newspack-ads' ),
+				'name'            => __( 'Mobile Sticky Footer', 'newspack-ads' ),
+				'description'     => __( 'Choose a sticky ad unit to display at the bottom of the viewport on mobile devices (recommended sizes are 320x50, 300x50)', 'newspack-ads' ),
 				'default_enabled' => true,
 				'default_ad_unit' => 'newspack_sticky',
 				'hook_name'       => 'before_footer',
