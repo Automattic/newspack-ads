@@ -1,3 +1,10 @@
+# [1.21.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.20.0...v1.21.0-alpha.1) (2021-11-18)
+
+
+### Features
+
+* global and sidebar placements ([#219](https://github.com/Automattic/newspack-ads/issues/219)) ([8f90c76](https://github.com/Automattic/newspack-ads/commit/8f90c76f07e6e259fd3a2cdd6d4ebe1443854fdc))
+
 # [1.20.0](https://github.com/Automattic/newspack-ads/compare/v1.19.0...v1.20.0) (2021-11-18)
 
 
