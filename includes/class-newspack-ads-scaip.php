@@ -156,7 +156,7 @@ class Newspack_Ads_SCAIP {
 	 * @return array The placement data.
 	 */
 	public static function get_ad_unit_from_widget( $placement_data, $placement_key, $placement ) {
-		if ( false === strpos( $placement_key, 'scaip' ) || $placement_data ) {
+		if ( $placement_data || 0 !== strpos( $placement_key, 'scaip-' ) ) {
 			return $placement_data;
 		}
 		global $wp_registered_widgets;
