@@ -82,5 +82,9 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		$should_show = false;
 	}
 
+	if ( ! get_option( '_newspack_advertising_service_google_ad_manager', false ) ) {
+		$should_show = false;
+	}
+
 	return apply_filters( 'newspack_ads_should_show_ads', $should_show, $post_id );
 }
