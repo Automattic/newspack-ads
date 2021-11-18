@@ -138,7 +138,7 @@ class Newspack_Ads_SCAIP {
 				// translators: %s is the number of the placement.
 				'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
 				// translators: %s is the number of the placement.
-				'description'     => sprintf( __( 'Choose an ad unit to display on the #%s position of Super Cool Ad Inserter', 'newspack-ads' ), $i ),
+				'description'     => sprintf( __( 'Choose an ad unit to display on the position #%s of Super Cool Ad Inserter', 'newspack-ads' ), $i ),
 				'default_enabled' => true,
 				'hook_name'       => sprintf( self::HOOK_NAME, $i ),
 			);
