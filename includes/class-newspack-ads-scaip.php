@@ -127,6 +127,11 @@ class Newspack_Ads_SCAIP {
 	 * @return array Updated list of placements.
 	 */
 	public static function add_placements( $placements ) {
+
+		if ( ! defined( 'SCAIP_PLUGIN_FILE' ) ) {
+			return $placements;
+		}
+
 		$amount = get_option( self::OPTIONS_MAP['repetitions'], self::DEFAULT_REPETITIONS );
 		for ( $i = 1; $i <= $amount; $i++ ) {
 			$placements[ 'scaip-' . $i ] = array(
