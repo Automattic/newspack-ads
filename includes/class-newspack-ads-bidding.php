@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Ads Bidding Hooks
+ * Newspack Ads Bidding
  *
  * @package Newspack
  */
@@ -146,7 +146,7 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
-	 * Get bidders.
+	 * API callback to retrieve available bidders.
 	 *
 	 * @return WP_REST_Response containing the registered bidders.
 	 */
