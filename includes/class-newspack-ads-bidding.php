@@ -71,14 +71,20 @@ class Newspack_Ads_Bidding {
 	 *
 	 * @param string $bidder_id Unique bidder ID.
 	 * @param array  $config    {
-	 *   Configuration for the bidder.
+	 *   Optional configuration for the bidder.
 	 *   @type string  $name       Name of the bidder.
 	 *   @type string  $active_key Optional setting key that determines if the bidder is active.
 	 *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
 	 * }
 	 */
-	public function register_bidder( $bidder_id, $config ) {
-		$this->bidders[ $bidder_id ] = $config;
+	public function register_bidder( $bidder_id, $config = array() ) {
+		$this->bidders[ $bidder_id ] = wp_parse_args(
+			$config,
+			array(
+				'name'     => $bidder_id,
+				'settings' => array(),
+			)
+		);
 	}
 
 	/**
@@ -194,12 +200,12 @@ function newspack_get_ads_bidders() {
  *
  * @param string $bidder_id Unique bidder ID.
  * @param array  $config    {
- *   Configuration for the bidder.
+ *   Optional configuration for the bidder.
  *   @type string  $name       Name of the bidder.
  *   @type string  $active_key Optional setting key that determines if the bidder is active.
  *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
  * }
  */
-function newspack_register_ads_bidder( $bidder_id, $config ) {
+function newspack_register_ads_bidder( $bidder_id, $config = array() ) {
 	$GLOBALS['newspack_ads_bidders']->register_bidder( $bidder_id, $config );
 }
