@@ -87,12 +87,18 @@ class Newspack_Ads_Model {
 	/**
 	 * Get a single ad unit to display on the page.
 	 *
-	 * @param number $id The id of the ad unit to retrieve.
-	 * @param string $placement The id of the placement region.
-	 * @param string $context An optional parameter to describe the context of the ad. For example, in the Widget, the widget ID.
+	 * @param number  $id The id of the ad unit to retrieve.
+	 * @param array[] $config {
+	 *   Optional additional configuration parameters for the ad unit.
+	 *
+	 *   @type string $unique_id The unique ID for this ad displayment.
+	 *   @type string $placement The id of the placement region.
+	 *   @type string $context   An optional parameter to describe the context of the ad. For example, in the Widget, the widget ID.
+	 * }
+	 *
 	 * @return object Prepared ad unit, with markup for injecting on a page.
 	 */
-	public static function get_ad_unit_for_display( $id, $placement = null, $context = null ) {
+	public static function get_ad_unit_for_display( $id, $config = array() ) {
 		if ( 0 === (int) $id ) {
 			return new WP_Error(
 				'newspack_no_adspot_found',
@@ -102,6 +108,10 @@ class Newspack_Ads_Model {
 				)
 			);
 		}
+
+		$unique_id = $config['unique_id'] ?? '';
+		$placement = $config['placement'] ?? '';
+		$context   = $config['context'] ?? '';
 
 		$ad_unit               = \get_post( $id );
 		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
@@ -159,8 +169,8 @@ class Newspack_Ads_Model {
 		$prepared_ad_unit['placement']  = $placement;
 		$prepared_ad_unit['context']    = $context;
 
-		$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit );
-		$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit );
+		$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit, $unique_id );
+		$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit, $unique_id );
 		return $prepared_ad_unit;
 	}
 
@@ -473,13 +483,14 @@ class Newspack_Ads_Model {
 	/**
 	 * Code for ad unit.
 	 *
-	 * @param array $ad_unit The ad unit to generate code for.
+	 * @param array  $ad_unit   The ad unit to generate code for.
+	 * @param string $unique_id The unique ID for this ad displayment.
 	 */
-	public static function code_for_ad_unit( $ad_unit ) {
+	public static function code_for_ad_unit( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
-		$unique_id    = uniqid();
+		$unique_id    = $unique_id ?? uniqid();
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
 		}
@@ -508,14 +519,15 @@ class Newspack_Ads_Model {
 	/**
 	 * AMP code for ad unit.
 	 *
-	 * @param array $ad_unit The ad unit to generate AMP code for.
+	 * @param array  $ad_unit   The ad unit to generate AMP code for.
+	 * @param string $unique_id Optional pre-defined unique ID for this ad displayment.
 	 */
-	public static function amp_code_for_ad_unit( $ad_unit ) {
+	public static function amp_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
 		$targeting    = self::get_ad_targeting( $ad_unit );
-		$unique_id    = uniqid();
+		$unique_id    = $unique_id ?? uniqid();
 
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
