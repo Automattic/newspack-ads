@@ -127,8 +127,13 @@ class Newspack_Ads_Bidding {
 		/**
 		 * Filters the available bidders.
 		 *
-		 * @param string[] $bidders       Associative array containing a bidder key and name.
-		 * @param array    $settings      Newspack_Settings_Ads array of settings.
+		 * @param array[] $bidders  {
+		 *   Associative array by bidder key.
+		 *
+		 *   @type string  $name     Name of the bidder.
+		 *   @type string  $ad_sizes Ad sizes accepted by the bidder.
+		 * }
+		 * @param array   $settings Newspack_Settings_Ads array of settings.
 		 */
 		return apply_filters( 'newspack_ads_bidders', $bidders, $settings );
 	}
