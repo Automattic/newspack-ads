@@ -147,7 +147,9 @@ class Newspack_Ads_SCAIP {
 	}
 
 	/**
-	 * Fallback to get the ad unit from the the deprecated sidebar if not set.
+	 * Backwards compatibility to get the ad unit from the the deprecated sidebar
+	 * if the placement is not yet configured. Loops through every widget and
+	 * uses the first found Newspack Ad Unit widget.
 	 *
 	 * @param array  $placement_data The placement data.
 	 * @param string $placement_key  The placement key.
@@ -163,15 +165,18 @@ class Newspack_Ads_SCAIP {
 		$widgets    = wp_get_sidebars_widgets();
 		$ad_widgets = get_option( 'widget_newspack-ads-widget', array() );
 		if ( count( $widgets[ $placement_key ] ) && count( $ad_widgets ) ) {
-			$widget         = $wp_registered_widgets[ array_shift( $widgets[ $placement_key ] ) ];
-			$widget_id_base = $widget['callback'][0]->id_base;
-			$widget_number  = $widget['params'][0]['number'];
-			if ( 'newspack-ads-widget' === $widget_id_base ) {
-				$ad_widget      = $ad_widgets[ $widget_number ];
-				$placement_data = array(
-					'enabled' => true,
-					'ad_unit' => $ad_widget['selected_ad_unit'],
-				);
+			$ad_widget = false;
+			while ( false === $ad_widget && ( $widget = array_shift( $widgets[ $placement_key ] ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
+				$registered_widget = $wp_registered_widgets[ $widget ];
+				$widget_id_base    = $registered_widget['callback'][0]->id_base;
+				if ( 'newspack-ads-widget' === $widget_id_base ) {
+					$widget_number  = $registered_widget['params'][0]['number'];
+					$ad_widget      = $ad_widgets[ $widget_number ];
+					$placement_data = array(
+						'enabled' => true,
+						'ad_unit' => $ad_widget['selected_ad_unit'],
+					);
+				}
 			}
 		}
 		return $placement_data;
