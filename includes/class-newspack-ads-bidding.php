@@ -14,6 +14,18 @@ class Newspack_Ads_Bidding {
 
 	const SETTINGS_SECTION_NAME = 'bidding';
 
+	// Standard sizes accepted by partners.
+	const ACCEPTED_AD_SIZES = [
+		[ 728, 90 ],
+		[ 970, 90 ],
+		[ 970, 250 ],
+		[ 320, 50 ],
+		[ 320, 100 ],
+		[ 300, 250 ],
+		[ 300, 600 ],
+		[ 160, 600 ],
+	];
+
 	/**
 	 * Registered bidders.
 	 *
@@ -73,6 +85,7 @@ class Newspack_Ads_Bidding {
 	 * @param array  $config    {
 	 *   Optional configuration for the bidder.
 	 *   @type string  $name       Name of the bidder.
+	 *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
 	 *   @type string  $active_key Optional setting key that determines if the bidder is active.
 	 *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
 	 * }
@@ -82,6 +95,7 @@ class Newspack_Ads_Bidding {
 			$config,
 			array(
 				'name'     => $bidder_id,
+				'ad_sizes' => self::ACCEPTED_AD_SIZES,
 				'settings' => array(),
 			)
 		);
@@ -90,7 +104,7 @@ class Newspack_Ads_Bidding {
 	/**
 	 * Get available bidders.
 	 *
-	 * @return string[] Associative array containing a bidder key and name.
+	 * @return array[] Associative array by bidder key containing its name and accepted sizes.
 	 */
 	public function get_bidders() {
 		$settings        = Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
@@ -98,12 +112,15 @@ class Newspack_Ads_Bidding {
 		$bidders         = array();
 		if ( $settings['active'] ) {
 			foreach ( $bidders_configs as $bidder_id => $bidder_config ) {
-				// Check if bidder is active or does doesn't require activation.
+				// Check if bidder is active or doesn't require activation.
 				if (
 					! isset( $bidder_config['active_key'] ) ||
 					( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
 				) {
-					$bidders[ $bidder_id ] = $bidder_config['name'];
+					$bidders[ $bidder_id ] = array(
+						'name'     => $bidder_config['name'],
+						'ad_sizes' => $bidder_config['ad_sizes'],
+					);
 				}
 			}
 		}
@@ -202,6 +219,7 @@ function newspack_get_ads_bidders() {
  * @param array  $config    {
  *   Optional configuration for the bidder.
  *   @type string  $name       Name of the bidder.
+ *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
  *   @type string  $active_key Optional setting key that determines if the bidder is active.
  *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
  * }
