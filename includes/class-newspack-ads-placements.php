@@ -112,12 +112,9 @@ class Newspack_Ads_Placements {
 		if ( ! is_array( $bidders_ids ) || ! count( $bidders_ids ) ) {
 			return [];
 		}
-		array_walk(
-			$bidders_ids,
-			function( &$value ) {
-				$value = sanitize_text_field( $value );
-			} 
-		);
+		foreach ( $bidders_ids as $key => $bidders_id ) {
+			$bidders_ids[ $key ] = sanitize_text_field( $bidders_id );
+		}
 		return $bidders_ids;
 	}
 
