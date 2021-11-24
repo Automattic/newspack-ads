@@ -2,8 +2,8 @@
 /**
  * Newspack Ads Bidder - Media.net
  *
- * The required Prebid.js module for Media.net is included in the Newspack Ads
- * plugin. For additional partners you must recompile Prebid.js and replace
+ * The required Prebid.js modules for Media.net are included in the Newspack
+ * Ads plugin. For additional partners you must recompile Prebid.js and replace
  * the `newspack-ads-prebid` enqueued script.
  *
  * See Newspack_Ads_Bidding::enqueue_scripts() and 
@@ -40,7 +40,29 @@ class Newspack_Ads_Bidder_Medianet {
 				),
 			) 
 		);
+		add_filter( 'newspack_ads_prebid_config', [ __CLASS__, 'add_realtime_data_config' ] );
 		add_filter( 'newspack_ads_medianet_ad_unit_bid', [ __CLASS__, 'set_medianet_ad_unit_bid' ], 10, 4 );
+	}
+
+	/**
+	 * Add the realtime data config for Media.net.
+	 *
+	 * @param array $config Prebid.js config.
+	 *
+	 * @return array
+	 */
+	public static function add_realtime_data_config( $config ) {
+		$bidder_config = newspack_get_ads_bidder( 'medianet' );
+		if ( ! isset( $bidder_config['data']['medianet_cid'] ) && ! empty( $bidder_config['data']['medianet_cid'] ) ) {
+			return $config;
+		}
+		$config['realtimeData']['dataProvider'][] = array(
+			'name'   => 'medianet',
+			'params' => array(
+				'cid' => $bidder_config['data']['medianet_cid'],
+			),
+		);
+		return $config;
 	}
 
 	/**

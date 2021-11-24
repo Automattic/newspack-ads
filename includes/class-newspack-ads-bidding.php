@@ -112,9 +112,9 @@ class Newspack_Ads_Bidding {
 			$unique_id = $ad_data['unique_id'];
 			if ( isset( $placements[ $unique_id ] ) ) {
 				$placement = $placements[ $unique_id ];
-				foreach ( $bidders as $bidder_key => $bidder ) {
-					if ( isset( $placement['bidders_ids'][ $bidder_key ] ) ) {
-						$data[ $container_id ]['bidders'][ $bidder_key ] = $placement['bidders_ids'][ $bidder_key ];
+				foreach ( $bidders as $bidder_id => $bidder ) {
+					if ( isset( $placement['bidders_ids'][ $bidder_id ] ) ) {
+						$data[ $container_id ]['bidders'][ $bidder_id ] = $placement['bidders_ids'][ $bidder_id ];
 					}
 				}
 			}
@@ -156,17 +156,17 @@ class Newspack_Ads_Bidding {
 
 				$bids = [];
 
-				foreach ( $bidders as $bidder_key => $bidder ) {
+				foreach ( $bidders as $bidder_id => $bidder ) {
 
-					if ( isset( $ad_data['bidders'][ $bidder_key ] ) ) {
+					if ( isset( $ad_data['bidders'][ $bidder_id ] ) ) {
 
-						$bidder_placement_id = $ad_data['bidders'][ $bidder_key ];
+						$bidder_placement_id = $ad_data['bidders'][ $bidder_id ];
 
 						/**
 						 * Filters the bid configuration of the ad unit according to the
 						 * bidder.
 						 *
-						 * The dynamic portion of the hook name, `$bidder_key`, refers to
+						 * The dynamic portion of the hook name, `$bidder_id`, refers to
 						 * the registered bidder key.
 						 *
 						 * @param array|null $bid                 The bid.
@@ -174,7 +174,7 @@ class Newspack_Ads_Bidding {
 						 * @param string     $bidder_placement_id The bidder placement ID for this ad unit.
 						 * @param array      $data                Ad unit data.
 						 */
-						$bid = apply_filters( "newspack_ads_{$bidder_key}_ad_unit_bid", null, $bidder, $bidder_placement_id, $ad_data );
+						$bid = apply_filters( "newspack_ads_{$bidder_id}_ad_unit_bid", null, $bidder, $bidder_placement_id, $ad_data );
 						if ( ! empty( $bid ) ) {
 							$bids[] = $bid;
 						}
@@ -231,6 +231,12 @@ class Newspack_Ads_Bidding {
 						timeout: config.bidderTimeout,
 						bidsBackHandler: initAdserver,
 					} );
+					/**
+					 * GAM Express Module
+					 * Requires us to use GAM's ad unit paths instead of preferable div ID.
+					 * https://docs.prebid.org/dev-docs/modules/dfp_express.html
+					 */
+					// window.pbjs.express();
 				} );
 				function initAdserver() {
 					if (window.pbjs.initAdserverSet) return;
@@ -313,7 +319,22 @@ class Newspack_Ads_Bidding {
 		 * }
 		 * @param array   $settings Newspack_Settings_Ads array of settings.
 		 */
-		return apply_filters( 'newspack_ads_bidders', $bidders, $settings );
+		return apply_filters( 'newspack_ads_bidding', $bidders, $settings );
+	}
+
+	/**
+	 * Get bidder config by its ID.
+	 *
+	 * @param string $bidder_id Bidder ID.
+	 *
+	 * @return array|false Bidder config or false if not found.
+	 */
+	public function get_bidder( $bidder_id ) {
+		$bidders = $this->get_bidders();
+		if ( isset( $bidders[ $bidder_id ] ) ) {
+			return $bidders[ $bidder_id ];
+		}
+		return false;
 	}
 
 	/**
@@ -381,29 +402,47 @@ class Newspack_Ads_Bidding {
 		return array_merge( $settings_list, $bidding_settings );
 	}
 }
-$GLOBALS['newspack_ads_bidders'] = Newspack_Ads_Bidding::instance();
 
-/**
- * Get available bidders.
- *
- * @return string[] Associative array containing a bidder key and name.
- */
-function newspack_get_ads_bidders() {
-	return $GLOBALS['newspack_ads_bidders']->get_bidders();
+if ( ! function_exists( 'newspack_get_ads_bidders' ) ) {
+	/**
+	 * Get available bidders.
+	 *
+	 * @return string[] Associative array containing a bidder key and name.
+	 */
+	function newspack_get_ads_bidders() {
+		return $GLOBALS['newspack_ads_bidding']->get_bidders();
+	}
 }
 
-/**
- * Register a new bidder.
- *
- * @param string $bidder_id Unique bidder ID.
- * @param array  $config    {
- *   Optional configuration for the bidder.
- *   @type string  $name       Name of the bidder.
- *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
- *   @type string  $active_key Optional setting key that determines if the bidder is active.
- *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
- * }
- */
-function newspack_register_ads_bidder( $bidder_id, $config = array() ) {
-	$GLOBALS['newspack_ads_bidders']->register_bidder( $bidder_id, $config );
+if ( ! function_exists( 'newspack_get_ads_bidder' ) ) {
+	/**
+	 * Get bidder config by its ID.
+	 *
+	 * @param string $bidder_id Bidder ID.
+	 *
+	 * @return array|false Bidder config or false if not found.
+	 */
+	function newspack_get_ads_bidder( $bidder_id ) {
+		return $GLOBALS['newspack_ads_bidding']->get_bidder( $bidder_id );
+	}
 }
+
+if ( ! function_exists( 'newspack_register_ads_bidder' ) ) {
+	/**
+	 * Register a new bidder.
+	 *
+	 * @param string $bidder_id Unique bidder ID.
+	 * @param array  $config    {
+	 *   Optional configuration for the bidder.
+	 *   @type string  $name       Name of the bidder.
+	 *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
+	 *   @type string  $active_key Optional setting key that determines if the bidder is active.
+	 *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
+	 * }
+	 */
+	function newspack_register_ads_bidder( $bidder_id, $config = array() ) {
+		$GLOBALS['newspack_ads_bidding']->register_bidder( $bidder_id, $config );
+	}
+}
+
+$GLOBALS['newspack_ads_bidding'] = Newspack_Ads_Bidding::instance();
