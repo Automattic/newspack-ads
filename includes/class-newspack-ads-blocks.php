@@ -171,6 +171,7 @@ class Newspack_Ads_Blocks {
 			}
 
 			$prepared_unit_data[ $container_id ] = [
+				'unique_id' => $unique_id,
 				'name'      => esc_attr( $ad_unit['name'] ),
 				'code'      => esc_attr( $ad_unit['code'] ),
 				'sizes'     => array_values( $sizes ),
@@ -184,6 +185,25 @@ class Newspack_Ads_Blocks {
 			'network_code'         => esc_attr( $network_code ),
 			'disable_initial_load' => (bool) apply_filters( 'newspack_ads_disable_gtag_initial_load', false ),
 		];
+	
+		/**
+		 * Filters the ads data parsed for gtag.
+		 *
+		 * @param array[] $data {
+		 *   Ads data parsed for gtag inline script.
+		 *
+		 *   @type string $unique_id Unique ID for the ad unit.
+		 *   @type string $name      Ad name.
+		 *   @type string $code      Ad code.
+		 *   @type array  $sizes     Ad sizes.
+		 *   @type bool   $fluid     Whether the ad is fluid.
+		 *   @type array  $targeting Ad targeting.
+		 *   @type bool   $sticky    Whether the ad is sticky.
+		 * }
+		 */
+		$prepared_unit_data = apply_filters( 'newspack_ads_gtag_ads_data', $prepared_unit_data );
+
+		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
 
 		ob_start();
 		?>
@@ -332,6 +352,7 @@ class Newspack_Ads_Blocks {
 		<?php
 		$code = ob_get_clean();
 		echo $code; // phpcs:ignore
+		do_action( 'newspack_ads_before_gpt_script', $ad_config, $prepared_unit_data );
 	}
 }
 Newspack_Ads_Blocks::init();

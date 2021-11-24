@@ -14,6 +14,8 @@ class Newspack_Ads_Bidding {
 
 	const SETTINGS_SECTION_NAME = 'bidding';
 
+	const PREBID_SCRIPT_HANDLE = 'newspack-ads-prebid';
+
 	// Standard sizes accepted by partners.
 	const ACCEPTED_AD_SIZES = [
 		[ 728, 90 ],
@@ -60,22 +62,189 @@ class Newspack_Ads_Bidding {
 		add_action( 'rest_api_init', [ $this, 'register_api_endpoints' ] );
 		add_filter( 'newspack_ads_settings_list', [ $this, 'register_settings' ] );
 
-		// Register default bidders.
-		$this->register_bidder(
-			'medianet',
-			array(
-				'name'       => 'Media.net',
-				'active_key' => 'medianet_cid',
-				'settings'   => array(
-					array(
-						'description' => __( 'Media.net Customer ID', 'newspack-ads' ),
-						'help'        => __( 'Your customer ID provided by Media.net', 'newspack-ads' ),
-						'key'         => 'medianet_cid',
-						'type'        => 'string',
-					),
-				),
-			) 
+		// Scripts setup.
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
+		add_filter( 'newspack_ads_gtag_ads_data', [ $this, 'add_gtag_ads_data' ] );
+		add_action( 'newspack_ads_gtag_before_script', [ $this, 'prebid_script' ], 10, 2 );
+	}
+
+	/**
+	 * Enqueue scripts.
+	 */
+	public static function enqueue_scripts() {
+		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+		if ( Newspack_Ads::is_amp() ) {
+			return;
+		}
+		wp_enqueue_script(
+			self::PREBID_SCRIPT_HANDLE,  
+			plugins_url( '../dist/prebid.js', __FILE__ ),
+			null,
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/prebid.js' ),
+			true 
 		);
+		add_filter(
+			'script_loader_tag',
+			function( $tag, $handle, $src ) {
+				if ( self::PREBID_SCRIPT_HANDLE === $handle ) {
+					return '<script data-amp-plus-allowed src="' . $src . '"></script>';
+				}
+				return $tag;
+			},
+			10,
+			3
+		);
+	}
+
+	/**
+	 * Add placement bidder data to the inline script parsed data.
+	 *
+	 * @param array[] $data Ads data parsed for inline script.
+	 *
+	 * @return array Updated ads data.
+	 */
+	public function add_gtag_ads_data( $data ) {
+		$bidders    = $this->get_bidders();
+		$placements = Newspack_Ads_Placements::get_placements_data_by_id();
+		foreach ( $data as $container_id => $ad_data ) {
+			$unique_id = $ad_data['unique_id'];
+			if ( isset( $placements[ $unique_id ] ) ) {
+				$placement = $placements[ $unique_id ];
+				foreach ( $bidders as $bidder_key => $bidder ) {
+					if ( isset( $placement['bidders_ids'][ $bidder_key ] ) ) {
+						$data[ $container_id ]['bidders'][ $bidder_key ] = $placement['bidders_ids'][ $bidder_key ];
+					}
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Prebid script.
+	 *
+	 * @param array   $ad_config Ad config.
+	 * @param array[] $data      Ads data parsed for inline script.
+	 */
+	public function prebid_script( $ad_config, $data ) {
+		$bidders = $this->get_bidders();
+
+		// Get all of the existing sizes for available bidders.
+		$bidders_sizes = array_unique(
+			array_map(
+				function( $bidder ) {
+					return $bidder['ad_sizes'];
+				},
+				$bidders 
+			)
+		);
+
+		$ad_units = array();
+
+		foreach ( $data as $container_id => $ad_data ) {
+
+			if ( isset( $ad_data['bidders'] ) && count( $ad_data['bidders'] ) ) {
+
+				// Detect sizes supported by available bidders.
+				$sizes = array_intersect( $ad_data['sizes'], $bidders_sizes );
+				if ( ! count( $sizes ) ) {
+					continue;
+				}
+
+				$bids = [];
+
+				foreach ( $bidders as $bidder_key => $bidder ) {
+
+					if ( isset( $ad_data['bidders'][ $bidder_key ] ) ) {
+
+						$bidder_placement_id = $ad_data['bidders'][ $bidder_key ];
+
+						/**
+						 * Filters the bid configuration of the ad unit according to the
+						 * bidder.
+						 *
+						 * The dynamic portion of the hook name, `$bidder_key`, refers to
+						 * the registered bidder key.
+						 *
+						 * @param array|null $bid                 The bid.
+						 * @param array      $bidder              Bidder configuration.
+						 * @param string     $bidder_placement_id The bidder placement ID for this ad unit.
+						 * @param array      $data                Ad unit data.
+						 */
+						$bid = apply_filters( "newspack_ads_{$bidder_key}_ad_unit_bid", null, $bidder, $bidder_placement_id, $ad_data );
+						if ( ! empty( $bid ) ) {
+							$bids[] = $bid;
+						}
+					}
+				}
+
+				$ad_units[] = [
+					'code'       => $container_id,
+					'mediaTypes' => [
+						'banner' => [
+							'sizes' => $sizes,
+						],
+					],
+					'bids'       => $bids,
+				];
+			}       
+		}
+		/**
+		 * Filters the Prebid.js default config.
+		 * See https://docs.prebid.org/dev-docs/publisher-api-reference/setConfig.html.
+		 */
+		$prebid_config = apply_filters(
+			'newspack_ads_prebid_config',
+			[
+				'debug'            => true,
+				'priceGranularity' => 'medium',
+				'currency'         => 'USD',
+				'bidderTimeout'    => 1000,
+				'userSync'         => [
+					'enabled' => true,
+				],
+			]
+		);
+		/**
+		 * Filters the Ad Units configured for Prebid.js
+		 *
+		 * @param array[] $ad_units  Prebid Ad Units.
+		 * @param array   $ad_config Ad config for gtag.
+		 * @param array[] $data      Ads data parsed for gtag.
+		 */
+		$ad_units = apply_filters( 'newspack_ads_prebid_ad_units', $ad_units, $ad_config, $data );
+		?>
+		<script data-amp-plus-allowed>
+			(function() {
+				if ( 'undefined' === typeof window.pbjs || 'undefined' === typeof window.googletag ) {
+					return;
+				}
+				var config = <?php echo wp_json_encode( $prebid_config ); ?>;
+				var ad_units = <?php echo wp_json_encode( $ad_units ); ?>;
+				window.pbjs.que.push( function() {
+					window.pbjs.setConfig( config );
+					window.pbjs.addAdUnits( ad_units );
+					window.pbjs.requestBids( {
+						timeout: config.bidderTimeout,
+						bidsBackHandler: initAdserver,
+					} );
+				} );
+				function initAdserver() {
+					if (window.pbjs.initAdserverSet) return;
+					window.pbjs.initAdserverSet = true;
+					window.googletag.cmd.push( function() {
+						window.pbjs.setTargetingForGPTAsync && window.pbjs.setTargetingForGPTAsync();
+						window.googletag.pubads().refresh();
+					} );
+				}
+				// In case pbjs doesnt load, try again after the failsafe timeout of 3000ms.
+				setTimeout( initAdserver, 3000 );
+			} )();
+		</script>
+		<?php
 	}
 
 	/**
@@ -117,9 +286,17 @@ class Newspack_Ads_Bidding {
 					! isset( $bidder_config['active_key'] ) ||
 					( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
 				) {
+					$settings_data = [];
+					if ( count( $bidder_config['settings'] ) ) {
+						foreach ( $bidder_config['settings'] as $setting ) {
+							$key                   = $setting['key'];
+							$settings_data[ $key ] = $settings[ $key ];
+						}
+					}
 					$bidders[ $bidder_id ] = array(
 						'name'     => $bidder_config['name'],
 						'ad_sizes' => $bidder_config['ad_sizes'],
+						'data'     => $settings_data,
 					);
 				}
 			}
@@ -132,6 +309,7 @@ class Newspack_Ads_Bidding {
 		 *
 		 *   @type string  $name     Name of the bidder.
 		 *   @type string  $ad_sizes Ad sizes accepted by the bidder.
+		 *   @type mixed[] $data     Bidder settings data.
 		 * }
 		 * @param array   $settings Newspack_Settings_Ads array of settings.
 		 */
@@ -146,14 +324,11 @@ class Newspack_Ads_Bidding {
 	private function get_bidders_settings_config() {
 		$settings = array();
 		foreach ( $this->bidders as $config ) {
-			array_walk(
-				$config['settings'],
-				function( &$setting ) {
-					// Ensure bidder setting is in the proper section.
-					$setting['section'] = self::SETTINGS_SECTION_NAME;
-				} 
-			);
-			$settings = array_merge( $settings, $config['settings'] );
+			foreach ( $config['settings'] as $setting ) {
+				// Ensure bidder setting is in the proper section.
+				$setting['section'] = self::SETTINGS_SECTION_NAME;
+				$settings[]         = $setting;
+			}
 		}
 		return $settings;
 	}

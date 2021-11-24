@@ -71,6 +71,7 @@ final class Newspack_Ads {
 	private function includes() {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-settings.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-bidding.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-newspack-ads-bidder-medianet.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-placements.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-sidebar-placements.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-scaip.php';

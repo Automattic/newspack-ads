@@ -109,7 +109,7 @@ class Newspack_Ads_Model {
 			);
 		}
 
-		$unique_id = $config['unique_id'] ?? '';
+		$unique_id = $config['unique_id'] ?? uniqid();
 		$placement = $config['placement'] ?? '';
 		$context   = $config['context'] ?? '';
 

@@ -228,7 +228,28 @@ class Newspack_Ads_Placements {
 			return json_decode( $deprecated, true );
 		}
 
-		return json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? $default_data;
+		$data = json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? $default_data;
+
+		// Generate unique ID if not yet stored.
+		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] && ! isset( $data['id'] ) ) {
+			$data['id'] = self::get_id( [ $placement_key, $data['ad_unit'] ] );
+		}
+		if ( isset( $data['hooks'] ) ) {
+			foreach ( $data['hooks'] as $hook_key => $hook ) {
+				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] && ! isset( $hook['id'] ) ) {
+					$data['hooks'][ $hook_key ]['id'] = self::get_id( [ $placement_key, $hook_key, $data['ad_unit'] ] );
+				}
+			}
+		}
+
+		/**
+		 * Filters the placement data.
+		 *
+		 * @param array  $data          Placement data.
+		 * @param string $placement_key Placement key.
+		 * @param array  $config        Optional placement configuration.
+		 */
+		return apply_filters( 'newspack_ads_placement_data', $data, $placement_key, $config );
 	}
 
 	/**
@@ -280,10 +301,48 @@ class Newspack_Ads_Placements {
 
 		$placements = apply_filters( 'newspack_ads_placements', $placements );
 
-		foreach ( $placements as $placement_key => &$placement ) {
-			$placement['data'] = self::get_placement_data( $placement_key, $placement );
+		foreach ( $placements as $placement_key => $placement ) {
+			$placements[ $placement_key ]['data'] = self::get_placement_data( $placement_key, $placement );
 		}
 		return $placements;
+	}
+
+	/**
+	 * Retrieves an associative array of all available placements data by ID.
+	 *
+	 * @return array[] Placements data by ID.
+	 */
+	public static function get_placements_data_by_id() {
+		$placements       = self::get_placements();
+		$placements_by_id = array();
+		foreach ( $placements as $placement ) {
+
+			// Skip disabled placements.
+			if ( ! isset( $placement['data']['enabled'] ) || ! $placement['data']['enabled'] ) {
+				continue;
+			}
+
+			// Add placement and its hooks data to array.
+			if ( isset( $placement['data']['ad_unit'] ) && $placement['data']['ad_unit'] ) {
+				$placements_by_id[ $placement['data']['id'] ] = $placement['data'];
+				// Remove `enabled` key from placement data.
+				unset( $placements_by_id[ $placement['data']['id'] ]['enabled'] );
+			}
+
+			if ( isset( $placement['data']['hooks'] ) ) {
+				foreach ( $placement['data']['hooks'] as $hook ) {
+					if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+						$placements_by_id[ $hook['id'] ] = $hook;
+					}
+				}
+			}
+
+			// Remove hook data from root placement.
+			if ( isset( $placements_by_id[ $placement['data']['id'] ]['hooks'] ) ) {
+				unset( $placements_by_id[ $placement['data']['id'] ]['hooks'] );
+			}
+		}
+		return $placements_by_id;
 	}
 
 	/**
@@ -308,6 +367,18 @@ class Newspack_Ads_Placements {
 
 		// Updates always enables the placement.
 		$data['enabled'] = true;
+
+		// Generate unique ID.
+		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {
+			$data['id'] = self::get_id( [ $placement_key, $data['ad_unit'] ] );
+		}
+		if ( isset( $data['hooks'] ) ) {
+			foreach ( $data['hooks'] as $hook_key => $hook ) {
+				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+					$data['hooks'][ $hook_key ]['id'] = self::get_id( [ $placement_key, $hook_key, $data['ad_unit'] ] );
+				}
+			}
+		}
 
 		return update_option( self::get_option_name( $placement_key ), wp_json_encode( $data ) );
 	}
@@ -339,29 +410,12 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
-	 * Get the unique ID for a configured placement.
+	 * Generate an ID given a list of strings as arguments.
 	 *
-	 * @param string $placement_key Placement key.
-	 * @param string $hook_key Optional hook key in case of multiple hooks available.
-	 *
-	 * @return string|WP_Error The unique ID or an error if the placement is not configured.
+	 * @param string[] $args List of strings.
 	 */
-	public static function get_placement_unique_id( $placement_key, $hook_key = '' ) {
-		$placements = self::get_placements();
-		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement_unique_id', __( 'This placement does not exist.', 'newspack-ads' ) );
-		}
-		$placement_data = self::get_placement_data( $placement_key, $placements[ $placement_key ] );
-
-		$ad_unit = $placement_data['ad_unit'];
-		if ( ! empty( $hook_key ) && isset( $placement_data['hooks'][ $hook_key ] ) ) {
-			$ad_unit = $placement_data['hooks'][ $hook_key ]['ad_unit'];
-		}
-
-		if ( empty( $ad_unit ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement_unique_id', __( 'This placement does not have an ad unit.', 'newspack-ads' ) );
-		}
-		return substr( hash( 'sha1', $placement_key . $hook_key . $ad_unit ), 0, 10 );
+	private static function get_id( $args ) {
+		return substr( hash( 'sha1', implode( $args ) ), 0, 10 );
 	}
 
 	/**
@@ -374,7 +428,6 @@ class Newspack_Ads_Placements {
 		$placements = self::get_placements();
 		$placement  = $placements[ $placement_key ];
 		$is_enabled = $placement['data']['enabled'];
-		$unique_id  = self::get_placement_unique_id( $placement_key, $hook_key );
 
 		if ( $hook_key ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
@@ -393,7 +446,7 @@ class Newspack_Ads_Placements {
 		$ad_unit = Newspack_Ads_Model::get_ad_unit_for_display(
 			$placement_data['ad_unit'],
 			array(
-				'unique_id' => $unique_id,
+				'unique_id' => $placement_data['id'],
 				'placement' => $placement_key,
 			) 
 		);
@@ -407,7 +460,7 @@ class Newspack_Ads_Placements {
 			return;
 		}
 
-		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $unique_id, $placement_data );
+		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
 		if ( 'sticky' === $placement_key && $is_amp ) :
 			?>
@@ -428,7 +481,7 @@ class Newspack_Ads_Placements {
 			<?php
 		endif;
 
-		do_action( 'newspack_ads_after_placement_ad', $placement_key, $hook_key, $unique_id, $placement_data );
+		do_action( 'newspack_ads_after_placement_ad', $placement_key, $hook_key, $placement_data );
 	}
 }
 Newspack_Ads_Placements::init();
