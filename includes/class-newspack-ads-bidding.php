@@ -110,16 +110,19 @@ class Newspack_Ads_Bidding {
 		$placements = Newspack_Ads_Placements::get_placements_data_by_id();
 		foreach ( $data as $container_id => $ad_data ) {
 			$unique_id = $ad_data['unique_id'];
-			if ( isset( $placements[ $unique_id ] ) ) {
-				$placement = $placements[ $unique_id ];
-				foreach ( $bidders as $bidder_id => $bidder ) {
-					if ( isset( $placement['bidders_ids'][ $bidder_id ] ) ) {
-						$data[ $container_id ]['bidders'][ $bidder_id ] = $placement['bidders_ids'][ $bidder_id ];
-					}
+			// Skip if no placement data.
+			if ( ! isset( $placements[ $unique_id ] ) ) {
+				continue;
+			}
+			$placement = $placements[ $unique_id ];
+			foreach ( $bidders as $bidder_id => $bidder ) {
+				// Skip if no bidder data.
+				if ( ! isset( $placement['bidders_ids'][ $bidder_id ] ) ) {
+					continue;
 				}
+				$data[ $container_id ]['bidders'][ $bidder_id ] = $placement['bidders_ids'][ $bidder_id ];
 			}
 		}
-
 		return $data;
 	}
 
@@ -181,6 +184,11 @@ class Newspack_Ads_Bidding {
 					}
 				}
 
+				// Skip if no bid was configured.
+				if ( ! count( $bids ) ) {
+					continue;
+				}
+
 				$ad_units[] = [
 					'code'       => $container_id,
 					'mediaTypes' => [
@@ -216,6 +224,11 @@ class Newspack_Ads_Bidding {
 		 * @param array[] $data      Ads data parsed for gtag.
 		 */
 		$ad_units = apply_filters( 'newspack_ads_prebid_ad_units', $ad_units, $ad_config, $data );
+
+		// Skip if no ad unit was configured.
+		if ( ! count( $ad_units ) ) {
+			return;
+		}
 		?>
 		<script data-amp-plus-allowed>
 			(function() {
@@ -285,13 +298,18 @@ class Newspack_Ads_Bidding {
 		$settings        = Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
 		$bidders_configs = $this->bidders;
 		$bidders         = array();
+
 		if ( $settings['active'] ) {
+
 			foreach ( $bidders_configs as $bidder_id => $bidder_config ) {
+
 				// Check if bidder is active or doesn't require activation.
 				if (
 					! isset( $bidder_config['active_key'] ) ||
 					( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
 				) {
+
+					// Add bidder settings data.
 					$settings_data = [];
 					if ( count( $bidder_config['settings'] ) ) {
 						foreach ( $bidder_config['settings'] as $setting ) {
@@ -299,6 +317,7 @@ class Newspack_Ads_Bidding {
 							$settings_data[ $key ] = $settings[ $key ];
 						}
 					}
+
 					$bidders[ $bidder_id ] = array(
 						'name'     => $bidder_config['name'],
 						'ad_sizes' => $bidder_config['ad_sizes'],
@@ -307,6 +326,7 @@ class Newspack_Ads_Bidding {
 				}
 			}
 		}
+
 		/**
 		 * Filters the available bidders.
 		 *
