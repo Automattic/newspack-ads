@@ -53,7 +53,7 @@ class Newspack_Ads_Bidder_Medianet {
 	 */
 	public static function add_realtime_data_config( $config ) {
 		$bidder_config = newspack_get_ads_bidder( 'medianet' );
-		if ( ! isset( $bidder_config['data']['medianet_cid'] ) && ! empty( $bidder_config['data']['medianet_cid'] ) ) {
+		if ( ! isset( $bidder_config['data']['medianet_cid'] ) || empty( $bidder_config['data']['medianet_cid'] ) ) {
 			return $config;
 		}
 		$config['realtimeData']['dataProvider'][] = array(
