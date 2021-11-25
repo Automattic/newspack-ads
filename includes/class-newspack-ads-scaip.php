@@ -60,7 +60,7 @@ class Newspack_Ads_SCAIP {
 		$scaip_settings = array(
 			array(
 				'description' => __( 'Post ad inserter settings', 'newspack-ads' ),
-				'help'        => __( 'Super Cool Ad Inserter plugin options', 'newspack-ads' ),
+				'help'        => __( 'Configure how to display ads within your article content.', 'newspack-ads' ),
 				'section'     => 'scaip',
 			),
 			array(
