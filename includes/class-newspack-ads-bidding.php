@@ -78,6 +78,9 @@ class Newspack_Ads_Bidding {
 		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
+		if ( ! self::is_enabled() ) {
+			return;
+		}
 		wp_enqueue_script(
 			self::PREBID_SCRIPT_HANDLE,  
 			plugins_url( '../dist/prebid.js', __FILE__ ),
@@ -133,7 +136,19 @@ class Newspack_Ads_Bidding {
 	 * @param array[] $data      Ads data parsed for inline script.
 	 */
 	public function prebid_script( $ad_config, $data ) {
+
+		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+		if ( Newspack_Ads::is_amp() ) {
+			return;
+		}
+
 		$bidders = $this->get_bidders();
+
+		if ( ! count( $bidders ) ) {
+			return;
+		}
 
 		// Get all of the existing sizes for available bidders.
 		$bidders_sizes = array_unique(
@@ -146,6 +161,8 @@ class Newspack_Ads_Bidding {
 		);
 
 		$ad_units = array();
+
+		$settings = self::get_settings();
 
 		foreach ( $data as $container_id => $ad_data ) {
 
@@ -207,9 +224,8 @@ class Newspack_Ads_Bidding {
 		$prebid_config = apply_filters(
 			'newspack_ads_prebid_config',
 			[
-				'debug'            => true,
-				'priceGranularity' => 'medium',
-				'currency'         => 'USD',
+				'debug'            => (bool) $settings['debug'],
+				'priceGranularity' => $settings['price_granularity'] ?? 'medium',
 				'bidderTimeout'    => 1000,
 				'userSync'         => [
 					'enabled' => true,
@@ -290,16 +306,37 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Get header bidding settings.
+	 *
+	 * @return array Header bidding settings.
+	 */
+	public static function get_settings() {
+		return Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
+	}
+
+	/**
+	 * Return whether header bidding is active.
+	 *
+	 * @return bool Whether header bidding is active.
+	 */
+	public static function is_enabled() {
+		$settings = self::get_settings();
+		return isset( $settings['active'] ) && $settings['active'];
+	}
+
+	/**
 	 * Get available bidders.
 	 *
 	 * @return array[] Associative array by bidder key containing its name and accepted sizes.
 	 */
 	public function get_bidders() {
-		$settings        = Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
-		$bidders_configs = $this->bidders;
-		$bidders         = array();
 
-		if ( $settings['active'] ) {
+		$bidders = array();
+		
+		if ( self::is_enabled() ) {
+
+			$settings        = self::get_settings();
+			$bidders_configs = $this->bidders;
 
 			foreach ( $bidders_configs as $bidder_id => $bidder_config ) {
 
@@ -416,8 +453,48 @@ class Newspack_Ads_Bidding {
 					'type'        => 'boolean',
 					'default'     => false,
 				),
+				array(
+					'description' => __( 'Price granularity', 'newspack-ads' ),
+					'help'        => __( 'This configuration defines the price bucket granularity setting that will be used for the hb_pb keyword.', 'newspack-ads' ),
+					'section'     => self::SETTINGS_SECTION_NAME,
+					'key'         => 'price_granularity',
+					'type'        => 'string',
+					'default'     => 'medium',
+					'options'     => array(
+						array(
+							'value' => 'low',
+							'name'  => __( 'Low', 'newspack-ads' ),
+						),
+						array(
+							'value' => 'medium',
+							'name'  => __( 'Medium', 'newspack-ads' ),
+						),
+						array(
+							'value' => 'high',
+							'name'  => __( 'High', 'newspack-ads' ),
+						),
+						array(
+							'value' => 'auto',
+							'name'  => __( 'Auto', 'newspack-ads' ),
+						),
+						array(
+							'value' => 'dense',
+							'name'  => __( 'Dense', 'newspack-ads' ),
+						),
+					),
+				),
 			),
-			$this->get_bidders_settings_config()
+			$this->get_bidders_settings_config(),
+			array(
+				array(
+					'description' => __( 'Debug mode', 'newspack-ads' ),
+					'help'        => __( 'Run Prebid.js in debug mode.', 'newspack-ads' ),
+					'section'     => self::SETTINGS_SECTION_NAME,
+					'key'         => 'debug',
+					'type'        => 'boolean',
+					'default'     => false,
+				),
+			)
 		);
 		return array_merge( $settings_list, $bidding_settings );
 	}

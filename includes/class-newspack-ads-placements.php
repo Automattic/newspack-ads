@@ -79,7 +79,7 @@ class Newspack_Ads_Placements {
 	 * @param array           $hooks   Hooks data.
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
-	 * @return aray Sanitized hooks data.
+	 * @return array Sanitized hooks data.
 	 */
 	public static function sanitize_hooks_data( $hooks, $request ) {
 		$placement_key   = (string) $request->get_param( 'placement' );
