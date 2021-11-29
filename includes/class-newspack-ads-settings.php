@@ -307,12 +307,12 @@ class Newspack_Ads_Settings {
 	 * Update settings from a specific section.
 	 *
 	 * @param string $section  The key for the section to update.
-	 * @param array  $settings Associative array with data to update.
+	 * @param array  $data     Associative array with data to update.
 	 *
 	 * @return array|WP_Error The settings list or error if a setting update fails.
 	 */
-	public static function update_section( $section, $settings ) {
-		foreach ( $settings as $key => $value ) {
+	public static function update_section( $section, $data ) {
+		foreach ( $data as $key => $value ) {
 			$updated = self::update_setting( $section, $key, $value );
 			if ( is_wp_error( $updated ) ) {
 				return $updated;
