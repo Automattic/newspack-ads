@@ -42,17 +42,20 @@ class BiddingTest extends WP_UnitTestCase {
 				),
 			)
 		);
+		// Enable header bidding.
+		Newspack_Ads_Settings::update_section(
+			Newspack_Ads_Bidding::SETTINGS_SECTION_NAME,
+			array( 'active' => true )
+		);
 	}
 
 	/**
-	 * Set bidder active.
+	 * Enable the sample bidder by setting its customer ID.
 	 */
 	private static function set_bidder_active() {
 		Newspack_Ads_Settings::update_section(
 			Newspack_Ads_Bidding::SETTINGS_SECTION_NAME,
-			array(
-				self::$bidder_active_key => '1234567890',
-			)
+			array( self::$bidder_active_key => '1234567890' )
 		);
 	}
 
@@ -75,7 +78,6 @@ class BiddingTest extends WP_UnitTestCase {
 			newspack_get_ads_bidder( self::$bidder_id ),
 			'Sample bidder should not be available.'
 		);
-		// Enable the sample bidder by setting its customer ID.
 		self::set_bidder_active();
 		self::assertTrue(
 			is_array( newspack_get_ads_bidder( self::$bidder_id ) ),
