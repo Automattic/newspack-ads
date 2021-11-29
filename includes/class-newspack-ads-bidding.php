@@ -375,7 +375,7 @@ class Newspack_Ads_Bidding {
 		 * }
 		 * @param array   $settings Newspack_Settings_Ads array of settings.
 		 */
-		return apply_filters( 'newspack_ads_bidding', $bidders, $settings );
+		return apply_filters( 'newspack_ads_bidders', $bidders, $settings );
 	}
 
 	/**
