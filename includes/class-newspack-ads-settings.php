@@ -307,7 +307,7 @@ class Newspack_Ads_Settings {
 	 * Update settings from a specific section.
 	 *
 	 * @param string $section  The key for the section to update.
-	 * @param object $settings The new settings to update.
+	 * @param array  $settings Associative array with data to update.
 	 *
 	 * @return array|WP_Error The settings list or error if a setting update fails.
 	 */

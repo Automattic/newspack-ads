@@ -38,7 +38,7 @@ class Newspack_Ads_Bidder_Medianet {
 						'type'        => 'string',
 					),
 				),
-			) 
+			)
 		);
 		add_filter( 'newspack_ads_prebid_config', [ __CLASS__, 'add_realtime_data_config' ] );
 		add_filter( 'newspack_ads_medianet_ad_unit_bid', [ __CLASS__, 'set_medianet_ad_unit_bid' ], 10, 4 );

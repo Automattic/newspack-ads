@@ -395,6 +395,15 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Whether there are any registered bidders, regardless of whether they are active.
+	 *
+	 * @return bool Whether there are any registered bidders.
+	 */
+	private function has_registered_bidders() {
+		return count( $this->bidders ) > 0;
+	}
+
+	/**
 	 * Get settings for registered bidders to use with Newspack_Ads_Settings.
 	 *
 	 * @return array[] List of settings from registered bidders.
@@ -443,6 +452,11 @@ class Newspack_Ads_Bidding {
 	 * @return array Updated list of settings.
 	 */
 	public function register_settings( $settings_list ) {
+
+		if ( false === $this->has_registered_bidders() ) {
+			return $settings_list;
+		}
+
 		$bidding_settings = array_merge(
 			array(
 				array(
@@ -455,7 +469,7 @@ class Newspack_Ads_Bidding {
 				),
 				array(
 					'description' => __( 'Price granularity', 'newspack-ads' ),
-					'help'        => __( 'This configuration defines the price bucket granularity setting that will be used for the hb_pb keyword.', 'newspack-ads' ),
+					'help'        => __( 'Defines the price bucket granularity setting that will be used for the hb_pb keyword.', 'newspack-ads' ),
 					'section'     => self::SETTINGS_SECTION_NAME,
 					'key'         => 'price_granularity',
 					'type'        => 'string',
