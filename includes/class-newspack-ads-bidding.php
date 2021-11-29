@@ -189,7 +189,7 @@ class Newspack_Ads_Bidding {
 						 * The dynamic portion of the hook name, `$bidder_id`, refers to
 						 * the registered bidder key.
 						 *
-						 * @param array|null $bid                 The bid.
+						 * @param array|null $bid                 The bid configuration.
 						 * @param array      $bidder              Bidder configuration.
 						 * @param string     $bidder_placement_id The bidder placement ID for this ad unit.
 						 * @param array      $data                Ad unit data.

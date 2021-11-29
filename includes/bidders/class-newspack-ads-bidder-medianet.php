@@ -53,15 +53,15 @@ class Newspack_Ads_Bidder_Medianet {
 	 */
 	public static function add_realtime_data_config( $config ) {
 		$bidder_config = newspack_get_ads_bidder( 'medianet' );
-		if ( ! isset( $bidder_config['data']['medianet_cid'] ) || empty( $bidder_config['data']['medianet_cid'] ) ) {
+		if ( ! $bidder_config || ! isset( $bidder_config['data']['medianet_cid'] ) || empty( $bidder_config['data']['medianet_cid'] ) ) {
 			return $config;
 		}
-		$config['realtimeData']['dataProvider'][] = array(
+		$config['realtimeData']['dataProvider'][] = [
 			'name'   => 'medianet',
-			'params' => array(
+			'params' => [
 				'cid' => $bidder_config['data']['medianet_cid'],
-			),
-		);
+			],
+		];
 		return $config;
 	}
 
@@ -71,7 +71,7 @@ class Newspack_Ads_Bidder_Medianet {
 	 * Assumes bidder configuration exists, e.g. `medianet_cid`, since a bid
 	 * shouldn't be available otherwise.
 	 *
-	 * @param array|null $bid                 The bid.
+	 * @param array|null $bid                 The bid configuration.
 	 * @param array      $bidder              Bidder configuration.
 	 * @param string     $bidder_placement_id The bidder placement ID for this ad unit.
 	 * @param array      $data                Ad unit data.
