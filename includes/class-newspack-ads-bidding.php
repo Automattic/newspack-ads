@@ -331,11 +331,10 @@ class Newspack_Ads_Bidding {
 	 */
 	public function get_bidders() {
 
-		$bidders = array();
+		$bidders  = array();
+		$settings = self::get_settings();
 		
 		if ( self::is_enabled() ) {
-
-			$settings        = self::get_settings();
 			$bidders_configs = $this->bidders;
 
 			foreach ( $bidders_configs as $bidder_id => $bidder_config ) {
