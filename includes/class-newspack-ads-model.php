@@ -87,8 +87,8 @@ class Newspack_Ads_Model {
 	/**
 	 * Get a single ad unit to display on the page.
 	 *
-	 * @param number  $id The id of the ad unit to retrieve.
-	 * @param array[] $config {
+	 * @param number $id     The id of the ad unit to retrieve.
+	 * @param array  $config {
 	 *   Optional additional configuration parameters for the ad unit.
 	 *
 	 *   @type string $unique_id The unique ID for this ad displayment.

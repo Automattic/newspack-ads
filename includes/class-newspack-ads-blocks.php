@@ -189,7 +189,7 @@ class Newspack_Ads_Blocks {
 		/**
 		 * Filters the ads data parsed for gtag.
 		 *
-		 * @param array[] $data {
+		 * @param array $data {
 		 *   Ads data parsed for gtag inline script.
 		 *
 		 *   @type string $unique_id Unique ID for the ad unit.
