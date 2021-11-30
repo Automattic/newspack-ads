@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.21.0-alpha.2",
+  "version": "1.21.0",
   "author": "Automattic",
   "private": true,
   "devDependencies": {

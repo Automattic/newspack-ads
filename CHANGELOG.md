@@ -1,3 +1,17 @@
+# [1.21.0](https://github.com/Automattic/newspack-ads/compare/v1.20.0...v1.21.0) (2021-11-30)
+
+
+### Bug Fixes
+
+* connection mode ([#240](https://github.com/Automattic/newspack-ads/issues/240)) ([085ff7d](https://github.com/Automattic/newspack-ads/commit/085ff7d445106ffc5cb5f46627ee698767de752b))
+
+
+### Features
+
+* disable ads on 404 ([#239](https://github.com/Automattic/newspack-ads/issues/239)) ([af11cde](https://github.com/Automattic/newspack-ads/commit/af11cdeb9f28fe4a8c2694c8b65f94b181736210))
+* global and sidebar placements ([#219](https://github.com/Automattic/newspack-ads/issues/219)) ([8f90c76](https://github.com/Automattic/newspack-ads/commit/8f90c76f07e6e259fd3a2cdd6d4ebe1443854fdc))
+* scaip placements ([#228](https://github.com/Automattic/newspack-ads/issues/228)) ([e02955a](https://github.com/Automattic/newspack-ads/commit/e02955a8d8fb35907c90d4b6e5380a770ee0f59c))
+
 # [1.21.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.21.0-alpha.1...v1.21.0-alpha.2) (2021-11-30)
 
 
