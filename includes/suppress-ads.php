@@ -42,6 +42,10 @@ add_action( 'enqueue_block_editor_assets', 'newspack_ads_enqueue_suppress_ad_ass
 function newspack_ads_should_show_ads( $post_id = null ) {
 	$should_show = true;
 
+	if ( is_404() ) {
+		$should_show = false;
+	}
+
 	if ( is_singular() ) {
 		if ( null === $post_id ) {
 			$post_id = get_the_ID();
@@ -79,6 +83,10 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		}
 	}
 	if ( is_author() && true === $global_suppression_config['author_archive_pages'] ) {
+		$should_show = false;
+	}
+
+	if ( ! get_option( '_newspack_advertising_service_google_ad_manager', false ) ) {
 		$should_show = false;
 	}
 
