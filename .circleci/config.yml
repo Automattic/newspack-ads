@@ -4,10 +4,6 @@ commands:
   checkout_with_workspace:
     steps:
       - checkout
-      - run:
-          name: Install PHP extensions
-          command: |
-            sudo apt-get update && sudo apt-get install -y libxml2-dev php7.4-soap
       - attach_workspace:
           at: ~/
 
@@ -78,7 +74,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Install rsync
-          command: sudo apt install rsync
+          command: sudo apt-get update && sudo apt-get install rsync
       - run:
           name: Install PHP packages
           command: composer install --no-dev --no-scripts

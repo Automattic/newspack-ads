@@ -4,7 +4,7 @@
   "author": "Automattic",
   "private": true,
   "devDependencies": {
-    "@automattic/calypso-build": "^6.3.0",
+    "@automattic/calypso-build": "^10.0.0",
     "@babel/core": "^7.5.4",
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
@@ -31,7 +31,7 @@
     "stylelint-config-prettier": "^8.0.1",
     "stylelint-config-wordpress": "^16.0.0",
     "stylelint-prettier": "^1.1.2",
-    "webpack": "^4.35.3",
+    "webpack": "^5.64.3",
     "webpack-cli": "^3.3.5"
   },
   "scripts": {

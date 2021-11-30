@@ -189,7 +189,14 @@ class Newspack_Ads_Placements {
 			return json_decode( $deprecated, true );
 		}
 
-		return json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? $default_data;
+		$placement_data = apply_filters(
+			'newspack_ads_placement_data',
+			json_decode( get_option( self::get_option_name( $placement_key ) ), true ),
+			$placement_key,
+			$config
+		);
+
+		return $placement_data ?? $default_data;
 	}
 
 	/**
