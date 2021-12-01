@@ -1,3 +1,10 @@
+# [1.22.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.21.0...v1.22.0-alpha.1) (2021-12-01)
+
+
+### Features
+
+* **scaip:** opt-out of integrated placements ([#246](https://github.com/Automattic/newspack-ads/issues/246)) ([7069973](https://github.com/Automattic/newspack-ads/commit/7069973e7781cf120d7ef1f98169cd37549f2aed))
+
 # [1.21.0](https://github.com/Automattic/newspack-ads/compare/v1.20.0...v1.21.0) (2021-11-30)
 
 
