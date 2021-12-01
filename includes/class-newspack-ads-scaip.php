@@ -99,7 +99,7 @@ class Newspack_Ads_SCAIP {
 				'section'     => 'scaip',
 				'key'         => 'legacy_widgets',
 				'type'        => 'boolean',
-				'default'     => false,
+				'default'     => true,
 			),
 		);
 		return array_merge( $settings_list, $scaip_settings );
@@ -111,7 +111,7 @@ class Newspack_Ads_SCAIP {
 	 * @return bool Whether legacy widgets are active.
 	 */
 	private static function is_legacy_widgets() {
-		return (bool) get_option( Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets' );
+		return (bool) get_option( Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets', true );
 	}
 
 	/**
