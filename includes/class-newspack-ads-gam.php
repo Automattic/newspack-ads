@@ -595,7 +595,7 @@ class Newspack_Ads_GAM {
 		$can_use_service_account = self::can_use_service_account();
 		$response                = [
 			'connected'               => false,
-			'connection_details'      => $connection_details['mode'],
+			'connection_mode'         => $connection_details['mode'],
 			'can_use_oauth'           => $can_use_oauth,
 			'can_use_service_account' => $can_use_service_account,
 		];
