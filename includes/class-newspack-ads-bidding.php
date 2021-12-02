@@ -215,7 +215,7 @@ class Newspack_Ads_Bidding {
 					],
 					'bids'       => $bids,
 				];
-			}       
+			}
 		}
 		/**
 		 * Filters the Prebid.js default config.
@@ -252,17 +252,17 @@ class Newspack_Ads_Bidding {
 					return;
 				}
 				var config = <?php echo wp_json_encode( $prebid_config ); ?>;
-				var ad_units = <?php echo wp_json_encode( $ad_units ); ?>;
+				var adUnits = <?php echo wp_json_encode( $ad_units ); ?>;
 				window.pbjs.que.push( function() {
 					window.pbjs.setConfig( config );
-					window.pbjs.addAdUnits( ad_units );
+					window.pbjs.addAdUnits( adUnits );
 					window.pbjs.requestBids( {
 						timeout: config.bidderTimeout,
 						bidsBackHandler: initAdserver,
 					} );
 					/**
 					 * GAM Express Module
-					 * Requires us to use GAM's ad unit paths instead of preferable div ID.
+					 * Temporarily disabled as it requires us to use GAM's ad unit paths instead of preferable div ID.
 					 * https://docs.prebid.org/dev-docs/modules/dfp_express.html
 					 */
 					// window.pbjs.express();

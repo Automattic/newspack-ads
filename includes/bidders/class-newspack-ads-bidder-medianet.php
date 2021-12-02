@@ -25,6 +25,12 @@ class Newspack_Ads_Bidder_Medianet {
 	 * Register bidder and its hooks.
 	 */
 	public static function init() {
+
+		// Require environment variable due to its experimental nature.
+		if ( ! defined( 'NEWSPACK_ADS_EXPERIMENTAL_MEDIANET' ) ) {
+			return;
+		}
+
 		newspack_register_ads_bidder(
 			'medianet',
 			array(
