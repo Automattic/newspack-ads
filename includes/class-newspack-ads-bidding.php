@@ -247,7 +247,7 @@ class Newspack_Ads_Bidding {
 		}
 		?>
 		<script data-amp-plus-allowed>
-			(function() {
+			( function() {
 				if ( 'undefined' === typeof window.pbjs || 'undefined' === typeof window.googletag ) {
 					return;
 				}
@@ -268,7 +268,7 @@ class Newspack_Ads_Bidding {
 					// window.pbjs.express();
 				} );
 				function initAdserver() {
-					if (window.pbjs.initAdserverSet) return;
+					if ( window.pbjs.initAdserverSet ) return;
 					window.pbjs.initAdserverSet = true;
 					window.googletag.cmd.push( function() {
 						window.pbjs.setTargetingForGPTAsync && window.pbjs.setTargetingForGPTAsync();
