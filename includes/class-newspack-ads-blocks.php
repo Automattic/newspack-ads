@@ -352,7 +352,7 @@ class Newspack_Ads_Blocks {
 		<?php
 		$code = ob_get_clean();
 		echo $code; // phpcs:ignore
-		do_action( 'newspack_ads_before_gpt_script', $ad_config, $prepared_unit_data );
+		do_action( 'newspack_ads_after_gpt_script', $ad_config, $prepared_unit_data );
 	}
 }
 Newspack_Ads_Blocks::init();
