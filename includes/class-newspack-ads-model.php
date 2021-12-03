@@ -51,6 +51,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_ad_post_type' ) );
+		Newspack_Ads_GAM::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
 	}
 
 	/**
@@ -833,6 +834,15 @@ class Newspack_Ads_Model {
 			$status['is_network_code_matched'] = self::is_network_code_matched();
 		}
 		return $status;
+	}
+
+	/**
+	 * Get GAM available networks.
+	 *
+	 * @return array[] Array of available networks.
+	 */
+	public static function get_gam_available_networks() {
+		return Newspack_Ads_GAM::get_serialized_gam_networks();
 	}
 
 	/**
