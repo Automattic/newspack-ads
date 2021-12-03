@@ -331,7 +331,7 @@ class Newspack_Ads_GAM {
 			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
 				$network_code  = self::get_gam_network_code();
 				$settings_link = "https://admanager.google.com/${network_code}#admin/settings/network";
-				$error_message = __( 'API access for this GAM intance is disabled.', 'newspack-ads' ) .
+				$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
 				" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
 			}
 			return new WP_Error(
@@ -535,7 +535,7 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			$error_message = $e->getMessage();
 			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
-				throw new \Exception( __( 'API access for this GAM intance is disabled.', 'newspack-ads' ) );
+				throw new \Exception( __( 'API access for this GAM account is disabled.', 'newspack-ads' ) );
 			} else {
 				throw new \Exception( __( 'Unable to find existing targeting keys.', 'newspack-ads' ) );
 			}
