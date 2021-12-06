@@ -468,11 +468,11 @@ class Newspack_Ads_Bidding {
 				),
 				array(
 					'description' => __( 'Price granularity', 'newspack-ads' ),
-					'help'        => __( 'Defines the price bucket granularity setting that will be used for the hb_pb keyword.', 'newspack-ads' ),
+					'help'        => __( 'The level of the price target set in the header bidding line items. The price buckets impact the line items’ ability to compete optimally with your other price-based ad campaigns.', 'newspack-ads' ),
 					'section'     => self::SETTINGS_SECTION_NAME,
 					'key'         => 'price_granularity',
 					'type'        => 'string',
-					'default'     => 'medium',
+					'default'     => 'dense',
 					'options'     => array(
 						array(
 							'value' => 'low',
