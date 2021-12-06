@@ -839,10 +839,15 @@ class Newspack_Ads_Model {
 	/**
 	 * Get GAM available networks.
 	 *
-	 * @return array[] Array of available networks.
+	 * @return array[] Array of available networks. Empty array if no networks found or unable to fetch.
 	 */
 	public static function get_gam_available_networks() {
-		return Newspack_Ads_GAM::get_serialized_gam_networks();
+		try {
+			$networks = Newspack_Ads_GAM::get_serialized_gam_networks();
+		} catch ( Exception $e ) {
+			$networks = [];
+		}
+		return $networks;
 	}
 
 	/**

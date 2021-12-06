@@ -130,6 +130,7 @@ class Newspack_Ads_GAM {
 	 * Get GAM networks the authenticated user has access to.
 	 *
 	 * @return Network[] Array of networks.
+	 * @throws \Exception If not able to fetch networks.
 	 */
 	private static function get_gam_networks() {
 		if ( empty( self::$networks ) ) {
@@ -155,6 +156,7 @@ class Newspack_Ads_GAM {
 	 * Get serialized GAM networks the authenticated user has access to.
 	 *
 	 * @return array[] Array of serialized networks.
+	 * @throws \Exception If not able to fetch networks.
 	 */
 	public static function get_serialized_gam_networks() {
 		$networks = self::get_gam_networks();
