@@ -153,7 +153,7 @@ class SettingsTest extends WP_UnitTestCase {
 		self::assertSame(
 			$settings['select_field'],
 			'option2',
-			'Should update a value withing existing options.'
+			'Should update a value within existing options.'
 		);
 	}
 
