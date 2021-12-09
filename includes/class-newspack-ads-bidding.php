@@ -152,12 +152,15 @@ class Newspack_Ads_Bidding {
 
 		// Get all of the existing sizes for available bidders.
 		$bidders_sizes = array_unique(
-			array_map(
-				function( $bidder ) {
-					return $bidder['ad_sizes'];
-				},
-				$bidders 
-			)
+			array_merge(
+				...array_map(
+					function( $bidder ) {
+						return $bidder['ad_sizes'];
+					},
+					array_values( $bidders )
+				)
+			),
+			SORT_REGULAR
 		);
 
 		$ad_units = array();
