@@ -263,12 +263,14 @@ class Newspack_Ads_Bidding {
 						timeout: config.bidderTimeout,
 						bidsBackHandler: initAdserver,
 					} );
+					<?php
 					/**
-					 * GAM Express Module
+					 * GAM Express Module.
 					 * Temporarily disabled as it requires us to use GAM's ad unit paths instead of preferable div ID.
 					 * https://docs.prebid.org/dev-docs/modules/dfp_express.html
+					 * window.pbjs.express();
 					 */
-					// window.pbjs.express();
+					?>
 				} );
 				function initAdserver() {
 					if ( window.pbjs.initAdserverSet ) return;
