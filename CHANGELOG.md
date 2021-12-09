@@ -1,3 +1,10 @@
+# [1.23.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.22.0...v1.23.0-alpha.1) (2021-12-09)
+
+
+### Features
+
+* handle multiple gam accounts ([#251](https://github.com/Automattic/newspack-ads/issues/251)) ([c23c499](https://github.com/Automattic/newspack-ads/commit/c23c499b27c1bb4460fbb998e3cad442f3c5013f))
+
 # [1.22.0](https://github.com/Automattic/newspack-ads/compare/v1.21.0...v1.22.0) (2021-12-01)
 
 
