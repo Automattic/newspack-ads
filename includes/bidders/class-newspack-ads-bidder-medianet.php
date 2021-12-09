@@ -33,18 +33,18 @@ class Newspack_Ads_Bidder_Medianet {
 
 		newspack_register_ads_bidder(
 			'medianet',
-			array(
+			[
 				'name'       => 'Media.net',
 				'active_key' => 'medianet_cid',
-				'settings'   => array(
-					array(
+				'settings'   => [
+					[
 						'description' => __( 'Media.net Customer ID', 'newspack-ads' ),
 						'help'        => __( 'Your customer ID provided by Media.net', 'newspack-ads' ),
 						'key'         => 'medianet_cid',
 						'type'        => 'string',
-					),
-				),
-			)
+					],
+				],
+			]
 		);
 		add_filter( 'newspack_ads_prebid_config', [ __CLASS__, 'add_realtime_data_config' ] );
 		add_filter( 'newspack_ads_medianet_ad_unit_bid', [ __CLASS__, 'set_medianet_ad_unit_bid' ], 10, 4 );
@@ -82,7 +82,7 @@ class Newspack_Ads_Bidder_Medianet {
 	 * @param string     $bidder_placement_id The bidder placement ID for this ad unit.
 	 * @param array      $data                Ad unit data.
 	 *
-	 * @return array The bid.
+	 * @return array The bid configuration.
 	 */
 	public static function set_medianet_ad_unit_bid( $bid, $bidder, $bidder_placement_id, $data ) {
 		return [
