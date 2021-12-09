@@ -429,13 +429,13 @@ class Newspack_Ads_Placements {
 		$placement  = $placements[ $placement_key ];
 		$is_enabled = $placement['data']['enabled'];
 
-		if ( $hook_key ) {
+		if ( $hook_key && isset( $placement['data']['hooks'] ) ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
 		} else {
 			$placement_data = $placement['data'];
 		}
 
-		if ( ! $is_enabled || empty( $placement_data['ad_unit'] ) ) {
+		if ( ! $is_enabled || ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
 
