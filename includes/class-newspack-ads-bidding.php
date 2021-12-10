@@ -130,6 +130,28 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Return a string from a size array.
+	 *
+	 * @param array $size Size array.
+	 *
+	 * @return string Size string.
+	 */
+	private static function get_size_string( $size ) {
+		return $size[0] . 'x' . $size[1];
+	}
+
+	/**
+	 * Return an array from a size string.
+	 *
+	 * @param string $size Size string.
+	 *
+	 * @return array Size array.
+	 */
+	private static function get_size_array( $size ) {
+		return array_map( 'intval', explode( 'x', $size ) );
+	}
+
+	/**
 	 * Prebid script.
 	 *
 	 * @param array   $ad_config Ad config.
@@ -172,10 +194,14 @@ class Newspack_Ads_Bidding {
 			if ( isset( $ad_data['bidders'] ) && count( $ad_data['bidders'] ) ) {
 
 				// Detect sizes supported by available bidders.
-				$sizes = array_intersect( $ad_data['sizes'], $bidders_sizes );
+				$sizes = array_intersect(
+					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
+					array_map( [ __CLASS__, 'get_size_string' ], $bidders_sizes )
+				);
 				if ( ! count( $sizes ) ) {
 					continue;
 				}
+				$sizes = array_map( [ __CLASS__, 'get_size_array' ], $sizes );
 
 				$bids = [];
 
