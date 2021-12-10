@@ -288,8 +288,17 @@ class Newspack_Ads_Settings {
 		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
-		if ( isset( $config['options'] ) && is_array( $config['options'] ) && ! in_array( $value, $config['options'] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting value.', 'newspack-ads' ) );
+		if ( isset( $config['options'] ) && is_array( $config['options'] ) ) {
+			$accepted_values = array_map(
+				function ( $option ) {
+					return $option['value'];
+				},
+				$config['options']
+			);
+			if ( ! in_array( $value, $accepted_values, true ) ) {
+				// translators: %s is the description of the option.
+				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
+			}
 		}
 		return update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
 	}
@@ -298,12 +307,12 @@ class Newspack_Ads_Settings {
 	 * Update settings from a specific section.
 	 *
 	 * @param string $section  The key for the section to update.
-	 * @param object $settings The new settings to update.
+	 * @param array  $data     Associative array with data to update.
 	 *
 	 * @return array|WP_Error The settings list or error if a setting update fails.
 	 */
-	public static function update_section( $section, $settings ) {
-		foreach ( $settings as $key => $value ) {
+	public static function update_section( $section, $data ) {
+		foreach ( $data as $key => $value ) {
 			$updated = self::update_setting( $section, $key, $value );
 			if ( is_wp_error( $updated ) ) {
 				return $updated;

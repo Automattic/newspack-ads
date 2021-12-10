@@ -16,6 +16,7 @@ const path = require( 'path' );
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
+const prebid = path.join( __dirname, 'src', 'prebid' );
 
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
@@ -53,6 +54,7 @@ const webpackConfig = getBaseWebpackConfig(
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
 			frontend,
+			prebid,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}

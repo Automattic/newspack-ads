@@ -133,6 +133,8 @@ class SettingsTest extends WP_UnitTestCase {
 	 */
 	public function test_update_value_within_options() {
 		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
+
+		// Outside of options.
 		$values = [
 			'select_field' => 'not_an_option',
 		];
@@ -140,6 +142,18 @@ class SettingsTest extends WP_UnitTestCase {
 		self::assertTrue(
 			is_wp_error( $result ),
 			'Should not update a value outside of existing options.'
+		);
+
+		// Within options.
+		$values   = [
+			'select_field' => 'option2',
+		];
+		$result   = Newspack_Ads_Settings::update_section( 'test_section', $values );
+		$settings = Newspack_Ads_Settings::get_settings( 'test_section' );
+		self::assertSame(
+			$settings['select_field'],
+			'option2',
+			'Should update a value within existing options.'
 		);
 	}
 
