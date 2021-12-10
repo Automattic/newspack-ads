@@ -1,3 +1,10 @@
+# [1.23.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.23.0-alpha.1...v1.23.0-alpha.2) (2021-12-10)
+
+
+### Features
+
+* header bidding ([#231](https://github.com/Automattic/newspack-ads/issues/231)) ([a040991](https://github.com/Automattic/newspack-ads/commit/a040991fffcd6d2f24f8f5b2f48b19909f832a30))
+
 # [1.23.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.22.0...v1.23.0-alpha.1) (2021-12-09)
 
 
