@@ -1,3 +1,10 @@
+# [1.23.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.23.0-alpha.2...v1.23.0-alpha.3) (2021-12-13)
+
+
+### Bug Fixes
+
+* allow prebid.js to load async ([#260](https://github.com/Automattic/newspack-ads/issues/260)) ([ec9b333](https://github.com/Automattic/newspack-ads/commit/ec9b3330a8b6218091ad3376fad5accd425f5ef7))
+
 # [1.23.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.23.0-alpha.1...v1.23.0-alpha.2) (2021-12-10)
 
 
