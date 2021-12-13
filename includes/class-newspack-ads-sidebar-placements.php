@@ -26,6 +26,11 @@ class Newspack_Ads_Sidebar_Placements {
 		'footer-3',
 	];
 
+	// Sidebars that allow sticky positioning.
+	const STICK_TO_TOP_SIDEBARS = [
+		'sidebar-1',
+	];
+
 	/**
 	 * Initialize settings.
 	 */
@@ -46,7 +51,7 @@ class Newspack_Ads_Sidebar_Placements {
 			do_action( sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $index ) );
 		}
 	}
-	
+
 	/**
 	 * Create a dynamic sidebar after action appropriate for ad unit insertion.
 	 *
@@ -89,12 +94,19 @@ class Newspack_Ads_Sidebar_Placements {
 					continue;
 				}
 
+				$supports = [];
+
+				if ( in_array( $sidebar['id'], self::STICK_TO_TOP_SIDEBARS, true ) ) {
+					$supports[] = 'stick_to_top';
+				}
+
 				$placement_config = [
 					'name'        => $sidebar['name'],
 					// Translators: %s: The name of the sidebar.
 					'description' => sprintf( __( 'Choose an ad unit to display in the "%s" widget area.', 'newspack-ads' ), $sidebar['name'] ),
+					'supports'    => $supports,
 				];
-				
+
 				if ( in_array( $sidebar['id'], $single_unit_sidebars, true ) ) {
 					$placement_config['hook_name'] = sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] );
 				} else {
@@ -109,7 +121,7 @@ class Newspack_Ads_Sidebar_Placements {
 						],
 					];
 				}
-				
+
 				$sidebar_placements[ $placement_key ] = $placement_config;
 			}
 		}
