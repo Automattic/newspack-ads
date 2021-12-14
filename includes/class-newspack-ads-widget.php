@@ -38,7 +38,13 @@ class Newspack_Ads_Widget extends WP_Widget {
 		}
 
 		$selected_ad_unit = $instance['selected_ad_unit'];
-		$ad_unit          = Newspack_Ads_Model::get_ad_unit_for_display( $selected_ad_unit, 'newspack_ads_widget', $args['id'] );
+		$ad_unit          = Newspack_Ads_Model::get_ad_unit_for_display(
+			$selected_ad_unit,
+			array(
+				'placement' => 'newspack_ads_widget',
+				'context'   => $args['id'],
+			) 
+		);
 
 		if ( is_wp_error( $ad_unit ) ) {
 			return;

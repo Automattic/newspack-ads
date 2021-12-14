@@ -16,6 +16,7 @@ const path = require( 'path' );
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
+const prebid = path.join( __dirname, 'src', 'prebid' );
 
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
@@ -53,9 +54,21 @@ const webpackConfig = getBaseWebpackConfig(
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
 			frontend,
+			prebid,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
 );
+
+webpackConfig.module.rules.push( {
+	test: /.js$/,
+	include: new RegExp( `\\${ path.sep }prebid\.js` ),
+	use: {
+		loader: 'babel-loader',
+		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
+		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
+		options: require( 'prebid.js/.babelrc.js' ),
+	},
+} );
 
 module.exports = webpackConfig;

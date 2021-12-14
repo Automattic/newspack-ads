@@ -18,6 +18,7 @@ use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202102\Network;
 use Google\AdsApi\AdManager\v202102\AdUnit;
 use Google\AdsApi\AdManager\v202102\AdUnitSize;
 use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
@@ -50,6 +51,13 @@ class Newspack_Ads_GAM {
 	private static $session = null;
 
 	/**
+	 * GAM Network Code in use.
+	 *
+	 * @var string
+	 */
+	private static $network_code = null;
+
+	/**
 	 * Custom targeting keys.
 	 *
 	 * @var string[]
@@ -60,6 +68,15 @@ class Newspack_Ads_GAM {
 		'category',
 		'post_type',
 	];
+
+	/**
+	 * Set the network code to be used.
+	 *
+	 * @param string $network_code Network code.
+	 */
+	public static function set_network_code( $network_code ) {
+		self::$network_code = $network_code;
+	}
 
 	/**
 	 * Get credentials for connecting to GAM.
@@ -113,6 +130,7 @@ class Newspack_Ads_GAM {
 	 * Get GAM networks the authenticated user has access to.
 	 *
 	 * @return Network[] Array of networks.
+	 * @throws \Exception If not able to fetch networks.
 	 */
 	private static function get_gam_networks() {
 		if ( empty( self::$networks ) ) {
@@ -135,15 +153,43 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get user's GAM network. Assumes the user has access to just one.
+	 * Get serialized GAM networks the authenticated user has access to.
+	 *
+	 * @return array[] Array of serialized networks.
+	 * @throws \Exception If not able to fetch networks.
+	 */
+	public static function get_serialized_gam_networks() {
+		$networks = self::get_gam_networks();
+		return array_map(
+			function( $network ) {
+				return [
+					'id'   => $network->getId(),
+					'name' => $network->getDisplayName(),
+					'code' => $network->getNetworkCode(),
+				];
+			},
+			$networks
+		);
+	}
+
+	/**
+	 * Get user's GAM network. Defaults to the first found network if not found or empty.
 	 *
 	 * @return Network GAM network.
 	 * @throws \Exception If there is no GAM network to use.
 	 */
 	private static function get_gam_network() {
-		$networks = self::get_gam_networks();
+		$networks     = self::get_gam_networks();
+		$network_code = self::$network_code;
 		if ( empty( $networks ) ) {
 			throw new \Exception( __( 'Missing GAM Ad network.', 'newspack-ads' ) );
+		}
+		if ( $network_code ) {
+			foreach ( $networks as $network ) {
+				if ( $network_code === $network->getNetworkCode() ) {
+					return $network;
+				}
+			}
 		}
 		return $networks[0];
 	}
@@ -287,12 +333,16 @@ class Newspack_Ads_GAM {
 			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
 				$network_code  = self::get_gam_network_code();
 				$settings_link = "https://admanager.google.com/${network_code}#admin/settings/network";
-				$error_message = __( 'API access for this GAM intance is disabled.', 'newspack-ads' ) .
+				$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
 				" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
 			}
 			return new WP_Error(
 				'newspack_ads_gam_get_ad_units',
-				$error_message
+				$error_message,
+				array(
+					'status' => '400',
+					'level'  => 'warning',
+				)
 			);
 		}
 	}
@@ -485,7 +535,12 @@ class Newspack_Ads_GAM {
 		try {
 			$keys = $service->getCustomTargetingKeysByStatement( $statement );
 		} catch ( \Exception $e ) {
-			throw new \Exception( __( 'Unable to find existing targeting keys', 'newspack-ads' ) );
+			$error_message = $e->getMessage();
+			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
+				throw new \Exception( __( 'API access for this GAM account is disabled.', 'newspack-ads' ) );
+			} else {
+				throw new \Exception( __( 'Unable to find existing targeting keys.', 'newspack-ads' ) );
+			}
 		}
 
 		$keys_to_create = array_values(
