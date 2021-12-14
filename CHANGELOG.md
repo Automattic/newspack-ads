@@ -1,3 +1,16 @@
+# [1.23.0](https://github.com/Automattic/newspack-ads/compare/v1.22.0...v1.23.0) (2021-12-14)
+
+
+### Bug Fixes
+
+* allow prebid.js to load async ([#260](https://github.com/Automattic/newspack-ads/issues/260)) ([ec9b333](https://github.com/Automattic/newspack-ads/commit/ec9b3330a8b6218091ad3376fad5accd425f5ef7))
+
+
+### Features
+
+* handle multiple gam accounts ([#251](https://github.com/Automattic/newspack-ads/issues/251)) ([c23c499](https://github.com/Automattic/newspack-ads/commit/c23c499b27c1bb4460fbb998e3cad442f3c5013f))
+* header bidding ([#231](https://github.com/Automattic/newspack-ads/issues/231)) ([a040991](https://github.com/Automattic/newspack-ads/commit/a040991fffcd6d2f24f8f5b2f48b19909f832a30))
+
 # [1.23.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.23.0-alpha.2...v1.23.0-alpha.3) (2021-12-13)
 
 
