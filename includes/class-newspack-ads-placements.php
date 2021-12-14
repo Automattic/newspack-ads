@@ -268,7 +268,8 @@ class Newspack_Ads_Placements {
 	 * - hooks: An array of action hooks to inject an ad unit into.
 	 *   - name: The friendly name of the hook.
 	 *   - hook_name: The name of the WordPress action hook to inject the ad unit into.
-	 * - supports: An array of supported placement features. Supported features are: 'stick_to_top'.
+	 * - supports: An array of supported placement features. Available features are:
+	 *   - `stick_to_top`: Whether the placement should be sticky to the top of the page.
 	 *
 	 * @return array Placement objects.
 	 */
