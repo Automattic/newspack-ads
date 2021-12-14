@@ -512,6 +512,7 @@ class Newspack_Ads_Placements {
 
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
+		$is_sticky_amp = 'sticky' === $placement_key && $is_amp;
 		/**
 		 * Filters the classnames applied to the ad container.
 		 *
@@ -523,22 +524,23 @@ class Newspack_Ads_Placements {
 		$classnames = apply_filters(
 			'newspack_ads_placement_classnames',
 			[
-				'newspack_global_ad'             => true,
+				'newspack_global_ad'             => ! $is_sticky_amp,
+				'newspack_amp_sticky_ad'         => $is_sticky_amp,
 				$placement_key                   => true,
 				$placement_key . '-' . $hook_key => ! empty( $hook_key ),
 				'stick-to-top'                   => $stick_to_top,
 			],
 			$placement_key,
 			$hook_key,
-			$placement_data 
+			$placement_data
 		);
 
 		$classnames_str = implode( ' ', array_keys( array_filter( $classnames ) ) );
 
-		if ( 'sticky' === $placement_key && $is_amp ) :
+		if ( $is_sticky_amp ) :
 			?>
 			<div class="newspack_amp_sticky_ad__container">
-				<amp-sticky-ad class='newspack_amp_sticky_ad <?php echo esc_attr( $classnames_str ); ?>' layout="nodisplay">
+				<amp-sticky-ad class='<?php echo esc_attr( $classnames_str ); ?>' layout="nodisplay">
 					<?php echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</amp-sticky-ad>
 			</div>
