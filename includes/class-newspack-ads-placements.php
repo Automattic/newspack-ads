@@ -308,6 +308,15 @@ class Newspack_Ads_Placements {
 		$placements = apply_filters( 'newspack_ads_placements', $placements );
 
 		foreach ( $placements as $placement_key => $placement ) {
+
+			// Force disable `stick_to_top` on AMP.
+			if ( isset( $placement['supports'] ) && Newspack_Ads::is_amp() ) {
+				$feature_index = array_search( 'stick_to_top', $placement['supports'] );
+				if ( false !== $feature_index ) {
+					unset( $placement['supports'][ $feature_index ] );
+				}
+			}
+
 			$placements[ $placement_key ] = wp_parse_args(
 				$placement,
 				[
@@ -362,6 +371,22 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Whether the placement supports `stick to top` feature.
+	 *
+	 * @param string $placement_key Placement Key.
+	 *
+	 * @return bool Whether the placement supports `stick to top` feature.
+	 */
+	private static function is_stick_to_top( $placement_key ) {
+		$placements = self::get_placements();
+		$placement  = $placements[ $placement_key ];
+		if ( in_array( 'stick_to_top', $placement['supports'], true ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Update a placement with an ad unit. Enables the placement by default.
 	 * 
 	 * @param string $placement_key Placement key.
@@ -399,7 +424,7 @@ class Newspack_Ads_Placements {
 		}
 
 		// Handle "stick to top" feature update.
-		if ( in_array( 'stick_to_top', $placement['supports'], true ) ) {
+		if ( self::is_stick_to_top( $placement_key ) ) {
 			$data['stick_to_top'] = isset( $data['stick_to_top'] ) ? (bool) $data['stick_to_top'] : false;
 		}
 
@@ -452,7 +477,7 @@ class Newspack_Ads_Placements {
 		$placement  = $placements[ $placement_key ];
 		$is_enabled = $placement['data']['enabled'];
 
-		$stick_to_top = isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
+		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
 
 		if ( $hook_key && isset( $placement['data']['hooks'] ) ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
