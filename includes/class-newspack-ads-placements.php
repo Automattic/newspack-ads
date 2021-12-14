@@ -499,7 +499,7 @@ class Newspack_Ads_Placements {
 			[
 				'newspack_global_ad'             => true,
 				$placement_key                   => true,
-				$placement_key . '-' . $hook_key => true,
+				$placement_key . '-' . $hook_key => ! empty( $hook_key ),
 				'stick-to-top'                   => $stick_to_top,
 			],
 			$placement_key,
