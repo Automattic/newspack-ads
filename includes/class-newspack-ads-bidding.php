@@ -92,7 +92,7 @@ class Newspack_Ads_Bidding {
 			'script_loader_tag',
 			function( $tag, $handle, $src ) {
 				if ( self::PREBID_SCRIPT_HANDLE === $handle ) {
-					return '<script data-amp-plus-allowed src="' . $src . '"></script>';
+					return '<script data-amp-plus-allowed async src="' . $src . '"></script>';
 				}
 				return $tag;
 			},
@@ -277,15 +277,13 @@ class Newspack_Ads_Bidding {
 		?>
 		<script data-amp-plus-allowed>
 			( function() {
-				if ( 'undefined' === typeof window.pbjs || 'undefined' === typeof window.googletag ) {
-					return;
-				}
+				window.pbjs = window.pbjs || { que: [] };
 				var config = <?php echo wp_json_encode( $prebid_config ); ?>;
 				var adUnits = <?php echo wp_json_encode( $ad_units ); ?>;
-				window.pbjs.que.push( function() {
-					window.pbjs.setConfig( config );
-					window.pbjs.addAdUnits( adUnits );
-					window.pbjs.requestBids( {
+				pbjs.que.push( function() {
+					pbjs.setConfig( config );
+					pbjs.addAdUnits( adUnits );
+					pbjs.requestBids( {
 						timeout: config.bidderTimeout,
 						bidsBackHandler: initAdserver,
 					} );
@@ -299,11 +297,12 @@ class Newspack_Ads_Bidding {
 					?>
 				} );
 				function initAdserver() {
-					if ( window.pbjs.initAdserverSet ) return;
-					window.pbjs.initAdserverSet = true;
-					window.googletag.cmd.push( function() {
-						window.pbjs.setTargetingForGPTAsync && window.pbjs.setTargetingForGPTAsync();
-						window.googletag.pubads().refresh();
+					if ( pbjs.initAdserverSet ) return;
+					pbjs.initAdserverSet = true;
+					window.googletag = window.googletag || { cmd: [] };
+					googletag.cmd.push( function() {
+						pbjs.setTargetingForGPTAsync && pbjs.setTargetingForGPTAsync();
+						googletag.pubads().refresh();
 					} );
 				}
 				// In case pbjs doesnt load, try again after the failsafe timeout of 3000ms.

@@ -8,7 +8,5 @@ import 'prebid.js/modules/express';
 import 'prebid.js/modules/medianetBidAdapter';
 import 'prebid.js/modules/medianetRtdProvider';
 
-window.pbjs = window.pbjs || pbjs;
-
 // Required to process existing pbjs.queue blocks and setup any further pbjs.queue execution.
 pbjs.processQueue();
