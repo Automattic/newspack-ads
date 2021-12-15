@@ -482,6 +482,12 @@ class Newspack_Ads_Bidding {
 	 */
 	public function register_settings( $settings_list ) {
 
+		// Skip if using AMP.
+		if ( Newspack_Ads::is_amp() ) {
+			return $settings_list;
+		}
+
+		// Skip if no bidders are registered.
 		if ( false === $this->has_registered_bidders() ) {
 			return $settings_list;
 		}
