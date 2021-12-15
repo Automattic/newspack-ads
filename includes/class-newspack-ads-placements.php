@@ -41,17 +41,20 @@ class Newspack_Ads_Placements {
 				'callback'            => [ __CLASS__, 'api_update_placement' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
 				'args'                => [
-					'placement'   => [
+					'placement'    => [
 						'sanitize_callback' => 'sanitize_title',
 					],
-					'ad_unit'     => [
+					'ad_unit'      => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'bidders_ids' => [
+					'bidders_ids'  => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_bidders_ids' ],
 					],
-					'hooks'       => [
+					'hooks'        => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_hooks_data' ],
+					],
+					'stick_to_top' => [
+						'sanitize_callback' => 'rest_sanitize_boolean',
 					],
 				],
 			]
@@ -135,11 +138,12 @@ class Newspack_Ads_Placements {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_update_placement( $request ) {
-		$data   = array(
-			'ad_unit'     => $request['ad_unit'],
-			'bidders_ids' => $request['bidders_ids'],
-			'hooks'       => $request['hooks'],
-		);
+		$data   = [
+			'ad_unit'      => $request['ad_unit'],
+			'bidders_ids'  => $request['bidders_ids'],
+			'hooks'        => $request['hooks'],
+			'stick_to_top' => $request['stick_to_top'],
+		];
 		$result = self::update_placement( $request['placement'], $data );
 		if ( is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
@@ -264,6 +268,8 @@ class Newspack_Ads_Placements {
 	 * - hooks: An array of action hooks to inject an ad unit into.
 	 *   - name: The friendly name of the hook.
 	 *   - hook_name: The name of the WordPress action hook to inject the ad unit into.
+	 * - supports: An array of supported placement features. Available features are:
+	 *   - `stick_to_top`: Whether the placement should be sticky to the top of the page.
 	 *
 	 * @return array Placement objects.
 	 */
@@ -302,7 +308,26 @@ class Newspack_Ads_Placements {
 		$placements = apply_filters( 'newspack_ads_placements', $placements );
 
 		foreach ( $placements as $placement_key => $placement ) {
-			$placements[ $placement_key ]['data'] = self::get_placement_data( $placement_key, $placement );
+
+			// Force disable `stick_to_top` on AMP.
+			if ( isset( $placement['supports'] ) && Newspack_Ads::is_amp() ) {
+				$feature_index = array_search( 'stick_to_top', $placement['supports'] );
+				if ( false !== $feature_index ) {
+					unset( $placement['supports'][ $feature_index ] );
+				}
+			}
+
+			$placements[ $placement_key ] = wp_parse_args(
+				$placement,
+				[
+					'name'            => '',
+					'description'     => '',
+					'default_enabled' => false,
+					'hook_name'       => '',
+					'supports'        => [],
+					'data'            => self::get_placement_data( $placement_key, $placement ),
+				]
+			);
 		}
 		return $placements;
 	}
@@ -346,6 +371,22 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Whether the placement supports `stick to top` feature.
+	 *
+	 * @param string $placement_key Placement Key.
+	 *
+	 * @return bool Whether the placement supports `stick to top` feature.
+	 */
+	private static function is_stick_to_top( $placement_key ) {
+		$placements = self::get_placements();
+		$placement  = $placements[ $placement_key ];
+		if ( in_array( 'stick_to_top', $placement['supports'], true ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Update a placement with an ad unit. Enables the placement by default.
 	 * 
 	 * @param string $placement_key Placement key.
@@ -365,6 +406,8 @@ class Newspack_Ads_Placements {
 			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
 		}
 
+		$placement = $placements[ $placement_key ];
+
 		// Updates always enables the placement.
 		$data['enabled'] = true;
 
@@ -378,6 +421,11 @@ class Newspack_Ads_Placements {
 					$data['hooks'][ $hook_key ]['id'] = self::get_id( [ $placement_key, $hook_key, $data['ad_unit'] ] );
 				}
 			}
+		}
+
+		// Handle "stick to top" feature update.
+		if ( self::is_stick_to_top( $placement_key ) ) {
+			$data['stick_to_top'] = isset( $data['stick_to_top'] ) ? (bool) $data['stick_to_top'] : false;
 		}
 
 		return update_option( self::get_option_name( $placement_key ), wp_json_encode( $data ) );
@@ -429,6 +477,8 @@ class Newspack_Ads_Placements {
 		$placement  = $placements[ $placement_key ];
 		$is_enabled = $placement['data']['enabled'];
 
+		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
+
 		if ( $hook_key && isset( $placement['data']['hooks'] ) ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
 		} else {
@@ -462,17 +512,42 @@ class Newspack_Ads_Placements {
 
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
-		if ( 'sticky' === $placement_key && $is_amp ) :
+		$is_sticky_amp = 'sticky' === $placement_key && $is_amp;
+		/**
+		 * Filters the classnames applied to the ad container.
+		 *
+		 * @param bool[] Associative array with classname as key and boolean as value.
+		 * @param string Placement key.
+		 * @param string Hook key.
+		 * @param array  Placement data.
+		 */
+		$classnames = apply_filters(
+			'newspack_ads_placement_classnames',
+			[
+				'newspack_global_ad'             => ! $is_sticky_amp,
+				'newspack_amp_sticky_ad'         => $is_sticky_amp,
+				$placement_key                   => true,
+				$placement_key . '-' . $hook_key => ! empty( $hook_key ),
+				'stick-to-top'                   => $stick_to_top,
+			],
+			$placement_key,
+			$hook_key,
+			$placement_data
+		);
+
+		$classnames_str = implode( ' ', array_keys( array_filter( $classnames ) ) );
+
+		if ( $is_sticky_amp ) :
 			?>
 			<div class="newspack_amp_sticky_ad__container">
-				<amp-sticky-ad class='newspack_amp_sticky_ad <?php echo esc_attr( $placement_key ); ?>' layout="nodisplay">
+				<amp-sticky-ad class='<?php echo esc_attr( $classnames_str ); ?>' layout="nodisplay">
 					<?php echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</amp-sticky-ad>
 			</div>
 			<?php
 		else :
 			?>
-			<div class='newspack_global_ad <?php echo esc_attr( $placement_key ); ?>'>
+			<div class='<?php echo esc_attr( $classnames_str ); ?>'>
 				<?php if ( 'sticky' === $placement_key ) : ?>
 					<button class='newspack_sticky_ad__close'></button>
 				<?php endif; ?>
