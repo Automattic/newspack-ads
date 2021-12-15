@@ -1,3 +1,15 @@
+# [1.24.0](https://github.com/Automattic/newspack-ads/compare/v1.23.0...v1.24.0) (2021-12-15)
+
+
+### Bug Fixes
+
+* hide header bidding if using AMP ([#263](https://github.com/Automattic/newspack-ads/issues/263)) ([7f099cb](https://github.com/Automattic/newspack-ads/commit/7f099cb53cc0336231480899484adf4c6ec0ee5b))
+
+
+### Features
+
+* **placements:** stick to top support ([#265](https://github.com/Automattic/newspack-ads/issues/265)) ([8b44981](https://github.com/Automattic/newspack-ads/commit/8b4498177f19b6abf6e588c4cc55a8844bedd4f3))
+
 # [1.24.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.23.0...v1.24.0-alpha.1) (2021-12-15)
 
 
