@@ -458,6 +458,45 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Whether the placement can display an ad unit.
+	 *
+	 * @param string $placement_key Placement key.
+	 *
+	 * @return bool Whether the placement can display an ad unit.
+	 */
+	public static function can_display_ad_unit( $placement_key ) {
+		$can_display = true;
+		$placements  = self::get_placements();
+		if ( ! isset( $placements[ $placement_key ] ) ) {
+			$can_display = false;
+		} else {
+			$placement  = $placements[ $placement_key ];
+			$is_enabled = $placement['data']['enabled'];
+			if ( ! $is_enabled ) {
+				$can_display = false;
+			} else {
+				if ( isset( $placement['data']['hooks'] ) && count( $placement['data']['hooks'] ) ) {
+					$can_display = false;
+					foreach ( $placement['data']['hooks'] as $hook ) {
+						if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+							$can_display = true;
+						}
+					}
+				} elseif ( ! isset( $placement['data']['ad_unit'] ) || ! $placement['data']['ad_unit'] ) {
+					$can_display = false;
+				}
+			}
+		}
+		/**
+		 * Filters whether the placement can display an ad unit.
+		 *
+		 * @param bool   $can_display   Whether the placement can display an ad unit.
+		 * @param string $placement_key The placement key.
+		 */
+		return apply_filters( 'newspack_ads_placement_can_display_ad_unit', $can_display, $placement_key );
+	}
+
+	/**
 	 * Generate an ID given a list of strings as arguments.
 	 *
 	 * @param string[] $args List of strings.
@@ -473,9 +512,17 @@ class Newspack_Ads_Placements {
 	 * @param string $hook_key      Optional hook key in case of multiple hooks available.
 	 */
 	public static function inject_placement_ad( $placement_key, $hook_key = '' ) {
+
+		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+
+		if ( ! self::can_display_ad_unit( $placement_key ) ) {
+			return;
+		}
+
 		$placements = self::get_placements();
 		$placement  = $placements[ $placement_key ];
-		$is_enabled = $placement['data']['enabled'];
 
 		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
 
@@ -485,11 +532,7 @@ class Newspack_Ads_Placements {
 			$placement_data = $placement['data'];
 		}
 
-		if ( ! $is_enabled || ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
-			return;
-		}
-
-		if ( ! newspack_ads_should_show_ads() ) {
+		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
 
