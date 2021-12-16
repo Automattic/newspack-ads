@@ -9,6 +9,7 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
+use Google\AdsApi\AdManager\AdManagerSession;
 use Google\AdsApi\AdManager\v202102\Statement;
 use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202102\TextValue;
@@ -19,11 +20,16 @@ use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\Network;
+use Google\AdsApi\AdManager\v202102\User;
 use Google\AdsApi\AdManager\v202102\AdUnit;
 use Google\AdsApi\AdManager\v202102\AdUnitSize;
 use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202102\Order;
+use Google\AdsApi\AdManager\v202102\LineItem;
 use Google\AdsApi\AdManager\v202102\EnvironmentType;
 use Google\AdsApi\AdManager\v202102\Size;
+use Google\AdsApi\AdManager\v202102\Company;
+use Google\AdsApi\AdManager\v202102\CompanyType;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -124,6 +130,18 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Get GAM service account user.
+	 *
+	 * @return User Current user.
+	 */
+	private static function get_current_user() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		$service         = $service_factory->createUserService( $session );
+		return $service->getCurrentUser();
 	}
 
 	/**
@@ -241,6 +259,50 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Create advertiser service.
+	 *
+	 * @return AdvertiserService Advertiser service.
+	 */
+	private static function get_advertiser_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createAdvertiserService( $session );
+	}
+
+	/**
+	 * Create order service.
+	 *
+	 * @return OrderService Order service.
+	 */
+	private static function get_order_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createOrderService( $session );
+	}
+
+	/**
+	 * Create line item service.
+	 *
+	 * @return LineItemService Line Item service.
+	 */
+	private static function get_line_item_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createLineItemService( $session );
+	}
+
+	/**
+	 * Create company service.
+	 *
+	 * @return CompanyService Company service.
+	 */
+	private static function get_company_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createCompanyService( $session );
+	}
+
+	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
 	 * @param int[] $ids Optional array of ad unit ids.
@@ -260,6 +322,50 @@ class Newspack_Ads_GAM {
 		return $statement_builder;
 	}
 
+
+	/**
+	 * Get all GAM Advertisers in the user's network.
+	 * 
+	 * @return Company[] Array of Companies of typer Advertiser.
+	 */
+	private static function get_advertisers() {
+		$line_items            = [];
+		$service               = self::get_company_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size )->withBindVariableValue( 'type', CompanyType::ADVERTISER );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getCompaniesByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $company ) {
+					$line_items[] = $company;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all Advertisers in the user's network, serialised.
+	 *
+	 * @param Company[] $companies Optional array of companies to serialise. If empty, return all advertisers.
+	 * 
+	 * @return array[] Array of serialised companies.
+	 */
+	public static function get_serialised_advertisers( $companies = [] ) {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'   => $item->getId(),
+					'name' => $item->getName(),
+				];
+			},
+			count( $companies ) ? $companies : self::get_advertisers()
+		);
+	}
+
 	/**
 	 * Get details of the authorised GAM user.
 	 *
@@ -276,6 +382,104 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return [];
 		}
+	}
+
+	/**
+	 * Get all GAM orders in the user's network.
+	 *
+	 * @param int[] $ids Optional array of order ids.
+	 * 
+	 * @return Order[] Array of Orders.
+	 */
+	private static function get_orders( $ids = [] ) {
+		$orders                = [];
+		$order_service         = self::get_order_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$total_result_set_size = 0;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		if ( ! empty( $ids ) ) {
+			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		}
+		do {
+			$page = $order_service->getOrdersByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $order ) {
+					$orders[] = $order;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $orders;
+	}
+
+	/**
+	 * Get all orders in the user's network, serialised.
+	 *
+	 * @param Order[] $orders (optional) Array of Orders.
+	 *
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_orders( $orders = [] ) {
+		return array_map(
+			function( $order ) {
+				return [
+					'id'            => $order->getId(),
+					'name'          => $order->getName(),
+					'status'        => $order->getStatus(),
+					'is_archived'   => $order->getIsArchived(),
+					'advertiser_id' => $order->getAdvertiserId(),
+					'agency_id'     => $order->getAgencyId(),
+					'creator_id'    => $order->getCreatorId(),
+				];
+			},
+			! empty( $orders ) ? $orders : self::get_orders()
+		);
+	}
+
+	/**
+	 * Get all GAM Line Items in the user's network.
+	 * 
+	 * @return LineItem[] Array of Orders.
+	 */
+	private static function get_line_items() {
+		$line_items            = [];
+		$service               = self::get_line_item_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getLineItemsByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $line_item ) {
+					$line_items[] = $line_item;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all Line Items in the user's network, serialised.
+	 * 
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_line_items() {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'          => $item->getId(),
+					'orderId'     => $item->getOrderId(),
+					'name'        => $item->getName(),
+					'status'      => $item->getStatus(),
+					'is_archived' => $item->getIsArchived(),
+					'type'        => $item->getLineItemType(),
+				];
+			},
+			self::get_line_items()
+		);
 	}
 
 	/**
@@ -370,6 +574,59 @@ class Newspack_Ads_GAM {
 			}
 		}
 		return $ad_unit;
+	}
+
+	/**
+	 * Create an advertiser in GAM.
+	 *
+	 * @param string $name The advertiser name.
+	 *
+	 * @return array The created serialized advertiser.
+	 *
+	 * @throws \Exception In case of error in googleads lib.
+	 */
+	public static function create_advertiser( $name ) {
+		$advertiser = new Company();
+		$advertiser->setName( $name );
+		$advertiser->setType( CompanyType::ADVERTISER );
+		$service = self::get_company_service();
+		$results = $service->createCompanies( [ $advertiser ] );
+		return self::get_serialised_advertisers( $results )[0];
+	}
+
+	/**
+	 * Create a GAM Order.
+	 *
+	 * @param string $name          Order Name.
+	 * @param string $advertiser_id Order Advertiser ID.
+	 *
+	 * @return object Created order.
+	 */
+	public static function create_order( $name, $advertiser_id ) {
+		$order = new Order();
+		$order->setName( $name );
+		$order->setAdvertiserId( $advertiser_id );
+		$order->setTraffickerId( self::get_current_user()->getId() );
+		$service        = self::get_order_service();
+		$created_orders = $service->createOrders( [ $order ] );
+		return self::get_serialised_orders( $created_orders )[0];
+	}
+
+	/**
+	 * Update a GAM Order.
+	 *
+	 * @param object $order_config Order configuration.
+	 *
+	 * @return object Updated order.
+	 */
+	public static function update_order( $order_config ) {
+		$order = self::get_orders( [ $order_config['id'] ] )[0];
+		$order->setName( $order_config['name'] );
+		$order->setAdvertiserId( $order_config['advertiser_id'] );
+		$order->setTraffickerId( self::get_current_user()->getId() );
+		$service       = self::get_order_service();
+		$updated_order = $service->updateOrders( [ $order ] );
+		return self::get_serialised_orders( $updated_order )[0];
 	}
 
 	/**

@@ -61,7 +61,6 @@ class Newspack_Ads_Bidding {
 	public function __construct() {
 		add_action( 'rest_api_init', [ $this, 'register_api_endpoints' ] );
 		add_filter( 'newspack_ads_settings_list', [ $this, 'register_settings' ] );
-		add_action( 'newspack_ads_after_update_setting', [ $this, 'update_gam_from_setting_update' ], 10, 4 );
 
 		// Scripts setup.
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
@@ -547,38 +546,6 @@ class Newspack_Ads_Bidding {
 			)
 		);
 		return array_merge( $settings_list, $bidding_settings );
-	}
-
-	/**
-	 * Update GAM orders and line items from setting update.
-	 *
-	 * @param bool   $updated Whether the setting was updated.
-	 * @param string $section The setting section.
-	 * @param string $key The setting key.
-	 * @param mixed  $value The setting value.
-	 */
-	public function update_gam_from_setting_update( $updated, $section, $key, $value ) {
-		if ( ! $updated || self::SETTINGS_SECTION_NAME !== $section ) {
-			return;
-		}
-
-		if ( 'price_granularity' === $key ) {
-			$this->update_gam( $value );
-		}
-	}
-
-	/**
-	 * Update GAM orders and line items based on price granularity
-	 *
-	 * @param string $price_granularity The price granularity.
-	 */
-	private static function update_gam( $price_granularity ) {
-		/**
-		 * TODO: Synchronize GAM orders and line items based on price granularity.
-		 *
-		 * Should use Newpsack_Ads_GAM and borrow methods from
-		 * https://github.com/Automattic/newspack-ads/pull/189.
-		 */
 	}
 }
 
