@@ -8,22 +8,22 @@
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
-use Google\AdsApi\AdManager\Util\v202102\StatementBuilder;
-use Google\AdsApi\AdManager\v202102\Statement;
-use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
-use Google\AdsApi\AdManager\v202102\TextValue;
-use Google\AdsApi\AdManager\v202102\SetValue;
-use Google\AdsApi\AdManager\v202102\CustomTargetingKey;
-use Google\AdsApi\AdManager\v202102\ServiceFactory;
-use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
-use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202102\DeactivateAdUnits as DeactivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202102\Network;
-use Google\AdsApi\AdManager\v202102\AdUnit;
-use Google\AdsApi\AdManager\v202102\AdUnitSize;
-use Google\AdsApi\AdManager\v202102\AdUnitTargetWindow;
-use Google\AdsApi\AdManager\v202102\EnvironmentType;
-use Google\AdsApi\AdManager\v202102\Size;
+use Google\AdsApi\AdManager\Util\v202111\StatementBuilder;
+use Google\AdsApi\AdManager\v202111\Statement;
+use Google\AdsApi\AdManager\v202111\String_ValueMapEntry;
+use Google\AdsApi\AdManager\v202111\TextValue;
+use Google\AdsApi\AdManager\v202111\SetValue;
+use Google\AdsApi\AdManager\v202111\CustomTargetingKey;
+use Google\AdsApi\AdManager\v202111\ServiceFactory;
+use Google\AdsApi\AdManager\v202111\ArchiveAdUnits as ArchiveAdUnitsAction;
+use Google\AdsApi\AdManager\v202111\ActivateAdUnits as ActivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202111\DeactivateAdUnits as DeactivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202111\Network;
+use Google\AdsApi\AdManager\v202111\AdUnit;
+use Google\AdsApi\AdManager\v202111\AdUnitSize;
+use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202111\EnvironmentType;
+use Google\AdsApi\AdManager\v202111\Size;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
