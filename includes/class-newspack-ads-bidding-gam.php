@@ -20,13 +20,27 @@ class Newspack_Ads_Bidding_GAM {
 	 *
 	 * @var bool
 	 */
-	private static $disconnected = false;
+	private static $connected = null;
 
 	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
 		add_action( 'newspack_ads_after_update_setting', [ __CLASS__, 'update_gam_from_setting_update' ], 10, 4 );
+	}
+
+	/**
+	 * Whether GAM is connected.
+	 *
+	 * @return bool Whether GAM is connected.
+	 */
+	private static function is_connected() {
+		if ( null !== self::$connected ) {
+			return self::$connected;
+		}
+		$connection      = Newspack_Ads_GAM::connection_status();
+		self::$connected = (bool) $connection['connected'];
+		return self::$connected;
 	}
 
 	/**
@@ -42,9 +56,14 @@ class Newspack_Ads_Bidding_GAM {
 			return;
 		}
 
+		// Skip if GAM is not connected.
+		if ( ! self::is_connected() ) {
+			return;
+		}
+
 		// Initial setup on activation.
 		if ( 'active' === $key && true === $value ) {
-			self::setup();
+			self::initial_setup();
 		}
 
 		// Bidder segmentation key-val registration on bidder active key change.
@@ -62,20 +81,9 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Initial GAM setup for header bidding.
+	 * Initial GAM initial setup for header bidding.
 	 */
-	private static function setup() {
-
-		if ( self::$disconnected ) {
-			return;
-		}
-
-		$connection = Newspack_Ads_GAM::connection_status();
-		if ( true !== $connection['connected'] ) {
-			self::$disconnected = true;
-			return;
-		}
-
+	private static function initial_setup() {
 		$advertiser = self::get_advertiser();
 	}
 
