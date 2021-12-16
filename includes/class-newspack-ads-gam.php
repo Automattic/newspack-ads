@@ -795,20 +795,17 @@ class Newspack_Ads_GAM {
 		$targeting_key = null;
 		$found_keys    = $service->getCustomTargetingKeysByStatement( $statement )->getResults();
 		if ( empty( $found_keys ) ) {
-			$k = new CustomTargetingKey();
-			$k->setName( $name );
-			$k->setDisplayName( $name );
-			$k->setType( 'FREEFORM' );
-			$k->setStatus( 'ACTIVE' );
-			$results       = $service->createCustomTargetingKeys( [ $k ] );
-			$targeting_key = $results[0];
+			$targeting_key = $service->createCustomTargetingKeys(
+				[
+					( new CustomTargetingKey() )->setName( $name )->setType( 'FREEFORM' )->setStatus( 'ACTIVE' ),
+				]
+			)[0];
 		} else {
 			$targeting_key = $found_keys[0];
 		}
 
 		if ( $targeting_key && count( $values ) ) {
 			$key_id           = $targeting_key->getId();
-			$targeting_values = [];
 			$values_statement = new Statement(
 				"WHERE customTargetingKeyId = :key_id AND name = :name AND status = 'ACTIVE'",
 				[
@@ -845,14 +842,14 @@ class Newspack_Ads_GAM {
 					)
 				)
 			);
-			foreach ( $values_to_create as $value ) {
-				$targeting_value = new CustomTargetingValue();
-				$targeting_value->setCustomTargetingKeyId( $key_id );
-				$targeting_value->setDisplayName( $value );
-				$targeting_value->setName( $value );
-				$targeting_values[] = $targeting_value;
-			}
-			$service->createCustomTargetingValues( $targeting_values );
+			$service->createCustomTargetingValues(
+				array_map(
+					function ( $value ) use ( $key_id ) {
+						return ( new CustomTargetingValue() )->setCustomTargetingKeyId( $key_id )->setName( $value );
+					},
+					$values_to_create
+				)
+			);
 		}
 		return $targeting_key;
 	}
