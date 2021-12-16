@@ -42,10 +42,20 @@ class Newspack_Ads_Bidding_GAM {
 			return;
 		}
 
+		// Initial setup on activation.
 		if ( 'active' === $key && true === $value ) {
 			self::setup();
 		}
 
+		// Bidder segmentation key-val registration on bidder active key change.
+		$bidders = newspack_get_ads_bidders();
+		foreach ( $bidders as $bidder_id => $bidder ) {
+			if ( ! empty( $bidder['active_key'] ) && $bidder['active_key'] === $key && ! empty( $value ) ) {
+				self::create_bidder_segment( $bidder_id );
+			}
+		}
+
+		// Orders and Line Items synchronization on price granularity change.
 		if ( 'price_granularity' === $key ) {
 			self::update_line_items( $value );
 		}
@@ -111,6 +121,22 @@ class Newspack_Ads_Bidding_GAM {
 		} else {
 			// Create advertiser.
 			return Newspack_Ads_GAM::create_advertiser( self::ADVERTISER_NAME );
+		}
+	}
+
+	/**
+	 * If not yet created, create a key-val segment for the given bidder.
+	 *
+	 * @param string $bidder_id The bidder key.
+	 *
+	 * @return bool Whether the segment was created.
+	 */
+	private static function create_bidder_segment( $bidder_id ) {
+		try {
+			Newspack_Ads_GAM::create_targeting_key( 'bidder', [ $bidder_id ] );
+			return true;
+		} catch ( Exception $e ) {
+			return false;
 		}
 	}
 }

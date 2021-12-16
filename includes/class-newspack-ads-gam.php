@@ -15,6 +15,7 @@ use Google\AdsApi\AdManager\v202102\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202102\TextValue;
 use Google\AdsApi\AdManager\v202102\SetValue;
 use Google\AdsApi\AdManager\v202102\CustomTargetingKey;
+use Google\AdsApi\AdManager\v202102\CustomTargetingValue;
 use Google\AdsApi\AdManager\v202102\ServiceFactory;
 use Google\AdsApi\AdManager\v202102\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202102\ActivateAdUnits as ActivateAdUnitsAction;
@@ -761,6 +762,99 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Create a custom targeting key-val segmentation.
+	 *
+	 * @param string   $name The name of the key.
+	 * @param string[] $values Optional sample values.
+	 *
+	 * @return CustomTargetingKey The created key.
+	 *
+	 * @throws \Exception If there is an error while communicating with the API.
+	 */
+	public static function create_targeting_key( $name, $values = [] ) {
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+
+		$statement = new Statement(
+			"WHERE name = :name AND status = 'ACTIVE'",
+			[
+				new String_ValueMapEntry(
+					'name',
+					new SetValue(
+						[
+							new TextValue( $name ),
+						]
+					)
+				),
+			]
+		);
+		
+		$targeting_key = null;
+		$found_keys    = $service->getCustomTargetingKeysByStatement( $statement )->getResults();
+		if ( empty( $found_keys ) ) {
+			$k = new CustomTargetingKey();
+			$k->setName( $name );
+			$k->setDisplayName( $name );
+			$k->setType( 'FREEFORM' );
+			$k->setStatus( 'ACTIVE' );
+			$results       = $service->createCustomTargetingKeys( [ $k ] );
+			$targeting_key = $results[0];
+		} else {
+			$targeting_key = $found_keys[0];
+		}
+
+		if ( $targeting_key && count( $values ) ) {
+			$key_id           = $targeting_key->getId();
+			$targeting_values = [];
+			$values_statement = new Statement(
+				"WHERE customTargetingKeyId = :key_id AND name = :name AND status = 'ACTIVE'",
+				[
+					new String_ValueMapEntry(
+						'key_id',
+						new SetValue(
+							[
+								new TextValue( $key_id ),
+							]
+						)
+					),
+					new String_ValueMapEntry(
+						'name',
+						new SetValue(
+							array_map(
+								function ( $key ) {
+									return new TextValue( $key );
+								},
+								$values
+							)
+						)
+					),
+				]
+			);
+			$found_values     = $service->getCustomTargetingValuesByStatement( $values_statement );
+			$values_to_create = array_values(
+				array_diff(
+					$values,
+					array_map(
+						function ( $value ) {
+							return $value->getName();
+						},
+						(array) $found_values->getResults()
+					)
+				)
+			);
+			foreach ( $values_to_create as $value ) {
+				$targeting_value = new CustomTargetingValue();
+				$targeting_value->setCustomTargetingKeyId( $key_id );
+				$targeting_value->setDisplayName( $value );
+				$targeting_value->setName( $value );
+				$targeting_values[] = $targeting_value;
+			}
+			$service->createCustomTargetingValues( $targeting_values );
+		}
+		return $targeting_key;
 	}
 
 	/**

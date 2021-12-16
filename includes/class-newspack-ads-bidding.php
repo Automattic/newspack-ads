@@ -385,9 +385,10 @@ class Newspack_Ads_Bidding {
 					}
 
 					$bidders[ $bidder_id ] = array(
-						'name'     => $bidder_config['name'],
-						'ad_sizes' => $bidder_config['ad_sizes'],
-						'data'     => $settings_data,
+						'name'       => $bidder_config['name'],
+						'ad_sizes'   => $bidder_config['ad_sizes'],
+						'active_key' => isset( $bidder_config['active_key'] ) ? $bidder_config['active_key'] : '',
+						'data'       => $settings_data,
 					);
 				}
 			}
