@@ -17,6 +17,8 @@ class Newspack_Ads_Sidebar_Placements {
 	// Sidebars that should have a single ad unit instead of "before" and "after" hooks.
 	const SINGLE_UNIT_SIDEBARS = [
 		'footer-2',
+		'article-1',
+		'article-2',
 	];
 
 	// Sidebars to not create ad placement.
@@ -31,13 +33,32 @@ class Newspack_Ads_Sidebar_Placements {
 		'sidebar-1',
 	];
 
+	// Sidebars to allow ads even when no widgets are configured.
+	const ALLOWED_EMPTY_SIDEBARS = [
+		'footer-2',
+		'article-1',
+		'article-2',
+	];
+
 	/**
 	 * Initialize settings.
 	 */
 	public static function init() {
 		add_action( 'dynamic_sidebar_before', [ __CLASS__, 'create_sidebar_before_action' ], 10, 2 );
 		add_action( 'dynamic_sidebar_after', [ __CLASS__, 'create_sidebar_after_action' ], 10, 2 );
+		add_filter( 'is_active_sidebar', [ __CLASS__, 'allow_empty_sidebars' ], 10, 2 );
 		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_sidebar_placements' ], 5, 1 );
+	}
+
+	/**
+	 * Get the placement key from the sidebar name.
+	 *
+	 * @param int|string $index Index, name, or ID of the dynamic sidebar.
+	 * 
+	 * @return string The placement key.
+	 */
+	private static function get_placement_key( $index ) {
+		return sprintf( 'sidebar_%s', $index );
 	}
 
 	/**
@@ -47,9 +68,25 @@ class Newspack_Ads_Sidebar_Placements {
 	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
 	 */
 	public static function create_sidebar_before_action( $index, $has_widgets ) {
-		if ( $has_widgets ) {
+		if ( $has_widgets || in_array( $index, self::ALLOWED_EMPTY_SIDEBARS, true ) ) {
 			do_action( sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $index ) );
 		}
+	}
+
+	/**
+	 * Ensure that a sidebar is active if it has ads and is allowed to show ads
+	 * even without any registered widgets.
+	 *
+	 * @param bool       $is_active_sidebar Whether the sidebar is active.
+	 * @param int|string $index             Index, name, or ID of the dynamic sidebar.
+	 *
+	 * @return bool Whether the sidebar is active.
+	 */
+	public static function allow_empty_sidebars( $is_active_sidebar, $index ) {
+		if ( ! $is_active_sidebar && in_array( $index, self::ALLOWED_EMPTY_SIDEBARS, true ) ) {
+			$is_active_sidebar = Newspack_Ads_Placements::can_display_ad_unit( self::get_placement_key( $index ) );
+		}
+		return $is_active_sidebar;
 	}
 
 	/**
@@ -59,7 +96,7 @@ class Newspack_Ads_Sidebar_Placements {
 	 * @param boolean    $has_widgets Whether the sidebar is populated with widgets. Default true.
 	 */
 	public static function create_sidebar_after_action( $index, $has_widgets ) {
-		if ( $has_widgets ) {
+		if ( $has_widgets || in_array( $index, self::ALLOWED_EMPTY_SIDEBARS, true ) ) {
 			do_action( sprintf( self::SIDEBAR_AFTER_HOOK_NAME, $index ) );
 		}
 	}
@@ -80,7 +117,7 @@ class Newspack_Ads_Sidebar_Placements {
 
 		foreach ( $sidebars as $sidebar ) {
 			if ( isset( $sidebar['id'] ) ) {
-				$placement_key = 'sidebar_' . $sidebar['id'];
+				$placement_key = self::get_placement_key( $sidebar['id'] );
 
 				// Skip disallowed sidebar placements.
 				$is_disallowed = in_array( $sidebar['id'], $disallowed_sidebars, true );
