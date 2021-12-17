@@ -16,7 +16,7 @@ class Newspack_Ads_Bidding_GAM {
 	const ADVERTISER_NAME = 'Newspack Header Bidding';
 
 	/**
-	 * Whether GAM is disconnected.
+	 * Whether GAM is connected.
 	 *
 	 * @var bool
 	 */
@@ -30,7 +30,7 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Whether GAM is connected.
+	 * Get and caches, if not yet checked, whether GAM is connected.
 	 *
 	 * @return bool Whether GAM is connected.
 	 */
