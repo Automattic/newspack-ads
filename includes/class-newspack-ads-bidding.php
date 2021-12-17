@@ -28,6 +28,81 @@ class Newspack_Ads_Bidding {
 		[ 160, 600 ],
 	];
 
+	// Default precision to use for price bucket increments.
+	const DEFAULT_BUCKET_PRECISION = 2;
+
+	/**
+	 * Get custom price granularities.
+	 *
+	 * @return array[] Custom price granularities.
+	 */
+	public static function get_price_granularities() {
+		$price_granularities = [
+			'low'    => [
+				'label'   => __( 'Low', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.5,
+						'max'       => 5,
+					],
+				],
+			],
+			'medium' => [
+				'label'   => __( 'Medium', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.1,
+						'max'       => 20,
+					],
+				],
+			],
+			'auto'   => [
+				'label'   => __( 'Auto', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.05,
+						'max'       => 5,
+					],
+					[
+						'increment' => 0.1,
+						'max'       => 10,
+					],
+					[
+						'increment' => 0.5,
+						'max'       => 20,
+					],  
+				],
+			],
+			'dense'  => [
+				'label'   => __( 'Dense', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.01,
+						'max'       => 0.6,
+					],
+					[
+						'increment' => 0.05,
+						'max'       => 5,
+					],
+					[
+						'increment' => 0.1,
+						'max'       => 10,
+					],
+					[
+						'increment' => 0.5,
+						'max'       => 20,
+					],
+				],
+			],
+		];
+		/**
+		 * Filters custom price granularities.
+		 *
+		 * @param array $price_granularities Custom price granularities.
+		 */
+		return apply_filters( 'newspack_ads_price_granularities', $price_granularities );
+	}
+
 	/**
 	 * Registered bidders.
 	 *
@@ -152,6 +227,29 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Sanitize an array of price buckets.
+	 *
+	 * @param array[] $price_buckets Array of price buckets.
+	 *
+	 * @return array[] Sanitized array of price buckets.
+	 */
+	public static function sanitize_price_buckets( $price_buckets ) {
+		return array_map(
+			function ( $bucket ) {
+				return wp_parse_args(
+					$bucket,
+					[
+						'precision' => self::DEFAULT_BUCKET_PRECISION,
+						'increment' => 0,
+						'max'       => 0,
+					]
+				);
+			},
+			$price_buckets
+		);
+	}
+
+	/**
 	 * Prebid script.
 	 *
 	 * @param array   $ad_config Ad config.
@@ -246,6 +344,13 @@ class Newspack_Ads_Bidding {
 				];
 			}
 		}
+		// Configure price buckets using `dense` as default.
+		$price_granularities = self::get_price_granularities();
+		if ( isset( $price_granularities[ $settings['price_granularity'] ] ) ) {
+			$price_granularity = $price_granularities[ $settings['price_granularity'] ];
+		} else {
+			$price_granularity = $price_granularities['dense'];
+		}
 		/**
 		 * Filters the Prebid.js default config.
 		 * See https://docs.prebid.org/dev-docs/publisher-api-reference/setConfig.html.
@@ -254,7 +359,7 @@ class Newspack_Ads_Bidding {
 			'newspack_ads_prebid_config',
 			[
 				'debug'            => (bool) $settings['debug'],
-				'priceGranularity' => $settings['price_granularity'] ?? 'medium',
+				'priceGranularity' => [ 'buckets' => self::sanitize_price_buckets( $price_granularity['buckets'] ) ],
 				'bidderTimeout'    => 1000,
 				'userSync'         => [
 					'enabled' => true,
@@ -493,6 +598,8 @@ class Newspack_Ads_Bidding {
 			return $settings_list;
 		}
 
+		$price_buckets = self::get_price_granularities();
+
 		$bidding_settings = array_merge(
 			array(
 				array(
@@ -510,27 +617,14 @@ class Newspack_Ads_Bidding {
 					'key'         => 'price_granularity',
 					'type'        => 'string',
 					'default'     => 'dense',
-					'options'     => array(
-						array(
-							'value' => 'low',
-							'name'  => __( 'Low', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'medium',
-							'name'  => __( 'Medium', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'high',
-							'name'  => __( 'High', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'auto',
-							'name'  => __( 'Auto', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'dense',
-							'name'  => __( 'Dense', 'newspack-ads' ),
-						),
+					'options'     => array_map(
+						function( $value ) use ( $price_buckets ) {
+							return [
+								'value' => $value,
+								'name'  => $price_buckets[ $value ]['label'],
+							];
+						},
+						array_keys( $price_buckets )
 					),
 				),
 			),

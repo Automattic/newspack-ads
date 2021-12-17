@@ -464,10 +464,12 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get all Line Items in the user's network, serialised.
-	 * 
+	 *
+	 * @param Line_Item[] $line_items (optional) Array of line items.
+	 *
 	 * @return object[] Array of serialised orders.
 	 */
-	public static function get_serialised_line_items() {
+	public static function get_serialised_line_items( $line_items = [] ) {
 		return array_map(
 			function( $item ) {
 				return [
@@ -479,7 +481,7 @@ class Newspack_Ads_GAM {
 					'type'        => $item->getLineItemType(),
 				];
 			},
-			self::get_line_items()
+			! empty( $line_items ) ? $line_items : self::get_line_items()
 		);
 	}
 
@@ -611,6 +613,26 @@ class Newspack_Ads_GAM {
 		$service        = self::get_order_service();
 		$created_orders = $service->createOrders( [ $order ] );
 		return self::get_serialised_orders( $created_orders )[0];
+	}
+
+	/**
+	 * Create line items.
+	 *
+	 * @param array[] $line_items_config List of line item configurations.
+	 *
+	 * @return object Created line item.
+	 */
+	public static function create_line_items( $line_items_config = [] ) {
+		/**
+		 * TODO: Create line items.
+		 */
+		foreach ( $line_items_config as $config ) {
+			$line_item = new LineItem();
+			$line_item->setOrderId( $config['order_id'] );
+		}
+		$service = self::get_line_item_service();
+		$service->createLineItems( [ $line_item ] );
+		return [];
 	}
 
 	/**
