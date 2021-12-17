@@ -467,21 +467,30 @@ class Newspack_Ads_Placements {
 	public static function can_display_ad_unit( $placement_key ) {
 		$can_display = true;
 		$placements  = self::get_placements();
+
+		// Placement does not exist.
 		if ( ! isset( $placements[ $placement_key ] ) ) {
 			$can_display = false;
 		} else {
 			$placement  = $placements[ $placement_key ];
 			$is_enabled = $placement['data']['enabled'];
+
+			// Placement is not enabled.
 			if ( ! $is_enabled ) {
 				$can_display = false;
 			} else {
+
+				// Placement contains hooks.
 				if ( isset( $placement['data']['hooks'] ) && count( $placement['data']['hooks'] ) ) {
 					$can_display = false;
 					foreach ( $placement['data']['hooks'] as $hook ) {
+						// A hook contains an ad unit.
 						if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
 							$can_display = true;
 						}
 					}
+
+					// Contains an ad unit.
 				} elseif ( ! isset( $placement['data']['ad_unit'] ) || ! $placement['data']['ad_unit'] ) {
 					$can_display = false;
 				}
