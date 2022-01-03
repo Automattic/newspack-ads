@@ -64,6 +64,7 @@ class Newspack_Ads_Bidding {
 
 		// Scripts setup.
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
+		add_filter( 'newspack_ads_disable_gtag_initial_load', [ __CLASS__, 'gtag_disable_initial_load' ], 100 );
 		add_filter( 'newspack_ads_gtag_ads_data', [ $this, 'add_gtag_ads_data' ] );
 		add_action( 'newspack_ads_gtag_before_script', [ $this, 'prebid_script' ], 10, 2 );
 	}
@@ -99,6 +100,20 @@ class Newspack_Ads_Bidding {
 			10,
 			3
 		);
+	}
+
+	/**
+	 * Disable GTag initial load if header bidding is enabled.
+	 *
+	 * @param bool $disable_initial_load Whether to disable initial load.
+	 *
+	 * @return bool Whether to disable initial load.
+	 */
+	public static function gtag_disable_initial_load( $disable_initial_load ) {
+		if ( ! self::is_enabled() ) {
+			return $disable_initial_load;
+		}
+		return true;
 	}
 
 	/**
