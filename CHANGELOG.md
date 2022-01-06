@@ -1,3 +1,15 @@
+# [1.25.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.24.0...v1.25.0-alpha.1) (2022-01-06)
+
+
+### Bug Fixes
+
+* **header-bidding:** disable initial load for gtag ([#274](https://github.com/Automattic/newspack-ads/issues/274)) ([c7a4ec3](https://github.com/Automattic/newspack-ads/commit/c7a4ec39879dca699fa88cf7c9109631a327bf2e))
+
+
+### Features
+
+* allow empty sidebars for article and above copyright ([#270](https://github.com/Automattic/newspack-ads/issues/270)) ([f128e95](https://github.com/Automattic/newspack-ads/commit/f128e95470f4590d7c801b3e7874e63407d4da26))
+
 # [1.24.0](https://github.com/Automattic/newspack-ads/compare/v1.23.0...v1.24.0) (2021-12-15)
 
 
