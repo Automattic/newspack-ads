@@ -104,6 +104,21 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Get a price granularity by key.
+	 *
+	 * @param string $key Price granularity key.
+	 *
+	 * @return array|false Price granularity or false if not found.
+	 */
+	public static function get_price_granularity( $key ) {
+		$price_granularities = self::get_price_granularities();
+		if ( ! isset( $price_granularities[ $key ] ) ) {
+			return false;
+		}
+		return $price_granularities[ $key ];
+	}
+
+	/**
 	 * Registered bidders.
 	 *
 	 * @var array

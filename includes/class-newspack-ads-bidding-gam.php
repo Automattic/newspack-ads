@@ -66,12 +66,20 @@ class Newspack_Ads_Bidding_GAM {
 		}
 
 		\wp_enqueue_script(
-			'newspack_ads_bidding_gam',
+			'newspack-ads-bidding-gam',
 			plugins_url( '../dist/header-bidding-gam.js', __FILE__ ),
 			[ 'wp-components', 'wp-api-fetch' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/header-bidding-gam.js' ),
 			true 
 		);
+		\wp_register_style(
+			'newspack-ads-bidding-gam',
+			plugins_url( '../dist/header-bidding-gam.css', __FILE__ ),
+			null,
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/header-bidding-gam.css' )
+		);
+		\wp_style_add_data( 'newspack-ads-bidding-gam', 'rtl', 'replace' );
+		\wp_enqueue_style( 'newspack-ads-bidding-gam' );
 	}
 
 	/**
@@ -124,27 +132,10 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Get GAM config.
-	 *
-	 * @return array Stored GAM config.
-	 */
-	private static function get_gam_config() {
-		return get_option( self::get_option_name( 'bidding_gam_config' ), [] );
-	}
-
-	/**
-	 * Update GAM config.
-	 *
-	 * @param array $config GAM config to be stored.
-	 * 
-	 * @return bool Whether the config was updated.
-	 */
-	private static function set_gam_config( $config ) {
-		return update_option( self::get_option_name( 'bidding_gam_config' ), $config );
-	}
-
-	/**
 	 * Initial GAM setup for header bidding.
+	 *
+	 * Creates (if necessary) and stores the advertiser, targeting keys and
+	 * creatives required for the order and its line items.
 	 *
 	 * @return array|WP_Error Created GAM config or WP_Error if setup errors.
 	 */
@@ -167,7 +158,7 @@ class Newspack_Ads_Bidding_GAM {
 			'targeting_keys_ids' => $targeting_keys,
 			'creatives_ids'      => array_column( $creatives, 'id' ),
 		];
-		self::set_gam_config( $config );
+		update_option( self::get_option_name( 'bidding_gam_config' ), $config );
 		return $config;
 	}
 
@@ -285,43 +276,105 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Get or create order.
+	 * Get unique order config hash for a given price granularity.
 	 *
-	 * @param string $name          Name of the order.
-	 * @param int    $advertiser_id Advertiser ID to register order with.
+	 * @param string $price_granularity_key The price granularity key.
 	 *
-	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
+	 * @return string The order hash.
 	 */
-	private static function create_order( $name, $advertiser_id ) {
-		$orders      = Newspack_Ads_GAM::get_serialised_orders();
-		$order_index = array_search( $name, array_column( $orders, 'name' ) );
-		if ( false !== $order_index ) {
-			return $orders[ $order_index ];
-		} else {
-			try {
-				$order = Newspack_Ads_GAM::create_order( $name, $advertiser_id );
-			} catch ( \Exception $e ) {
-				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
-			}
-			return $order;  
+	private static function get_order_hash( $price_granularity_key ) {
+		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
+		if ( false === $price_granularity ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
 		}
+		return md5(
+			wp_json_encode(
+				[
+					$price_granularity_key,
+					$price_granularity['buckets'],
+				]
+			) 
+		);
 	}
 
 	/**
-	 * Update GAM order line items based on price granularity
+	 * Get order config for a given price granularity.
 	 *
-	 * @param int    $order_id          The ID of the order to attach the line items to.
-	 * @param string $price_granularity The price granularity.
+	 * @param string $price_granularity_key The price granularity key.
+	 *
+	 * @return array The stored order setup.
 	 */
-	private static function update_line_items( $order_id, $price_granularity ) {
+	private static function get_order( $price_granularity_key ) {
+		$orders     = get_option( self::get_option_name( 'bidding_gam_orders' ), [] );
+		$order_hash = self::get_order_hash( $price_granularity_key );
 
-		$price_granularities = Newspack_Ads_Bidding::get_price_granularities();
+		if ( ! isset( $orders[ $order_hash ] ) ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_order_not_found', __( 'No order setup found', 'newspack-ads' ) );
+		}
 
-		if ( ! $price_granularities[ $price_granularity ] ) {
+		$order = $orders[ $price_granularity_key ];
+		if ( $order_hash !== $order['hash'] ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_order_mismatch', __( 'Order config hash mismatch', 'newspack-ads' ) );
+		}
+
+		return $order;
+	}
+
+	/**
+	 * Create order and line items based on price granularity.
+	 *
+	 * @param string $name                  Name of the order.
+	 * @param string $price_granularity_key The price granularity key.
+	 *
+	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
+	 */
+	private static function create_order( $name, $price_granularity_key ) {
+		$config            = self::initial_setup();
+		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
+
+		if ( false === $price_granularity ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
 		}
+
+		try {
+			$order = Newspack_Ads_GAM::create_order( $name, $config['advertiser_id'] );
+		} catch ( \Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+
+		$line_items = self::create_line_items( $order['id'], $price_granularity );
+
+		$option_name   = self::get_option_name( 'bidding_gam_orders' );
+		$stored_orders = get_option( $option_name, [] );
+		update_option(
+			$option_name,
+			array_merge(
+				$stored_orders,
+				[
+					$price_granularity_key => [
+						'order_id'         => $order['id'],
+						'order_name'       => $name,
+						'buckets'          => $price_granularity['buckets'],
+						'line_items_count' => count( $line_items ),
+						'hash'             => self::get_order_hash( $price_granularity_key ),
+					],
+				]
+			)
+		);
+		return $order;
+	}
+
+	/**
+	 * Create GAM line items based on price granularity
+	 *
+	 * @param int   $order_id              The ID of the order to attach the line items to.
+	 * @param array $price_granularity      The price granularity config.
+	 *
+	 * @return array[] Array of serialized line items.
+	 */
+	private static function create_line_items( $order_id, $price_granularity ) {
 		
-		$buckets = $price_granularities[ $price_granularity ]['buckets'];
+		$buckets = $price_granularity['buckets'];
 
 		// Sort buckets by max value.
 		usort(
@@ -385,6 +438,7 @@ class Newspack_Ads_Bidding_GAM {
 				'sizes'    => newspack_get_ads_bidder_sizes(),
 			];
 		}
+		return $line_items;
 	}
 
 	/**

@@ -33,6 +33,8 @@ use Google\AdsApi\AdManager\v202111\Size;
 use Google\AdsApi\AdManager\v202111\Company;
 use Google\AdsApi\AdManager\v202111\CompanyType;
 
+use Google\AdsApi\AdManager\v202111\LineItemCreativeAssociationService;
+
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
 /**
