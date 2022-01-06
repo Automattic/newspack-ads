@@ -26,6 +26,7 @@ use Google\AdsApi\AdManager\v202111\AdUnit;
 use Google\AdsApi\AdManager\v202111\AdUnitSize;
 use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
 use Google\AdsApi\AdManager\v202111\Order;
+use Google\AdsApi\AdManager\v202111\Creative;
 use Google\AdsApi\AdManager\v202111\LineItem;
 use Google\AdsApi\AdManager\v202111\EnvironmentType;
 use Google\AdsApi\AdManager\v202111\Size;
@@ -42,6 +43,8 @@ class Newspack_Ads_GAM {
 	const GAM_APP_NAME_FOR_LOGS = 'Newspack';
 
 	const SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
+
+	const GAM_API_VERSION = 'v202111';
 
 	/**
 	 * Codes of networks that the user has access to.
@@ -260,17 +263,6 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create advertiser service.
-	 *
-	 * @return AdvertiserService Advertiser service.
-	 */
-	private static function get_advertiser_service() {
-		$service_factory = new ServiceFactory();
-		$session         = self::get_gam_session();
-		return $service_factory->createAdvertiserService( $session );
-	}
-
-	/**
 	 * Create order service.
 	 *
 	 * @return OrderService Order service.
@@ -279,6 +271,17 @@ class Newspack_Ads_GAM {
 		$service_factory = new ServiceFactory();
 		$session         = self::get_gam_session();
 		return $service_factory->createOrderService( $session );
+	}
+
+	/**
+	 * Create creative service.
+	 *
+	 * @return CreativeService Creative service.
+	 */
+	private static function get_creative_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createCreativeService( $session );
 	}
 
 	/**
@@ -436,6 +439,76 @@ class Newspack_Ads_GAM {
 			},
 			! empty( $orders ) ? $orders : self::get_orders()
 		);
+	}
+
+	/**
+	 * Get creatives from an optional initialized statement builder.
+	 *
+	 * @param StatementBuilder $statement_builder (optional) Statement builder.
+	 *
+	 * @return Creative[] Array of creatives.
+	 */
+	private static function get_creatives( StatementBuilder $statement_builder = null ) {
+		$creatives             = [];
+		$creative_service      = self::get_creative_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$total_result_set_size = 0;
+		$statement_builder     = $statement_builder ?? new StatementBuilder();
+		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
+		do {
+			$page = $creative_service->getCreativesByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $creative ) {
+					$creatives[] = $creative;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $creatives;
+	}
+
+	/**
+	 * Get creatives from an advertiser.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return Creative[] Array of creatives.
+	 */
+	private static function get_creatives_by_advertiser( $advertiser_id ) { 
+		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
+		return self::get_creatives( $statement_builder );
+	}
+
+	/**
+	 * Get all creatives in the user's network, serialised.
+	 *
+	 * @param Creative[] $creatives (optional) Array of Creatives.
+	 *
+	 * @return array[] Array of serialised creatives.
+	 */
+	public static function get_serialised_creatives( $creatives = [] ) {
+		return array_map(
+			function( $creatives ) {
+				return [
+					'id'           => $creatives->getId(),
+					'name'         => $creatives->getName(),
+					'advertiserId' => $creatives->getAdvertiserId(),
+				];
+			},
+			! empty( $creatives ) ? $creatives : self::get_creatives()
+		);
+	}
+
+	/**
+	 * Get creatives from an advertiser, serialised.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return array[] Array of serialised creatives.
+	 */
+	public static function get_serialised_creatives_by_advertiser( $advertiser_id ) {
+		return self::get_serialised_creatives( self::get_creatives_by_advertiser( $advertiser_id ) );
 	}
 
 	/**
@@ -613,6 +686,66 @@ class Newspack_Ads_GAM {
 		$service        = self::get_order_service();
 		$created_orders = $service->createOrders( [ $order ] );
 		return self::get_serialised_orders( $created_orders )[0];
+	}
+
+	/**
+	 * Create a GAM Creative.
+	 *
+	 * @param array[] $creatives_config Array of creative configurations.
+	 *
+	 * @return object Created creative.
+	 *
+	 * @throws \Exception If unable to create creatives.
+	 */
+	public static function create_creatives( $creatives_config = [] ) {
+		$creatives = [];
+		$xsi_types = [
+			'BaseDynamicAllocationCreative',
+			'BaseRichMediaStudioCreative',
+			'ClickTrackingCreative',
+			'HasDestinationUrlCreative',
+			'Html5Creative',
+			'InternalRedirectCreative',
+			'LegacyDfpCreative',
+			'ProgrammaticCreative',
+			'TemplateCreative',
+			'ThirdPartyCreative',
+			'UnsupportedCreative',
+			'VastRedirectCreative',
+		];
+		foreach ( $creatives_config as $creative_config ) {
+			$creative_config = wp_parse_args(
+				$creative_config,
+				[
+					'xsi_type' => 'Creative',
+				]
+			);
+			if ( ! in_array( $creative_config['xsi_type'], $xsi_types, true ) ) {
+				throw new \Exception( 'Invalid xsi type' );
+			}
+			$fully_qualified_creative_class = 'Google\\AdsApi\\AdManager\\' . self::GAM_API_VERSION . '\\' . $creative_config['xsi_type'];
+			$creative                       = new $fully_qualified_creative_class();
+			$creative->setName( $creative_config['name'] );
+			$creative->setAdvertiserId( $creative_config['advertiser_id'] );
+			$creative->setSize( new Size( $creative_config['width'], $creative_config['height'] ) );
+			switch ( $creative_config['xsi_type'] ) {
+				case 'ThirdPartyCreative':
+					$creative_config = wp_parse_args(
+						$creative_config,
+						[
+							'snippet'                  => '',
+							'is_safe_frame_compatible' => true,
+						]
+					);
+					$creative->setSnippet( $creative_config['snippet'] );
+					$creative->setIsSafeFrameCompatible( $creative_config['is_safe_frame_compatible'] );
+					break;
+			}
+			$creatives[] = $creative;
+		}
+		$service           = self::get_creative_service();
+		$created_creatives = $service->createCreatives( $creatives );
+		return self::get_serialised_creatives( $created_creatives );
 	}
 
 	/**

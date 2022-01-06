@@ -250,6 +250,27 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Get a list of all sizes being used by all active bidders.
+	 *
+	 * @return array[] List of sizes.
+	 */
+	public function get_all_sizes() {
+		$bidders       = $this->get_bidders();
+		$bidders_sizes = array_unique(
+			array_merge(
+				...array_map(
+					function( $bidder ) {
+						return $bidder['ad_sizes'];
+					},
+					array_values( $bidders )
+				)
+			),
+			SORT_REGULAR
+		);
+		return $bidders_sizes;
+	}
+
+	/**
 	 * Prebid script.
 	 *
 	 * @param array   $ad_config Ad config.
@@ -270,19 +291,6 @@ class Newspack_Ads_Bidding {
 			return;
 		}
 
-		// Get all of the existing sizes for available bidders.
-		$bidders_sizes = array_unique(
-			array_merge(
-				...array_map(
-					function( $bidder ) {
-						return $bidder['ad_sizes'];
-					},
-					array_values( $bidders )
-				)
-			),
-			SORT_REGULAR
-		);
-
 		$ad_units = array();
 
 		$settings = self::get_settings();
@@ -294,7 +302,7 @@ class Newspack_Ads_Bidding {
 				// Detect sizes supported by available bidders.
 				$sizes = array_intersect(
 					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
-					array_map( [ __CLASS__, 'get_size_string' ], $bidders_sizes )
+					array_map( [ __CLASS__, 'get_size_string' ], $this->get_all_sizes() )
 				);
 				if ( ! count( $sizes ) ) {
 					continue;
@@ -668,6 +676,17 @@ if ( ! function_exists( 'newspack_get_ads_bidder' ) ) {
 	 */
 	function newspack_get_ads_bidder( $bidder_id ) {
 		return $GLOBALS['newspack_ads_bidding']->get_bidder( $bidder_id );
+	}
+}
+
+if ( ! function_exists( 'newspack_get_ads_bidder_sizes' ) ) {
+	/**
+	 * Get a list of all sizes being used by all active bidders.
+	 *
+	 * @return array[] List of sizes.
+	 */
+	function newspack_get_ads_bidder_sizes() {
+		return $GLOBALS['newspack_ads_bidding']->get_all_sizes();
 	}
 }
 

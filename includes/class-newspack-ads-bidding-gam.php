@@ -15,12 +15,37 @@ class Newspack_Ads_Bidding_GAM {
 	// The name of the company to be created on GAM.
 	const ADVERTISER_NAME = 'Newspack Header Bidding';
 
+	// Amount of creatives to attach per line item.
+	// This number is arbitrary and should match at least the number of ad units displayed on a page.
+	const CREATIVE_COUNT = 10;
+
 	/**
 	 * Whether GAM is connected.
 	 *
 	 * @var bool
 	 */
-	private static $connected = null;
+	protected static $connected = null;
+
+	/**
+	 * Header Bidding GAM Advertiser
+	 *
+	 * @var array
+	 */
+	protected static $advertiser = null;
+
+	/**
+	 * Header Bidding GAM Targeting Keys
+	 *
+	 * @var int[]
+	 */
+	protected static $targeting_keys = null;
+
+	/**
+	 * Header Bidding GAM Creatives
+	 *
+	 * @var array[]
+	 */
+	protected static $creatives = [];
 
 	/**
 	 * Initialize hooks.
@@ -96,27 +121,6 @@ class Newspack_Ads_Bidding_GAM {
 		if ( 'active' === $key && true === $value ) {
 			self::initial_setup();
 		}
-
-		// Bidder segmentation key-val registration on bidder active key change.
-		$bidders = newspack_get_ads_bidders();
-		foreach ( $bidders as $bidder_id => $bidder ) {
-			if ( ! empty( $bidder['active_key'] ) && $bidder['active_key'] === $key && ! empty( $value ) ) {
-				self::create_bidder_segment( $bidder_id );
-			}
-		}
-
-		// Line Items synchronization on price granularity change.
-		if ( 'price_granularity' === $key ) {
-			self::set_pending_line_items();
-			self::update_line_items( $value );
-		}
-	}
-
-	/**
-	 * Set pending action for line items updates.
-	 */
-	private static function set_pending_line_items() {
-		update_option( self::get_option_name( 'pending_line_items' ), '1' );
 	}
 
 	/**
@@ -149,24 +153,167 @@ class Newspack_Ads_Bidding_GAM {
 		if ( \is_wp_error( $advertiser ) ) {
 			return $advertiser;
 		}
-		$order = self::get_order( $advertiser );
-		if ( \is_wp_error( $order ) ) {
-			return $order;
+		$targeting_keys = self::get_targeting_keys();
+		if ( \is_wp_error( $targeting_keys ) ) {
+			return $targeting_keys;
 		}
+		$creatives = self::get_creatives( $advertiser['id'] );
+		if ( \is_wp_error( $creatives ) ) {
+			return $creatives;
+		}
+		// Store GAM config.
 		$config = [
-			'advertiser_id' => $advertiser['id'],
-			'order_id'      => $order['id'],
+			'advertiser_id'      => $advertiser['id'],
+			'targeting_keys_ids' => $targeting_keys,
+			'creatives_ids'      => array_column( $creatives, 'id' ),
 		];
 		self::set_gam_config( $config );
 		return $config;
 	}
 
 	/**
-	 * Update GAM orders and line items based on price granularity
+	 * Get or create advertiser.
 	 *
+	 * @return array|WP_Error The serialized advertiser or WP_Error if creation fails.
+	 */
+	private static function get_advertiser() {
+		if ( ! is_null( self::$advertiser ) ) {
+			return self::$advertiser;
+		}
+		$advertisers      = Newspack_Ads_GAM::get_serialised_advertisers();
+		$advertiser_index = array_search( self::ADVERTISER_NAME, array_column( $advertisers, 'name' ) );
+		if ( false !== $advertiser_index ) {
+			$advertiser = $advertisers[ $advertiser_index ];
+		} else {
+			try {
+				$advertiser = Newspack_Ads_GAM::create_advertiser( self::ADVERTISER_NAME );
+			} catch ( \Exception $e ) {
+				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+			}
+		}
+		self::$advertiser = $advertiser;
+		return $advertiser;
+	}
+
+	/**
+	 * If not yet created, create a key-val segments.
+	 *
+	 * @return int[]|WP_Error Associate array of created targeting keys IDs or error.
+	 */
+	private static function get_targeting_keys() {
+		if ( ! is_null( self::$targeting_keys ) ) {
+			return self::$targeting_keys;
+		}
+		$key_names = [
+			'hb_bidder',
+			'hb_pb',
+		];
+		try {
+			$targeting_keys = [];
+			foreach ( $key_names as $key_name ) {
+				$targeting_key               = Newspack_Ads_GAM::create_targeting_key( $key_name );
+				$targeting_keys[ $key_name ] = $targeting_key->getId();
+			}
+			self::$targeting_keys = $targeting_keys;
+			return $targeting_keys;
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Get or create Prebid creatives.
+	 *
+	 * @param string $advertiser_id Advertiser ID to register creatives with.
+	 */
+	private static function get_creatives( $advertiser_id ) {
+		if ( ! is_null( self::$creatives ) ) {
+			return self::$creatives;
+		}
+		try {
+			$creatives = Newspack_Ads_GAM::get_serialised_creatives_by_advertiser( $advertiser_id );
+		} catch ( \Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+		if ( $creatives && self::CREATIVE_COUNT <= count( $creatives ) ) {
+			// TODO: We might want to validate the existing creatives.
+			return $creatives;
+		} else {
+			ob_start();
+			// Prebid Universal Creative: https://github.com/prebid/prebid-universal-creative.
+			?>
+			<script src="https://cdn.jsdelivr.net/npm/prebid-universal-creative@latest/dist/creative.js"></script>
+			<script>
+				var ucTagData = {};
+				ucTagData.adServerDomain = "";
+				ucTagData.pubUrl = "%%PATTERN:url%%";
+				ucTagData.targetingMap = %%PATTERN:TARGETINGMAP%%;
+				ucTagData.hbPb = "%%PATTERN:hb_pb%%";
+				try {
+						ucTag.renderAd(document, ucTagData);
+				} catch (e) {
+						console.log(e);
+				}
+			</script>
+			<?php
+			$snippet     = ob_get_clean();
+			$base_config = [
+				'advertiser_id'            => $advertiser_id,
+				'xsi_type'                 => 'ThirdPartyCreative',
+				'width'                    => 1,
+				'height'                   => 1,
+				'is_safe_frame_compatible' => true,
+				'snippet'                  => $snippet,
+			];
+			$configs     = [];
+			for ( $i = 0; $i < self::CREATIVE_COUNT; $i++ ) {
+				$configs[] = wp_parse_args(
+					[
+						'name' => sprintf( '%s - %d', self::ADVERTISER_NAME, $i + 1 ),
+					],
+					$base_config
+				);
+			}
+			try {
+				$creatives = Newspack_Ads_GAM::create_creatives( $configs );
+			} catch ( \Exception $e ) {
+				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+			}
+			self::$creatives = $creatives;
+			return $creatives;
+		}
+	}
+
+	/**
+	 * Get or create order.
+	 *
+	 * @param string $name          Name of the order.
+	 * @param int    $advertiser_id Advertiser ID to register order with.
+	 *
+	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
+	 */
+	private static function create_order( $name, $advertiser_id ) {
+		$orders      = Newspack_Ads_GAM::get_serialised_orders();
+		$order_index = array_search( $name, array_column( $orders, 'name' ) );
+		if ( false !== $order_index ) {
+			return $orders[ $order_index ];
+		} else {
+			try {
+				$order = Newspack_Ads_GAM::create_order( $name, $advertiser_id );
+			} catch ( \Exception $e ) {
+				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+			}
+			return $order;  
+		}
+	}
+
+	/**
+	 * Update GAM order line items based on price granularity
+	 *
+	 * @param int    $order_id          The ID of the order to attach the line items to.
 	 * @param string $price_granularity The price granularity.
 	 */
-	private static function update_line_items( $price_granularity ) {
+	private static function update_line_items( $order_id, $price_granularity ) {
 
 		$price_granularities = Newspack_Ads_Bidding::get_price_granularities();
 
@@ -228,57 +375,15 @@ class Newspack_Ads_Bidding_GAM {
 		/**
 		 * TODO: Create line items.
 		 */
-		$gam_config = self::get_gam_config();
 		$line_items = [];
 		foreach ( $prices as $price ) {
+			$price        = self::get_micro_to_number( $price );
 			$line_items[] = [
-				'name'     => self::ADVERTISER_NAME . ' ' . $price,
+				'name'     => sprintf( '%s - %01.2f', self::ADVERTISER_NAME, $price ),
 				'price'    => $price,
-				'order_id' => $gam_config['order_id'],
-				'sizes'    => Newspack_Ads_Bidding::ACCEPTED_AD_SIZES,
+				'order_id' => $order_id,
+				'sizes'    => newspack_get_ads_bidder_sizes(),
 			];
-		}
-	}
-
-	/**
-	 * Get or create advertiser.
-	 *
-	 * @return array|WP_Error The serialized advertiser or WP_Error if creation fails.
-	 */
-	private static function get_advertiser() {
-		$advertisers      = Newspack_Ads_GAM::get_serialised_advertisers();
-		$advertiser_index = array_search( self::ADVERTISER_NAME, array_column( $advertisers, 'name' ) );
-		if ( false !== $advertiser_index ) {
-			return $advertisers[ $advertiser_index ];
-		} else {
-			try {
-				$advertiser = Newspack_Ads_GAM::create_advertiser( self::ADVERTISER_NAME );
-			} catch ( \Exception $e ) {
-				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
-			}
-			return $advertiser;
-		}
-	}
-
-	/**
-	 * Get or create order.
-	 *
-	 * @param array $advertiser Serialized advertiser to register order with.
-	 *
-	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
-	 */
-	private static function get_order( $advertiser ) {
-		$orders      = Newspack_Ads_GAM::get_serialised_orders();
-		$order_index = array_search( self::ADVERTISER_NAME, array_column( $orders, 'name' ) );
-		if ( false !== $order_index ) {
-			return $orders[ $order_index ];
-		} else {
-			try {
-				$order = Newspack_Ads_GAM::create_order( self::ADVERTISER_NAME, $advertiser['id'] );
-			} catch ( \Exception $e ) {
-				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
-			}
-			return $order;  
 		}
 	}
 
@@ -303,22 +408,6 @@ class Newspack_Ads_Bidding_GAM {
 	 */
 	private static function get_micro_to_number( $micro_amount ) {
 		return $micro_amount / pow( 10, 6 );
-	}
-
-	/**
-	 * If not yet created, create a key-val segment for the given bidder.
-	 *
-	 * @param string $bidder_id The bidder key.
-	 *
-	 * @return bool Whether the segment was created.
-	 */
-	private static function create_bidder_segment( $bidder_id ) {
-		try {
-			Newspack_Ads_GAM::create_targeting_key( 'bidder', [ $bidder_id ] );
-			return true;
-		} catch ( Exception $e ) {
-			return false;
-		}
 	}
 }
 Newspack_Ads_Bidding_GAM::init();
