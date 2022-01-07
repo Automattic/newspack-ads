@@ -311,8 +311,6 @@ class Newspack_Ads_Bidding {
 
 		$ad_units = array();
 
-		$settings = self::get_settings();
-
 		foreach ( $data as $container_id => $ad_data ) {
 
 			if ( isset( $ad_data['bidders'] ) && count( $ad_data['bidders'] ) ) {
@@ -647,23 +645,6 @@ class Newspack_Ads_Bidding {
 					'key'         => 'active',
 					'type'        => 'boolean',
 					'default'     => false,
-				),
-				array(
-					'description' => __( 'Price granularity', 'newspack-ads' ),
-					'help'        => __( 'The level of the price target set in the header bidding line items. The price buckets impact the line items’ ability to compete optimally with your other price-based ad campaigns.', 'newspack-ads' ),
-					'section'     => self::SETTINGS_SECTION_NAME,
-					'key'         => 'price_granularity',
-					'type'        => 'string',
-					'default'     => 'dense',
-					'options'     => array_map(
-						function( $value ) use ( $price_buckets ) {
-							return [
-								'value' => $value,
-								'name'  => $price_buckets[ $value ]['label'],
-							];
-						},
-						array_keys( $price_buckets )
-					),
 				),
 			),
 			$this->get_bidders_settings_config(),

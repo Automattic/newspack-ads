@@ -51,8 +51,68 @@ class Newspack_Ads_Bidding_GAM {
 	 * Initialize hooks.
 	 */
 	public static function init() {
+		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		add_action( 'newspack_ads_after_update_setting', [ __CLASS__, 'update_gam_from_setting_update' ], 10, 4 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
+	}
+
+	/**
+	 * Register API endpoints.
+	 */
+	public static function register_api_endpoints() {
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/bidding/gam/order',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_order' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+			]
+		);
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/bidding/gam/order',
+			[
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'api_create_order' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'name' => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * API method for getting the current GAM order.
+	 *
+	 * @return WP_REST_Response containing the current order.
+	 */
+	public static function api_get_order() {
+		return \rest_ensure_response(
+			self::get_order(
+				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
+			)
+		);
+	}
+
+	/**
+	 * API method for creating a new GAM order.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the created order.
+	 */
+	public static function api_create_order( $request ) {
+		return \rest_ensure_response(
+			self::create_order(
+				$request->get_param( 'name' ),
+				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
+			)
+		);
 	}
 
 	/**
@@ -90,7 +150,7 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return string Prefixed option name.
 	 */
 	private static function get_option_name( $name ) {
-		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . $name;
+		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'bidding_gam_' . $name;
 	}
 
 	/**
@@ -158,7 +218,7 @@ class Newspack_Ads_Bidding_GAM {
 			'targeting_keys_ids' => $targeting_keys,
 			'creatives_ids'      => array_column( $creatives, 'id' ),
 		];
-		update_option( self::get_option_name( 'bidding_gam_config' ), $config );
+		update_option( self::get_option_name( 'config' ), $config );
 		return $config;
 	}
 
@@ -305,16 +365,28 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return array The stored order setup.
 	 */
 	private static function get_order( $price_granularity_key ) {
-		$orders     = get_option( self::get_option_name( 'bidding_gam_orders' ), [] );
+		$orders     = get_option( self::get_option_name( 'orders' ), [] );
 		$order_hash = self::get_order_hash( $price_granularity_key );
 
 		if ( ! isset( $orders[ $order_hash ] ) ) {
-			return new WP_Error( 'newspack_ads_bidding_gam_order_not_found', __( 'No order setup found', 'newspack-ads' ) );
+			return new WP_Error(
+				'newspack_ads_bidding_gam_order_not_found',
+				__( 'Order not found.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
 		}
 
 		$order = $orders[ $price_granularity_key ];
 		if ( $order_hash !== $order['hash'] ) {
-			return new WP_Error( 'newspack_ads_bidding_gam_order_mismatch', __( 'Order config hash mismatch', 'newspack-ads' ) );
+			return new WP_Error(
+				'newspack_ads_bidding_gam_order_mismatch',
+				__( 'Order config hash mismatch.', 'newspack-ads' ),
+				[
+					'status' => '400',
+				] 
+			);
 		}
 
 		return $order;
@@ -342,39 +414,30 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
 
-		$line_items = self::create_line_items( $order['id'], $price_granularity );
+		$line_items = self::create_line_items( $order['id'], $price_granularity['buckets'] );
 
-		$option_name   = self::get_option_name( 'bidding_gam_orders' );
+		$order_config  = [
+			'order_id'         => $order['id'],
+			'order_name'       => $name,
+			'buckets'          => $price_granularity['buckets'],
+			'line_items_count' => count( $line_items ),
+			'hash'             => self::get_order_hash( $price_granularity_key ),
+		];
+		$option_name   = self::get_option_name( 'orders' );
 		$stored_orders = get_option( $option_name, [] );
-		update_option(
-			$option_name,
-			array_merge(
-				$stored_orders,
-				[
-					$price_granularity_key => [
-						'order_id'         => $order['id'],
-						'order_name'       => $name,
-						'buckets'          => $price_granularity['buckets'],
-						'line_items_count' => count( $line_items ),
-						'hash'             => self::get_order_hash( $price_granularity_key ),
-					],
-				]
-			)
-		);
-		return $order;
+		update_option( $option_name, array_merge( $stored_orders, [ $price_granularity_key => $order_config ] ) );
+		return $order_config;
 	}
 
 	/**
 	 * Create GAM line items based on price granularity
 	 *
-	 * @param int   $order_id              The ID of the order to attach the line items to.
-	 * @param array $price_granularity      The price granularity config.
+	 * @param int     $order_id The ID of the order to attach the line items to.
+	 * @param array[] $buckets  The price granularity buckets configuration.
 	 *
 	 * @return array[] Array of serialized line items.
 	 */
-	private static function create_line_items( $order_id, $price_granularity ) {
-		
-		$buckets = $price_granularity['buckets'];
+	private static function create_line_items( $order_id, $buckets ) {
 
 		// Sort buckets by max value.
 		usort(
