@@ -31,6 +31,9 @@ class Newspack_Ads_Bidding {
 	// Default precision to use for price bucket increments.
 	const DEFAULT_BUCKET_PRECISION = 2;
 
+	// Default price granularity to use for price bucket increments.
+	const DEFAULT_PRICE_GRANULARITY = 'dense';
+
 	/**
 	 * Get custom price granularities.
 	 *
@@ -367,13 +370,10 @@ class Newspack_Ads_Bidding {
 				];
 			}
 		}
-		// Configure price buckets using `dense` as default.
+		// Configure price buckets.
 		$price_granularities = self::get_price_granularities();
-		if ( isset( $price_granularities[ $settings['price_granularity'] ] ) ) {
-			$price_granularity = $price_granularities[ $settings['price_granularity'] ];
-		} else {
-			$price_granularity = $price_granularities['dense'];
-		}
+		$price_granularity   = $price_granularities[ self::get_setting( 'price_granularity', self::DEFAULT_PRICE_GRANULARITY ) ];
+
 		/**
 		 * Filters the Prebid.js default config.
 		 * See https://docs.prebid.org/dev-docs/publisher-api-reference/setConfig.html.
@@ -381,7 +381,7 @@ class Newspack_Ads_Bidding {
 		$prebid_config = apply_filters(
 			'newspack_ads_prebid_config',
 			[
-				'debug'            => (bool) $settings['debug'],
+				'debug'            => (bool) self::get_setting( 'debug', false ),
 				'priceGranularity' => [ 'buckets' => self::sanitize_price_buckets( $price_granularity['buckets'] ) ],
 				'bidderTimeout'    => 1000,
 				'userSync'         => [
@@ -473,6 +473,18 @@ class Newspack_Ads_Bidding {
 	 */
 	public static function get_settings() {
 		return Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
+	}
+
+	/**
+	 * Get a header bidding setting.
+	 *
+	 * @param string $key           The key of the setting to retrieve.
+	 * @param mixed  $default_value The default value to return if the setting is not found.
+	 *
+	 * @return mixed The setting value or null if not found.
+	 */
+	public static function get_setting( $key, $default_value = null ) {
+		return Newspack_Ads_Settings::get_setting( self::SETTINGS_SECTION_NAME, $key, $default_value );
 	}
 
 	/**

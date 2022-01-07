@@ -356,5 +356,18 @@ class Newspack_Ads_Settings {
 		}
 	}
 
+	/**
+	 * Get a setting value.
+	 *
+	 * @param string $section       The section to retrieve settings from.
+	 * @param string $key           The key of the setting to retrieve.
+	 * @param mixed  $default_value The default value to return if the setting is not found.
+	 *
+	 * @return mixed The setting value or null if not found.
+	 */
+	public static function get_setting( $section, $key, $default_value = null ) {
+		$settings = self::get_settings( $section );
+		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
+	}
 }
 Newspack_Ads_Settings::init();
