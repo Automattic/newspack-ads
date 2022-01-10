@@ -96,7 +96,7 @@ const HeaderBiddingGAM = () => {
 						</Button>
 						<Button
 							isPrimary
-							disabled={ inFlight }
+							disabled={ ! orderName || inFlight }
 							onClick={ async () => {
 								// TODO: Implement line items creation before testing order creation.
 								await fetchOrder();
