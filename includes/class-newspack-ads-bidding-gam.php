@@ -262,8 +262,8 @@ class Newspack_Ads_Bidding_GAM {
 		try {
 			$targeting_keys = [];
 			foreach ( $key_names as $key_name ) {
-				$targeting_key               = Newspack_Ads_GAM::create_targeting_key( $key_name );
-				$targeting_keys[ $key_name ] = $targeting_key->getId();
+				$result                      = Newspack_Ads_GAM::create_targeting_key( $key_name );
+				$targeting_keys[ $key_name ] = $result['targeting_key']->getId();
 			}
 			self::$targeting_keys = $targeting_keys;
 			return $targeting_keys;
@@ -488,20 +488,69 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Unsupported amount of line items.', 'newspack-ads' ) );
 		}
 
+		// Batch create `hb_pb` values for all prices.
+		$targeting_keys_result = Newspack_Ads_GAM::create_targeting_key(
+			'hb_pb',
+			array_map(
+				function( $price ) {
+					return self::get_number_to_price_string( self::get_micro_to_number( $price ) );
+				},
+				$prices
+			)
+		);
+		// Store result in value map for line item targeting.
+		$targeting_key_id        = $targeting_keys_result['targeting_key']->getId();
+		$targeting_values_id_map = [];
+		foreach ( $targeting_keys_result['found_values'] as $value ) {
+			$targeting_values_id_map[ $value->getName() ] = $value->getId();
+		}
+		foreach ( $targeting_keys_result['created_values'] as $value ) {
+			$targeting_values_id_map[ $value->getName() ] = $value->getId();
+		}
+
 		/**
 		 * TODO: Create line items.
 		 */
-		$line_items = [];
-		foreach ( $prices as $price ) {
-			$price        = self::get_micro_to_number( $price );
-			$line_items[] = [
-				'name'     => sprintf( '%s - %01.2f', self::ADVERTISER_NAME, $price ),
-				'price'    => $price,
-				'order_id' => $order_id,
-				'sizes'    => newspack_get_ads_bidder_sizes(),
+		$line_items_configs = [];
+		foreach ( $prices as $price_micro ) {
+			$price_number         = self::get_micro_to_number( $price_micro );
+			$price_str            = self::get_number_to_price_string( $price_number );
+			$line_items_configs[] = [
+				'name'                   => sprintf( '%s - %s', self::ADVERTISER_NAME, $price_str ),
+				'order_id'               => $order_id,
+				'start_date_time_type'   => 'IMMEDIATELY',
+				'line_item_type'         => 'PRICE_PRIORITY',
+				'cost_type'              => 'CPM',
+				'creative_rotation_type' => 'EVEN',
+				'primary_goal'           => [
+					'goal_type' => 'NONE',
+				],
+				'cost_per_unit'          => [
+					'currency_code' => 'USD',
+					'micro_amount'  => $price_micro,
+				],
+				'targeting'              => [
+					'custom_targeting' => [
+						$targeting_key_id => [
+							$targeting_values_id_map[ $price_str ],
+						],
+					],
+				],
+				'creative_placeholders'  => newspack_get_ads_bidder_sizes(),
 			];
 		}
-		return $line_items;
+		return [];
+	}
+
+	/**
+	 * Get a price string.
+	 *
+	 * @param float $price The price.
+	 *
+	 * @return string The price string.
+	 */
+	private static function get_number_to_price_string( $price ) {
+		return sprintf( '%01.2f', $price );
 	}
 
 	/**

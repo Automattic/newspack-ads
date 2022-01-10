@@ -540,7 +540,7 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get all Line Items in the user's network, serialised.
 	 *
-	 * @param Line_Item[] $line_items (optional) Array of line items.
+	 * @param LineItem[] $line_items (optional) Array of line items.
 	 *
 	 * @return object[] Array of serialised orders.
 	 */
@@ -922,12 +922,16 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create a custom targeting key-val segmentation.
+	 * Create a custom targeting key-val segmentation with optional sample values.
 	 *
-	 * @param string   $name The name of the key.
+	 * @param string   $name   The name of the key.
 	 * @param string[] $values Optional sample values.
 	 *
-	 * @return CustomTargetingKey The created key.
+	 * @return array[
+	 *  'targeting_key'  => CustomTargetingKey,
+	 *  'found_values'   => CustomTargetingValue[],
+	 *  'created_values' => CustomTargetingValue[]
+	 * ]
 	 *
 	 * @throws \Exception If there is an error while communicating with the API.
 	 */
@@ -987,7 +991,7 @@ class Newspack_Ads_GAM {
 					),
 				]
 			);
-			$found_values     = $service->getCustomTargetingValuesByStatement( $values_statement );
+			$found_values     = (array) $service->getCustomTargetingValuesByStatement( $values_statement )->getResults();
 			$values_to_create = array_values(
 				array_diff(
 					$values,
@@ -995,11 +999,11 @@ class Newspack_Ads_GAM {
 						function ( $value ) {
 							return $value->getName();
 						},
-						(array) $found_values->getResults()
+						$found_values
 					)
 				)
 			);
-			$service->createCustomTargetingValues(
+			$created_values   = $service->createCustomTargetingValues(
 				array_map(
 					function ( $value ) use ( $key_id ) {
 						return ( new CustomTargetingValue() )->setCustomTargetingKeyId( $key_id )->setName( $value );
@@ -1008,7 +1012,11 @@ class Newspack_Ads_GAM {
 				)
 			);
 		}
-		return $targeting_key;
+		return [
+			'targeting_key'  => $targeting_key,
+			'found_values'   => $found_values,
+			'created_values' => $created_values,
+		];
 	}
 
 	/**
