@@ -169,13 +169,15 @@ const HeaderBiddingGAM = () => {
 							<div className="newspack-ads__header-bidding-gam__order-description">
 								{ order?.order_id ? (
 									<span>
+										{ __( 'Order:', 'newspack-ads' ) }{' '}
 										<a
 											href={ getOrderUrl( order.order_id ) }
 											target="_blank"
 											rel="noopener noreferrer"
 										>
 											{ order.order_name }
-										</a>{' '}
+										</a>
+										{ ', ' }
 										{ order?.line_item_ids
 											? sprintf(
 													_n(
