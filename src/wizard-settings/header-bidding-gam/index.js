@@ -153,9 +153,6 @@ const HeaderBiddingGAM = () => {
 		}
 	}, [ isCreating ]);
 	const stepName = getStepName();
-	if ( ! order && inFlight ) {
-		return null;
-	}
 	return (
 		<Fragment>
 			<ActionCard
