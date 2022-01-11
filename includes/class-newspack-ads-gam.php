@@ -10,6 +10,8 @@ use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202111\StatementBuilder;
 use Google\AdsApi\AdManager\AdManagerSession;
+use Google\AdsApi\AdManager\v202111\AdUnitTargeting;
+use Google\AdsApi\AdManager\v202111\LineItemCreativeAssociation;
 use Google\AdsApi\AdManager\v202111\Statement;
 use Google\AdsApi\AdManager\v202111\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202111\TextValue;
@@ -33,7 +35,13 @@ use Google\AdsApi\AdManager\v202111\Size;
 use Google\AdsApi\AdManager\v202111\Company;
 use Google\AdsApi\AdManager\v202111\CompanyType;
 
-use Google\AdsApi\AdManager\v202111\LineItemCreativeAssociationService;
+use Google\AdsApi\AdManager\v202111\Goal;
+use Google\AdsApi\AdManager\v202111\CreativePlaceholder;
+use Google\AdsApi\AdManager\v202111\Money;
+use Google\AdsApi\AdManager\v202111\Targeting;
+use Google\AdsApi\AdManager\v202111\CustomCriteriaSet;
+use Google\AdsApi\AdManager\v202111\CustomCriteria;
+use Google\AdsApi\AdManager\v202111\InventoryTargeting;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -753,21 +761,121 @@ class Newspack_Ads_GAM {
 	/**
 	 * Create line items.
 	 *
-	 * @param array[] $line_items_config List of line item configurations.
+	 * @param array[] $line_item_configs List of line item configurations.
 	 *
-	 * @return object Created line item.
+	 * @return LineItem[] Created line items.
+	 *
+	 * @throws \Exception If unsupported configuration or unable to create line items.
 	 */
-	public static function create_line_items( $line_items_config = [] ) {
-		/**
-		 * TODO: Create line items.
-		 */
-		foreach ( $line_items_config as $config ) {
+	public static function create_line_items( $line_item_configs = [] ) {
+		$line_items = [];
+		foreach ( $line_item_configs as $config ) {
+			$config    = wp_parse_args(
+				$config,
+				[
+					'start_date_time_type'   => 'IMMEDIATELY',
+					'line_item_type'         => 'PRICE_PRIORITY',
+					'cost_type'              => 'CPM',
+					'creative_rotation_type' => 'EVEN',
+					'primary_goal'           => [
+						'goal_type' => 'NONE',
+					],
+				]
+			);
 			$line_item = new LineItem();
 			$line_item->setOrderId( $config['order_id'] );
+			$line_item->setName( $config['name'] );
+			$line_item->setLineItemType( $config['line_item_type'] );
+			$line_item->setCreativeRotationType( $config['creative_rotation_type'] );
+			$line_item->setPrimaryGoal( new Goal( $config['primary_goal']['goal_type'] ) );
+
+			// Creative placeholders (or expected creatives).
+			if ( isset( $config['creative_placeholders'] ) ) {
+				$creative_placeholders = array_map(
+					function ( $size ) {
+						return new CreativePlaceholder( new Size( $size[0], $size[1] ) );
+					},
+					$config['creative_placeholders']
+				);
+				$line_item->setCreativePlaceholders( $creative_placeholders );
+			}
+
+			// Date and time options.
+			$line_item->setStartDateTimeType( $config['start_date_time_type'] );
+			if ( isset( $config['unlimited_end_date_time'] ) ) {
+				$line_item->setUnlimitedEndDateTime( (bool) $config['unlimited_end_date_time'] );
+			}
+
+			// Cost options.
+			$line_item->setCostType( $config['cost_type'] );
+			if ( isset( $config['cost_per_unit'] ) ) {
+				$cost_per_unit = new Money( $config['cost_per_unit']['currency_code'], $config['cost_per_unit']['micro_amount'] );
+				$line_item->setCostPerUnit( $cost_per_unit );
+			}
+
+			// Targeting options.
+			if ( isset( $config['targeting'] ) ) {
+				$targeting = new Targeting();
+
+				// Obligatory inventory targeting.
+				// Default is "Run of network", which is targeted to the network's root ad unit including descendants.
+				$inventory_targeting = new InventoryTargeting();
+				if ( ! isset( $config['targeting']['inventory_targeting'] ) ) {
+					$network = self::get_gam_network();
+					$inventory_targeting->setTargetedAdUnits( [ new AdUnitTargeting( $network->getEffectiveRootAdUnitId(), true ) ] );
+				} else {
+					throw new \Exception( 'Inventory targeting is not supported yet' );
+				}
+				$targeting->setInventoryTargeting( $inventory_targeting );
+
+				// Custom targeting.
+				if ( isset( $config['targeting']['custom_targeting'] ) ) {
+					$criteria_set = new CustomCriteriaSet( 'AND' );
+					$children     = [];
+					foreach ( $config['targeting']['custom_targeting'] as $key_id => $value_ids ) {
+						$children[] = new CustomCriteria( $key_id, $value_ids, 'IS' );
+					}
+					$criteria_set->setChildren( $children );
+					$targeting->setCustomTargeting( $criteria_set );
+				}
+				
+				// Apply configured targeting to line item.
+				$line_item->setTargeting( $targeting );
+			}
+			$line_items[] = $line_item;
 		}
 		$service = self::get_line_item_service();
-		$service->createLineItems( [ $line_item ] );
-		return [];
+		return $service->createLineItems( $line_items );
+	}
+
+	/**
+	 * Create line item to creative associations (LICAs).
+	 *
+	 * @param array[] $lica_configs LICA configurations.
+	 *
+	 * @return LineItemCreativeAssociation[] Created LICAs.
+	 */
+	public static function associate_creatives_to_line_items( $lica_configs ) {
+		$licas = [];
+		foreach ( $lica_configs as $lica_config ) {
+			$lica = new LineItemCreativeAssociation();
+			$lica->setLineItemId( (int) $lica_config['line_item_id'] );
+			$lica->setCreativeId( (int) $lica_config['creative_id'] );
+			if ( isset( $lica_config['sizes'] ) && ! empty( $lica_config['sizes'] ) ) {
+				$lica->setSizes(
+					array_map(
+						function ( $size ) {
+							return new Size( $size[0], $size[1] );
+						},
+						$lica_config['sizes']
+					) 
+				);
+			}
+			$licas[] = $lica;
+		}
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $session );
+		return $service->createLineItemCreativeAssociations( $licas );
 	}
 
 	/**
@@ -1014,8 +1122,8 @@ class Newspack_Ads_GAM {
 		}
 		return [
 			'targeting_key'  => $targeting_key,
-			'found_values'   => $found_values,
-			'created_values' => $created_values,
+			'found_values'   => is_array( $found_values ) && count( $found_values ) ? $found_values : [],
+			'created_values' => is_array( $created_values ) && count( $created_values ) ? $created_values : [],
 		];
 	}
 

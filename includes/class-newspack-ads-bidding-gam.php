@@ -19,6 +19,9 @@ class Newspack_Ads_Bidding_GAM {
 	// This number is arbitrary and should match at least the number of ad units displayed on a page.
 	const CREATIVE_COUNT = 10;
 
+	// Batch size of API requests for the creation of line item and creative association.
+	const LICA_BATCH_SIZE = 500;
+
 	/**
 	 * Whether GAM is connected.
 	 *
@@ -45,7 +48,7 @@ class Newspack_Ads_Bidding_GAM {
 	 *
 	 * @var array[]
 	 */
-	protected static $creatives = [];
+	protected static $creatives = null;
 
 	/**
 	 * Initialize hooks.
@@ -71,15 +74,27 @@ class Newspack_Ads_Bidding_GAM {
 		);
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
-			'/bidding/gam/order',
+			'/bidding/gam/lica_config',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_lica_config' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+			]
+		);
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
+			'/bidding/gam/create/(?P<type>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::CREATABLE,
-				'callback'            => [ __CLASS__, 'api_create_order' ],
+				'callback'            => [ __CLASS__, 'api_create' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
 				'args'                => [
-					'name' => [
+					'name'  => [
 						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'batch' => [
+						'sanitize_callback' => 'absint',
 					],
 				],
 			]
@@ -106,13 +121,30 @@ class Newspack_Ads_Bidding_GAM {
 	 *
 	 * @return WP_REST_Response containing the created order.
 	 */
-	public static function api_create_order( $request ) {
-		return \rest_ensure_response(
-			self::create_order(
-				$request->get_param( 'name' ),
-				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
-			)
-		);
+	public static function api_create( $request ) {
+		$price_granularity_key = self::get_price_granularity_key();
+		switch ( $request->get_param( 'type' ) ) {
+			case 'order':
+				$name   = $request->get_param( 'name' );
+				$result = self::create_order( $name, $price_granularity_key );
+				break;
+			case 'line_items':
+				$result = self::create_line_items( $price_granularity_key );
+				break;
+			case 'creatives':
+				$result = self::associate_creatives( $price_granularity_key, $request->get_param( 'batch' ) );
+				break;
+		}
+		return \rest_ensure_response( is_wp_error( $result ) ? $result : self::get_order( $price_granularity_key ) );
+	}
+
+	/**
+	 * API method for getting the configuration for creative and line item association.
+	 *
+	 * @return WP_REST_Response containing the created order.
+	 */
+	public static function api_get_lica_config() {
+		return \rest_ensure_response( self::get_lica_config( self::get_price_granularity_key() ) );
 	}
 
 	/**
@@ -131,6 +163,15 @@ class Newspack_Ads_Bidding_GAM {
 			[ 'wp-components', 'wp-api-fetch' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/header-bidding-gam.js' ),
 			true 
+		);
+		wp_localize_script(
+			'newspack-ads-bidding-gam',
+			'newspack_ads_bidding_gam',
+			[
+				'network_code'          => Newspack_Ads_Model::get_active_network_code(),
+				'lica_batch_size'       => self::LICA_BATCH_SIZE,
+				'price_granularity_key' => self::get_price_granularity_key(),
+			]
 		);
 		\wp_register_style(
 			'newspack-ads-bidding-gam',
@@ -151,6 +192,15 @@ class Newspack_Ads_Bidding_GAM {
 	 */
 	private static function get_option_name( $name ) {
 		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'bidding_gam_' . $name;
+	}
+
+	/**
+	 * Get the price granularity key.
+	 *
+	 * @return string The price granularity key.
+	 */
+	private static function get_price_granularity_key() {
+		return Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY );
 	}
 
 	/**
@@ -214,9 +264,9 @@ class Newspack_Ads_Bidding_GAM {
 		}
 		// Store GAM config.
 		$config = [
-			'advertiser_id'      => $advertiser['id'],
-			'targeting_keys_ids' => $targeting_keys,
-			'creatives_ids'      => array_column( $creatives, 'id' ),
+			'advertiser_id'     => $advertiser['id'],
+			'targeting_key_ids' => $targeting_keys,
+			'creative_ids'      => array_column( $creatives, 'id' ),
 		];
 		update_option( self::get_option_name( 'config' ), $config );
 		return $config;
@@ -256,7 +306,6 @@ class Newspack_Ads_Bidding_GAM {
 			return self::$targeting_keys;
 		}
 		$key_names = [
-			'hb_bidder',
 			'hb_pb',
 		];
 		try {
@@ -286,10 +335,7 @@ class Newspack_Ads_Bidding_GAM {
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
-		if ( $creatives && self::CREATIVE_COUNT <= count( $creatives ) ) {
-			// TODO: We might want to validate the existing creatives.
-			return $creatives;
-		} else {
+		if ( ! $creatives || self::CREATIVE_COUNT > count( $creatives ) ) {
 			ob_start();
 			// Prebid Universal Creative: https://github.com/prebid/prebid-universal-creative.
 			?>
@@ -330,9 +376,9 @@ class Newspack_Ads_Bidding_GAM {
 			} catch ( \Exception $e ) {
 				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 			}
-			self::$creatives = $creatives;
-			return $creatives;
 		}
+		self::$creatives = $creatives;
+		return $creatives;
 	}
 
 	/**
@@ -368,7 +414,7 @@ class Newspack_Ads_Bidding_GAM {
 		$orders     = get_option( self::get_option_name( 'orders' ), [] );
 		$order_hash = self::get_order_hash( $price_granularity_key );
 
-		if ( ! isset( $orders[ $order_hash ] ) ) {
+		if ( ! isset( $orders[ $price_granularity_key ] ) ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_order_not_found',
 				__( 'Order not found.', 'newspack-ads' ),
@@ -414,14 +460,11 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
 
-		$line_items = self::create_line_items( $order['id'], $price_granularity['buckets'] );
-
 		$order_config  = [
-			'order_id'         => $order['id'],
-			'order_name'       => $name,
-			'buckets'          => $price_granularity['buckets'],
-			'line_items_count' => count( $line_items ),
-			'hash'             => self::get_order_hash( $price_granularity_key ),
+			'order_id'   => $order['id'],
+			'order_name' => $name,
+			'buckets'    => $price_granularity['buckets'],
+			'hash'       => self::get_order_hash( $price_granularity_key ),
 		];
 		$option_name   = self::get_option_name( 'orders' );
 		$stored_orders = get_option( $option_name, [] );
@@ -432,14 +475,38 @@ class Newspack_Ads_Bidding_GAM {
 	/**
 	 * Create GAM line items based on price granularity
 	 *
-	 * @param int     $order_id The ID of the order to attach the line items to.
-	 * @param array[] $buckets  The price granularity buckets configuration.
+	 * @param string $price_granularity_key The price granularity key.
 	 *
-	 * @return array[] Array of serialized line items.
+	 * @return LineItem[] Array of line items.
 	 */
-	private static function create_line_items( $order_id, $buckets ) {
+	private static function create_line_items( $price_granularity_key ) {
+
+		$config = get_option( self::get_option_name( 'config' ) );
+		if ( ! $config ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing config', 'newspack-ads' ) );
+		}
+
+		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
+
+		if ( false === $price_granularity ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
+		}
+
+		$orders = get_option( self::get_option_name( 'orders' ), [] );
+		if ( ! isset( $orders[ $price_granularity_key ] ) ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_error',
+				__( 'Order not found.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
+		}
+		$order_config = $orders[ $price_granularity_key ];
+		$order_id     = $order_config['order_id'];
 
 		// Sort buckets by max value.
+		$buckets = $price_granularity['buckets'];
 		usort(
 			$buckets,
 			function( $a, $b ) {
@@ -508,38 +575,127 @@ class Newspack_Ads_Bidding_GAM {
 			$targeting_values_id_map[ $value->getName() ] = $value->getId();
 		}
 
-		/**
-		 * TODO: Create line items.
-		 */
-		$line_items_configs = [];
+		$line_item_configs = [];
 		foreach ( $prices as $price_micro ) {
-			$price_number         = self::get_micro_to_number( $price_micro );
-			$price_str            = self::get_number_to_price_string( $price_number );
-			$line_items_configs[] = [
-				'name'                   => sprintf( '%s - %s', self::ADVERTISER_NAME, $price_str ),
-				'order_id'               => $order_id,
-				'start_date_time_type'   => 'IMMEDIATELY',
-				'line_item_type'         => 'PRICE_PRIORITY',
-				'cost_type'              => 'CPM',
-				'creative_rotation_type' => 'EVEN',
-				'primary_goal'           => [
+			$price_number        = self::get_micro_to_number( $price_micro );
+			$price_str           = self::get_number_to_price_string( $price_number );
+			$line_item_configs[] = [
+				'name'                    => sprintf( '%s - %s', self::ADVERTISER_NAME, $price_str ),
+				'order_id'                => $order_id,
+				'start_date_time_type'    => 'IMMEDIATELY',
+				'unlimited_end_date_time' => true,
+				'line_item_type'          => 'PRICE_PRIORITY',
+				'cost_type'               => 'CPM',
+				'creative_rotation_type'  => 'EVEN',
+				'primary_goal'            => [
 					'goal_type' => 'NONE',
 				],
-				'cost_per_unit'          => [
+				'cost_per_unit'           => [
 					'currency_code' => 'USD',
 					'micro_amount'  => $price_micro,
 				],
-				'targeting'              => [
+				'targeting'               => [
 					'custom_targeting' => [
 						$targeting_key_id => [
 							$targeting_values_id_map[ $price_str ],
 						],
 					],
 				],
-				'creative_placeholders'  => newspack_get_ads_bidder_sizes(),
+				'creative_placeholders'   => newspack_get_ads_bidder_sizes(),
 			];
 		}
-		return [];
+		$line_items = Newspack_Ads_GAM::create_line_items( $line_item_configs );
+
+		// Update order config with line item IDs.
+		$orders[ $price_granularity_key ]['line_item_ids'] = array_map(
+			function( $line_item ) {
+				return $line_item->getId();
+			},
+			$line_items
+		);
+		update_option( self::get_option_name( 'orders' ), $orders );
+
+		return $line_items;
+	}
+
+	/**
+	 * Get config for price granularity order line items to creatives association.
+	 *
+	 * @param string $price_granularity_key The price granularity key.
+	 *
+	 * @return array[] List of Line Item Creative Association configuration.
+	 */
+	public static function get_lica_config( $price_granularity_key ) {
+
+		$config = get_option( self::get_option_name( 'config' ) );
+		if ( ! $config ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing config', 'newspack-ads' ) );
+		}
+
+		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
+
+		if ( false === $price_granularity ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
+		}
+
+		$orders = get_option( self::get_option_name( 'orders' ), [] );
+		if ( ! isset( $orders[ $price_granularity_key ] ) ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_error',
+				__( 'Order not found.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
+		}
+		$order_config = $orders[ $price_granularity_key ];
+
+		if ( ! isset( $order_config['line_item_ids'] ) || empty( $order_config['line_item_ids'] ) ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_error',
+				__( 'Missing line item IDs.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
+		}
+
+		$lica_configs = [];
+		foreach ( $order_config['line_item_ids'] as $line_item_id ) {
+			foreach ( $config['creative_ids'] as $creative_id ) {
+				$lica_configs[] = [
+					'line_item_id' => $line_item_id,
+					'creative_id'  => $creative_id,
+					'sizes'        => newspack_get_ads_bidder_sizes(), // Override the Creative.Size value with the line item creative placeholders.
+				];
+			}
+		}
+		return $lica_configs;
+	}
+
+	/**
+	 * Associate price granularity order line items to creatives.
+	 *
+	 * @param string $price_granularity_key The price granularity key.
+	 * @param int    $batch                 The batch number. 0 means do not use batch.
+	 *
+	 * @return LineItemCreativeAssociation[] List of created Line Item Creative Association objects.
+	 */
+	public static function associate_creatives( $price_granularity_key, $batch = 0 ) {
+		$lica_config = self::get_lica_config( $price_granularity_key );
+		if ( 0 < $batch ) {
+			$lica_config = array_slice( $lica_config, ( $batch - 1 ) * self::LICA_BATCH_SIZE, self::LICA_BATCH_SIZE );
+		}
+		if ( empty( $lica_config ) ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'No creatives to associate.', 'newspack-ads' ) );
+		}
+		$licas = Newspack_Ads_GAM::associate_creatives_to_line_items( $lica_config );
+
+		$orders = get_option( self::get_option_name( 'orders' ) );
+		$orders[ $price_granularity_key ]['lica_batch_count'] = $batch;
+		update_option( self::get_option_name( 'orders' ), $orders );
+
+		return $licas;
 	}
 
 	/**

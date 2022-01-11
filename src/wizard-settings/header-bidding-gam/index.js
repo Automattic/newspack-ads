@@ -3,36 +3,65 @@
  */
 
 /**
+ * External dependencies.
+ */
+import { startCase } from 'lodash';
+
+/**
  * WordPress dependencies.
  */
-import { __ } from '@wordpress/i18n';
+import { sprintf, __, _n } from '@wordpress/i18n';
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Newspack dependencies.
  */
-import { ActionCard, Card, Notice, Modal, TextControl, Button } from 'newspack-components';
+import {
+	ActionCard,
+	Card,
+	Notice,
+	Modal,
+	TextControl,
+	Button,
+	ProgressBar,
+} from 'newspack-components';
 
 /**
  * Internal dependencies.
  */
 import './style.scss';
 
+const { network_code, lica_batch_size, price_granularity_key } = window.newspack_ads_bidding_gam;
+
+const getOrderUrl = orderId => {
+	return `https://admanager.google.com/${ network_code }#delivery/order/order_overview/order_id=${ orderId }`;
+};
+
 const HeaderBiddingGAM = () => {
 	const [ inFlight, setInFlight ] = useState( true );
 	const [ isCreating, setIsCreating ] = useState( false );
-	const [ orderName, setOrderName ] = useState( 'Newpack Header Bidding - Dense' );
+	const [ orderName, setOrderName ] = useState(
+		'Newspack Header Bidding - ' + startCase( price_granularity_key )
+	);
 	const [ order, setOrder ] = useState( null );
 	const [ error, setError ] = useState( null );
-	const fetchOrder = async ( create = false ) => {
+	const [ step, setStep ] = useState( 0 );
+	const [ totalBatches, setTotalBatches ] = useState( 1 );
+	const [ totalSteps, setTotalSteps ] = useState( 4 );
+	const fetchOrder = async () => {
 		setInFlight( true );
 		try {
 			const data = await apiFetch( {
 				path: '/newspack-ads/v1/bidding/gam/order',
-				method: create ? 'POST' : 'GET',
-				data: create ? { name: orderName } : null,
+				method: 'GET',
+				data: null,
 			} );
+			if ( data.line_item_ids?.length ) {
+				const licaConfig = await fetchLicaConfig();
+				const batches = Math.ceil( licaConfig.length / lica_batch_size );
+				setTotalSteps( 3 + batches );
+			}
 			setOrder( data );
 			setError( null );
 		} catch ( err ) {
@@ -41,9 +70,88 @@ const HeaderBiddingGAM = () => {
 			setInFlight( false );
 		}
 	};
+	const fetchLicaConfig = async () => {
+		const licaConfig = await apiFetch( { path: '/newspack-ads/v1/bidding/gam/lica_config' } );
+		return licaConfig;
+	};
+	const createType = async ( type, batch = 0 ) => {
+		return await apiFetch( {
+			path: '/newspack-ads/v1/bidding/gam/create/' + type,
+			method: 'POST',
+			data: {
+				name: orderName,
+				batch,
+			},
+		} );
+	};
+	const create = async () => {
+		setError( null );
+		setInFlight( true );
+		let pendingOrder = { ...order };
+		try {
+			if ( ! pendingOrder || ! pendingOrder.order_id ) {
+				setStep( 1 );
+				pendingOrder = await createType( 'order' );
+			}
+			if ( ! pendingOrder.line_item_ids?.length ) {
+				setStep( 2 );
+				pendingOrder = await createType( 'line_items' );
+			}
+			const licaConfig = await fetchLicaConfig();
+			const batches = Math.ceil( licaConfig.length / lica_batch_size );
+			setTotalBatches( batches );
+			setTotalSteps( 3 + batches );
+			if ( ! pendingOrder.lica_batch_count || batches < pendingOrder.lica_batch_count ) {
+				const start = pendingOrder.lica_batch_count || 0;
+				for ( let i = start; i < batches; i++ ) {
+					const batch = i + 1;
+					setStep( 2 + batch );
+					pendingOrder = await createType( 'creatives', batch );
+				}
+			}
+			await fetchOrder();
+			setIsCreating( false );
+		} catch ( err ) {
+			setError( err );
+		} finally {
+			setStep( 0 );
+			setInFlight( false );
+			window.onbeforeunload = null;
+		}
+	};
+	const getStepName = () => {
+		switch ( step ) {
+			case 0:
+				return '';
+			case 1:
+				return __( 'Creating Order...', 'newspack-ads' );
+			case 2:
+				return __( 'Creating Line Items...', 'newspack-ads' );
+			default:
+				return __( 'Associating Creatives...', 'newspack-ads' );
+		}
+	};
+	const isValid = () => {
+		return (
+			order &&
+			order.order_id &&
+			order.line_item_ids?.length &&
+			order.lica_batch_count === totalBatches
+		);
+	};
 	useEffect(() => {
 		fetchOrder();
 	}, []);
+	useEffect(() => {
+		if ( isCreating ) {
+			window.onbeforeunload = () => {
+				return __( 'Are you sure you want to leave this page?', 'newspack' );
+			};
+		} else {
+			window.onbeforeunload = null;
+		}
+	}, [ isCreating ]);
+	const stepName = getStepName();
 	return (
 		<Fragment>
 			<ActionCard
@@ -54,20 +162,44 @@ const HeaderBiddingGAM = () => {
 						{ error ? (
 							error.message
 						) : (
-							<Fragment>
-								<span>{ JSON.stringify( order ) }</span>
-							</Fragment>
+							<div className="newspack-ads__header-bidding-gam__order-description">
+								{ order?.order_id ? (
+									<span>
+										<a
+											href={ getOrderUrl( order.order_id ) }
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											{ order.order_name }
+										</a>{' '}
+										{ order?.line_item_ids
+											? sprintf(
+													_n(
+														'containing %s line item',
+														'containing %s line items',
+														order.line_item_ids.length,
+														'newspack-ads'
+													),
+													order.line_item_ids.length
+											  )
+											: __( 'missing line items configuration' ) }
+										.
+									</span>
+								) : (
+									__( 'Missing order configuration', 'newspack-ads' )
+								) }
+							</div>
 						) }
 					</Fragment>
 				) }
-				checkbox="unchecked"
-				actionText={ ! order || error ? __( 'Configure', 'newspack-ads' ) : null }
+				checkbox={ isValid() ? 'checked' : 'unchecked' }
+				actionText={ isValid() ? null : __( 'Configure', 'newspack-ads' ) }
 				onClick={ () => setIsCreating( true ) }
 			/>
 			{ isCreating && (
 				<Modal
 					title={ __( 'Create Order', 'newspack-ads' ) }
-					onRequestClose={ () => setIsCreating( false ) }
+					onRequestClose={ () => ! inFlight && setIsCreating( false ) }
 				>
 					<p>
 						{ __(
@@ -84,6 +216,18 @@ const HeaderBiddingGAM = () => {
 						value={ orderName }
 						onChange={ value => setOrderName( value ) }
 					/>
+					{ step && stepName ? (
+						<Fragment>
+							<Notice
+								isWarning
+								noticeText={ __(
+									'This may take up to 15 minutes, please do not close the window.',
+									'newspack-ads'
+								) }
+							/>
+							<ProgressBar completed={ step } total={ totalSteps } label={ stepName } />
+						</Fragment>
+					) : null }
 					<Card buttonsCard noBorder className="justify-end">
 						<Button
 							isSecondary
@@ -94,15 +238,7 @@ const HeaderBiddingGAM = () => {
 						>
 							{ __( 'Cancel', 'newspack-ads' ) }
 						</Button>
-						<Button
-							isPrimary
-							disabled={ ! orderName || inFlight }
-							onClick={ async () => {
-								// TODO: Implement line items creation before testing order creation.
-								await fetchOrder();
-								setIsCreating( false );
-							} }
-						>
+						<Button isPrimary disabled={ ! orderName || inFlight } onClick={ create }>
 							{ __( 'Create Order', 'newspack-ads' ) }
 						</Button>
 					</Card>
