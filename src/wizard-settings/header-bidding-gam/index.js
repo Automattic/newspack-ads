@@ -60,6 +60,7 @@ const HeaderBiddingGAM = () => {
 			if ( data.line_item_ids?.length ) {
 				const licaConfig = await fetchLicaConfig();
 				const batches = Math.ceil( licaConfig.length / lica_batch_size );
+				setTotalBatches( batches );
 				setTotalSteps( 3 + batches );
 			}
 			setOrder( data );
@@ -152,6 +153,9 @@ const HeaderBiddingGAM = () => {
 		}
 	}, [ isCreating ]);
 	const stepName = getStepName();
+	if ( ! order && inFlight ) {
+		return null;
+	}
 	return (
 		<Fragment>
 			<ActionCard
