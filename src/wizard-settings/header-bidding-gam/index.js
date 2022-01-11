@@ -117,7 +117,6 @@ const HeaderBiddingGAM = () => {
 		} finally {
 			setStep( 0 );
 			setInFlight( false );
-			window.onbeforeunload = null;
 		}
 	};
 	const getStepName = () => {
