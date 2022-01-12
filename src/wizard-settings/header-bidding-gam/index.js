@@ -133,6 +133,9 @@ const HeaderBiddingGAM = () => {
 			order.lica_batch_count === totalBatches
 		);
 	};
+	const canConfigure = () => {
+		return ! inFlight && ! isCreating && isValid() && error?.data?.status !== '500';
+	};
 	const getMissingOrderMessage = () => {
 		return inFlight
 			? __( 'Loading...', 'newspack-ads' )
@@ -194,7 +197,7 @@ const HeaderBiddingGAM = () => {
 					</Fragment>
 				) }
 				checkbox={ isValid() ? 'checked' : 'unchecked' }
-				actionText={ inFlight || isValid() ? null : __( 'Configure', 'newspack-ads' ) }
+				actionText={ canConfigure() ? __( 'Configure', 'newspack-ads' ) : null }
 				onClick={ () => setIsCreating( true ) }
 			/>
 			{ isCreating && (

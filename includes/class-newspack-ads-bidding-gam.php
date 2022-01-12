@@ -450,7 +450,11 @@ class Newspack_Ads_Bidding_GAM {
 			);
 		}
 
-		$gam_order = Newspack_Ads_GAM::get_orders( [ $order['order_id'] ] );
+		try {
+			$gam_order = Newspack_Ads_GAM::get_orders( [ $order['order_id'] ] );
+		} catch ( \Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
 		if ( empty( $gam_order ) ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_order_not_found_gam',
