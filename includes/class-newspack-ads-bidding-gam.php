@@ -134,6 +134,12 @@ class Newspack_Ads_Bidding_GAM {
 			case 'creatives':
 				$result = self::associate_creatives( $price_granularity_key, $request->get_param( 'batch' ) );
 				break;
+			default:
+				$result = new WP_Error(
+					'newspack_ads_bidding_gam_error',
+					__( 'Invalid type.', 'newspack-ads' ),
+					[ 'status' => 400 ]
+				);
 		}
 		return \rest_ensure_response( is_wp_error( $result ) ? $result : self::get_order( $price_granularity_key ) );
 	}
