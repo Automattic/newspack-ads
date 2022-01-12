@@ -87,7 +87,7 @@ const HeaderBiddingGAM = () => {
 				setStep( 1 );
 				pendingOrder = await createType( 'order' );
 			}
-			if ( ! pendingOrder.line_item_ids?.length ) {
+			if ( ! pendingOrder?.line_item_ids?.length ) {
 				setStep( 2 );
 				pendingOrder = await createType( 'line_items' );
 			}
@@ -95,7 +95,7 @@ const HeaderBiddingGAM = () => {
 			const batches = Math.ceil( licaConfig.length / lica_batch_size );
 			setTotalBatches( batches );
 			setTotalSteps( 3 + batches );
-			const start = pendingOrder.lica_batch_count || 0;
+			const start = pendingOrder?.lica_batch_count || 0;
 			if ( batches > start ) {
 				for ( let i = start; i < batches; i++ ) {
 					const batch = i + 1;
@@ -103,6 +103,7 @@ const HeaderBiddingGAM = () => {
 					pendingOrder = await createType( 'creatives', batch );
 				}
 			}
+			setStep( 3 + batches );
 			await fetchOrder();
 			setIsCreating( false );
 		} catch ( err ) {
