@@ -168,9 +168,8 @@ class Newspack_Ads_Bidding_GAM {
 			'newspack-ads-bidding-gam',
 			'newspack_ads_bidding_gam',
 			[
-				'network_code'          => Newspack_Ads_Model::get_active_network_code(),
-				'lica_batch_size'       => self::LICA_BATCH_SIZE,
-				'price_granularity_key' => self::get_price_granularity_key(),
+				'network_code'    => Newspack_Ads_Model::get_active_network_code(),
+				'lica_batch_size' => self::LICA_BATCH_SIZE,
 			]
 		);
 		\wp_register_style(

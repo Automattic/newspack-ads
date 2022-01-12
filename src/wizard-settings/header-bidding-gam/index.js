@@ -3,11 +3,6 @@
  */
 
 /**
- * External dependencies.
- */
-import { startCase } from 'lodash';
-
-/**
  * WordPress dependencies.
  */
 import { sprintf, __, _n } from '@wordpress/i18n';
@@ -32,7 +27,7 @@ import {
  */
 import './style.scss';
 
-const { network_code, lica_batch_size, price_granularity_key } = window.newspack_ads_bidding_gam;
+const { network_code, lica_batch_size } = window.newspack_ads_bidding_gam;
 
 const getOrderUrl = orderId => {
 	return `https://admanager.google.com/${ network_code }#delivery/order/order_overview/order_id=${ orderId }`;
@@ -41,9 +36,7 @@ const getOrderUrl = orderId => {
 const HeaderBiddingGAM = () => {
 	const [ inFlight, setInFlight ] = useState( true );
 	const [ isCreating, setIsCreating ] = useState( false );
-	const [ orderName, setOrderName ] = useState(
-		'Newspack Header Bidding - ' + startCase( price_granularity_key )
-	);
+	const [ orderName, setOrderName ] = useState( 'Newspack Header Bidding' );
 	const [ order, setOrder ] = useState( null );
 	const [ error, setError ] = useState( null );
 	const [ step, setStep ] = useState( 0 );
@@ -139,6 +132,11 @@ const HeaderBiddingGAM = () => {
 			order.lica_batch_count === totalBatches
 		);
 	};
+	const getMissingOrderMessage = () => {
+		return inFlight
+			? __( 'Loading...', 'newspack-ads' )
+			: __( 'Missing order configuration', 'newspack-ads' );
+	};
 	useEffect(() => {
 		fetchOrder();
 	}, []);
@@ -188,14 +186,14 @@ const HeaderBiddingGAM = () => {
 										.
 									</span>
 								) : (
-									__( 'Missing order configuration', 'newspack-ads' )
+									getMissingOrderMessage()
 								) }
 							</div>
 						) }
 					</Fragment>
 				) }
 				checkbox={ isValid() ? 'checked' : 'unchecked' }
-				actionText={ isValid() ? null : __( 'Configure', 'newspack-ads' ) }
+				actionText={ inFlight || isValid() ? null : __( 'Configure', 'newspack-ads' ) }
 				onClick={ () => setIsCreating( true ) }
 			/>
 			{ isCreating && (
