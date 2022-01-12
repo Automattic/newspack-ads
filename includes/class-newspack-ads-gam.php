@@ -405,7 +405,7 @@ class Newspack_Ads_GAM {
 	 * 
 	 * @return Order[] Array of Orders.
 	 */
-	private static function get_orders( $ids = [] ) {
+	public static function get_orders( $ids = [] ) {
 		$orders                = [];
 		$order_service         = self::get_order_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;

@@ -415,8 +415,8 @@ class Newspack_Ads_Bidding_GAM {
 
 		if ( ! isset( $orders[ $price_granularity_key ] ) ) {
 			return new WP_Error(
-				'newspack_ads_bidding_gam_order_not_found',
-				__( 'Order not found.', 'newspack-ads' ),
+				'newspack_ads_bidding_gam_order_not_found_local',
+				__( 'Order not created yet.', 'newspack-ads' ),
 				[
 					'status' => '404',
 				]
@@ -433,6 +433,28 @@ class Newspack_Ads_Bidding_GAM {
 				] 
 			);
 		}
+
+		if ( ! isset( $order['order_id'] ) ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_order_not_found_id',
+				__( 'Order ID not found.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
+		}
+
+		$gam_order = Newspack_Ads_GAM::get_orders( [ $order['order_id'] ] );
+		if ( empty( $gam_order ) ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_order_not_found_gam',
+				__( 'Order not found in Google Ad Manager.', 'newspack-ads' ),
+				[
+					'status' => '404',
+				]
+			);
+		}
+
 
 		return $order;
 	}
