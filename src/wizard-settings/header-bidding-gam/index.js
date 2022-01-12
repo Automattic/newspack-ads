@@ -95,8 +95,8 @@ const HeaderBiddingGAM = () => {
 			const batches = Math.ceil( licaConfig.length / lica_batch_size );
 			setTotalBatches( batches );
 			setTotalSteps( 3 + batches );
-			if ( ! pendingOrder.lica_batch_count || batches < pendingOrder.lica_batch_count ) {
-				const start = pendingOrder.lica_batch_count || 0;
+			const start = pendingOrder.lica_batch_count || 0;
+			if ( batches > start ) {
 				for ( let i = start; i < batches; i++ ) {
 					const batch = i + 1;
 					setStep( 2 + batch );
@@ -212,10 +212,28 @@ const HeaderBiddingGAM = () => {
 					) }
 					<TextControl
 						label={ __( 'Order name', 'newspack-ads' ) }
-						disabled={ inFlight }
-						value={ orderName }
+						disabled={ inFlight || order?.order_name }
+						value={ order?.order_name ? order.order_name : orderName }
 						onChange={ value => setOrderName( value ) }
 					/>
+					{ ! inFlight && order?.order_id && ! order?.line_item_ids?.length && (
+						<Notice
+							isWarning
+							noticeText={ __( "Order exists but it's missing its line items.", 'newspack-ads' ) }
+						/>
+					) }
+					{ ! inFlight &&
+						order?.order_id &&
+						order?.line_item_ids?.length &&
+						totalBatches > ( order?.lica_batch_count || 0 ) && (
+							<Notice
+								isWarning
+								noticeText={ __(
+									"Order and line items exists but it's missing the creatives associations.",
+									'newspack-ads'
+								) }
+							/>
+						) }
 					{ step && stepName ? (
 						<Fragment>
 							<Notice
@@ -239,7 +257,9 @@ const HeaderBiddingGAM = () => {
 							{ __( 'Cancel', 'newspack-ads' ) }
 						</Button>
 						<Button isPrimary disabled={ ! orderName || inFlight } onClick={ create }>
-							{ __( 'Create Order', 'newspack-ads' ) }
+							{ order?.order_id
+								? __( 'Fix issues', 'newspack-ads' )
+								: __( 'Create Order', 'newspack-ads' ) }
 						</Button>
 					</Card>
 				</Modal>
