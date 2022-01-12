@@ -665,7 +665,6 @@ class Newspack_Ads_Bidding_GAM {
 				$lica_configs[] = [
 					'line_item_id' => $line_item_id,
 					'creative_id'  => $creative_id,
-					'sizes'        => newspack_get_ads_bidder_sizes(), // Override the Creative.Size value with the line item creative placeholders.
 				];
 			}
 		}
@@ -681,14 +680,25 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return LineItemCreativeAssociation[] List of created Line Item Creative Association objects.
 	 */
 	public static function associate_creatives( $price_granularity_key, $batch = 0 ) {
-		$lica_config = self::get_lica_config( $price_granularity_key );
+		$lica_configs = self::get_lica_config( $price_granularity_key );
 		if ( 0 < $batch ) {
-			$lica_config = array_slice( $lica_config, ( $batch - 1 ) * self::LICA_BATCH_SIZE, self::LICA_BATCH_SIZE );
+			$lica_configs = array_slice( $lica_configs, ( $batch - 1 ) * self::LICA_BATCH_SIZE, self::LICA_BATCH_SIZE );
 		}
-		if ( empty( $lica_config ) ) {
+		if ( empty( $lica_configs ) ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'No creatives to associate.', 'newspack-ads' ) );
 		}
-		$licas = Newspack_Ads_GAM::associate_creatives_to_line_items( $lica_config );
+		$lica_configs = array_map(
+			function( $lica_config ) {
+				return wp_parse_args(
+					$lica_config,
+					[
+						'sizes' => newspack_get_ads_bidder_sizes(), // Override the Creative.Size value with the line item creative placeholders.
+					]
+				);
+			},
+			$lica_configs
+		);
+		$licas        = Newspack_Ads_GAM::associate_creatives_to_line_items( $lica_configs );
 
 		$orders = get_option( self::get_option_name( 'orders' ) );
 		$orders[ $price_granularity_key ]['lica_batch_count'] = $batch;
