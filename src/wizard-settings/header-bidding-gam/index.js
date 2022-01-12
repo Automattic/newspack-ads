@@ -134,7 +134,7 @@ const HeaderBiddingGAM = () => {
 		);
 	};
 	const canConfigure = () => {
-		return ! inFlight && ! isCreating && isValid() && error?.data?.status !== '500';
+		return ! inFlight && ! isCreating && ! isValid() && error?.data?.status !== '500';
 	};
 	const getMissingOrderMessage = () => {
 		return inFlight
