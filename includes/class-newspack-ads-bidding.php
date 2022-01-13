@@ -278,6 +278,10 @@ class Newspack_Ads_Bidding {
 		<script data-amp-plus-allowed>
 			( function() {
 				window.pbjs = window.pbjs || { que: [] };
+				window.googletag = window.googletag || { cmd: [] };
+				googletag.cmd.push( function() {
+					googletag.pubads().disableInitialLoad();
+				} );
 				var config = <?php echo wp_json_encode( $prebid_config ); ?>;
 				var adUnits = <?php echo wp_json_encode( $ad_units ); ?>;
 				pbjs.que.push( function() {
@@ -299,7 +303,6 @@ class Newspack_Ads_Bidding {
 				function initAdserver() {
 					if ( pbjs.initAdserverSet ) return;
 					pbjs.initAdserverSet = true;
-					window.googletag = window.googletag || { cmd: [] };
 					googletag.cmd.push( function() {
 						pbjs.setTargetingForGPTAsync && pbjs.setTargetingForGPTAsync();
 						googletag.pubads().refresh();
