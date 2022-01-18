@@ -347,6 +347,11 @@ class Newspack_Ads_Placements {
 				continue;
 			}
 
+			// Skip placements without ID.
+			if ( ! isset( $placement['data']['id'] ) ) {
+				continue;
+			}
+
 			// Add placement and its hooks data to array.
 			if ( isset( $placement['data']['ad_unit'] ) && $placement['data']['ad_unit'] ) {
 				$placements_by_id[ $placement['data']['id'] ] = $placement['data'];
