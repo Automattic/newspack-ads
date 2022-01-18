@@ -24,6 +24,7 @@ use Google\AdsApi\AdManager\v202111\AdUnitSize;
 use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
 use Google\AdsApi\AdManager\v202111\EnvironmentType;
 use Google\AdsApi\AdManager\v202111\Size;
+use Google\AdsApi\AdManager\v202111\ApiException;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -423,27 +424,57 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Get a WP_Error object from an optional ApiException or message.
+	 *
+	 * @param ApiException $exception       Optional Google Ads API exception.
+	 * @param string       $default_message Optional default message to use.
+	 *
+	 * @return WP_Error Error.
+	 */
+	private static function get_ad_unit_api_error( ApiException $exception = null, $default_message = null ) {
+		$error_message = $default_message;
+		$errors        = [];
+		if ( ! is_null( $exception ) ) {
+			$error_message = $error_message ?? $exception->getMessage();
+			foreach ( $exception->getErrors() as $error ) {
+				$errors[] = $error->getErrorString();
+			}
+		}
+		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
+			$error_message = __( 'Ad Unit with the same name already exists.', 'newspack-ads' );
+		}
+		return new WP_Error(
+			'newspack_ads',
+			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
+			array(
+				'status' => '400',
+				'level'  => 'warning',
+			)
+		);
+	}
+
+	/**
 	 * Update Ad Unit.
 	 *
 	 * @param object $ad_unit_config Ad Unit configuration.
-	 * @return AdUnit Updated AdUnit.
+	 * @return AdUnit|WP_Error Updated AdUnit or error.
 	 */
 	public static function update_ad_unit( $ad_unit_config ) {
 		try {
 			$inventory_service = self::get_gam_inventory_service();
 			$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
 			if ( empty( $found_ad_units ) ) {
-				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not found.', 'newspack-ads' ) );
+				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
 			}
 			$result = $inventory_service->updateAdUnits(
 				[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
 			);
 			if ( empty( $result ) ) {
-				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 			}
 			return $result[0];
-		} catch ( \Exception $e ) {
-			return [];
+		} catch ( ApiException $e ) {
+			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 		}
 	}
 
@@ -451,7 +482,7 @@ class Newspack_Ads_GAM {
 	 * Create a GAM Ad Unit.
 	 *
 	 * @param object $ad_unit_config Configuration of the ad unit.
-	 * @return AdUnit Created AdUnit.
+	 * @return AdUnit|WP_Error Created AdUnit or error.
 	 */
 	public static function create_ad_unit( $ad_unit_config ) {
 		try {
@@ -460,11 +491,11 @@ class Newspack_Ads_GAM {
 			$ad_unit           = self::modify_ad_unit( $ad_unit_config );
 			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
 			if ( empty( $created_ad_units ) ) {
-				return new WP_Error( 'newspack_ads', __( 'Ad Unit was not created.', 'newspack-ads' ) );
+				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 			}
 			return self::serialize_ad_unit( $created_ad_units[0] );
-		} catch ( \Exception $e ) {
-			return [];
+		} catch ( ApiException $e ) {
+			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
 	}
 
