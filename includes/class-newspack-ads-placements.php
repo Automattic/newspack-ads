@@ -347,11 +347,6 @@ class Newspack_Ads_Placements {
 				continue;
 			}
 
-			// Skip placements without ID.
-			if ( ! isset( $placement['data']['id'] ) ) {
-				continue;
-			}
-
 			// Add placement and its hooks data to array.
 			if ( isset( $placement['data']['ad_unit'] ) && $placement['data']['ad_unit'] ) {
 				$placements_by_id[ $placement['data']['id'] ] = $placement['data'];
@@ -361,14 +356,14 @@ class Newspack_Ads_Placements {
 
 			if ( isset( $placement['data']['hooks'] ) ) {
 				foreach ( $placement['data']['hooks'] as $hook ) {
-					if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+					if ( isset( $hook['id'] ) && isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
 						$placements_by_id[ $hook['id'] ] = $hook;
 					}
 				}
 			}
 
 			// Remove hook data from root placement.
-			if ( isset( $placements_by_id[ $placement['data']['id'] ]['hooks'] ) ) {
+			if ( isset( $placement['data']['id'] ) && isset( $placements_by_id[ $placement['data']['id'] ]['hooks'] ) ) {
 				unset( $placements_by_id[ $placement['data']['id'] ]['hooks'] );
 			}
 		}
