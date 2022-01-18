@@ -1,3 +1,11 @@
+# [1.25.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.25.0-alpha.1...v1.25.0-alpha.2) (2022-01-18)
+
+
+### Bug Fixes
+
+* **placements:** ensure active placement have ID ([#282](https://github.com/Automattic/newspack-ads/issues/282)) ([7744cb8](https://github.com/Automattic/newspack-ads/commit/7744cb882420e4bc2aecc77fdea26340d91ab867))
+* ad unit error handling ([#277](https://github.com/Automattic/newspack-ads/issues/277)) ([e6bd34c](https://github.com/Automattic/newspack-ads/commit/e6bd34ce3bf8b0b128c3009c1e785d447d5d6869))
+
 # [1.25.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.24.0...v1.25.0-alpha.1) (2022-01-06)
 
 
