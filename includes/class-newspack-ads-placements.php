@@ -561,7 +561,7 @@ class Newspack_Ads_Placements {
 			array(
 				'unique_id' => $placement_data['id'],
 				'placement' => $placement_key,
-			) 
+			)
 		);
 		if ( is_wp_error( $ad_unit ) ) {
 			return;
