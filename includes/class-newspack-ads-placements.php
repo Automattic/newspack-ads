@@ -356,14 +356,14 @@ class Newspack_Ads_Placements {
 
 			if ( isset( $placement['data']['hooks'] ) ) {
 				foreach ( $placement['data']['hooks'] as $hook ) {
-					if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+					if ( isset( $hook['id'] ) && isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
 						$placements_by_id[ $hook['id'] ] = $hook;
 					}
 				}
 			}
 
 			// Remove hook data from root placement.
-			if ( isset( $placements_by_id[ $placement['data']['id'] ]['hooks'] ) ) {
+			if ( isset( $placement['data']['id'] ) && isset( $placements_by_id[ $placement['data']['id'] ]['hooks'] ) ) {
 				unset( $placements_by_id[ $placement['data']['id'] ]['hooks'] );
 			}
 		}
@@ -458,6 +458,65 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Internal method for whether the placement can display an ad unit.
+	 *
+	 * @param string $placement_key Placement key.
+	 *
+	 * @return bool Whether the placement can display an ad unit.
+	 */
+	private static function can_display( $placement_key ) {
+		$placements = self::get_placements();
+
+		// Placement does not exist.
+		if ( ! isset( $placements[ $placement_key ] ) ) {
+			return false;
+		}
+
+		$placement  = $placements[ $placement_key ];
+		$is_enabled = $placement['data']['enabled'];
+		// Placement is disabled.
+		if ( ! $is_enabled ) {
+			return false;
+		}
+
+		// Placement contains hooks.
+		if ( isset( $placement['data']['hooks'] ) && count( $placement['data']['hooks'] ) ) {
+			$can_display = false;
+			foreach ( $placement['data']['hooks'] as $hook ) {
+				// A hook contains an ad unit.
+				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] ) {
+					$can_display = true;
+				}
+			}
+			return $can_display;
+		}
+
+		// Placement contains an ad unit.
+		if ( isset( $placement['data']['ad_unit'] ) && $placement['data']['ad_unit'] ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether the placement can display an ad unit with filterable output.
+	 *
+	 * @param string $placement_key Placement key.
+	 *
+	 * @return bool Whether the placement can display an ad unit.
+	 */
+	public static function can_display_ad_unit( $placement_key ) {
+		/**
+		 * Filters whether the placement can display an ad unit.
+		 *
+		 * @param bool   $can_display   Whether the placement can display an ad unit.
+		 * @param string $placement_key The placement key.
+		 */
+		return apply_filters( 'newspack_ads_placement_can_display_ad_unit', self::can_display( $placement_key ), $placement_key );
+	}
+
+	/**
 	 * Generate an ID given a list of strings as arguments.
 	 *
 	 * @param string[] $args List of strings.
@@ -473,9 +532,17 @@ class Newspack_Ads_Placements {
 	 * @param string $hook_key      Optional hook key in case of multiple hooks available.
 	 */
 	public static function inject_placement_ad( $placement_key, $hook_key = '' ) {
+
+		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+
+		if ( ! self::can_display_ad_unit( $placement_key ) ) {
+			return;
+		}
+
 		$placements = self::get_placements();
 		$placement  = $placements[ $placement_key ];
-		$is_enabled = $placement['data']['enabled'];
 
 		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
 
@@ -485,11 +552,7 @@ class Newspack_Ads_Placements {
 			$placement_data = $placement['data'];
 		}
 
-		if ( ! $is_enabled || ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
-			return;
-		}
-
-		if ( ! newspack_ads_should_show_ads() ) {
+		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
 
