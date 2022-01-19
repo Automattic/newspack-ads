@@ -1,3 +1,17 @@
+# [1.25.0](https://github.com/Automattic/newspack-ads/compare/v1.24.0...v1.25.0) (2022-01-19)
+
+
+### Bug Fixes
+
+* **placements:** ensure active placement have ID ([#282](https://github.com/Automattic/newspack-ads/issues/282)) ([7744cb8](https://github.com/Automattic/newspack-ads/commit/7744cb882420e4bc2aecc77fdea26340d91ab867))
+* ad unit error handling ([#277](https://github.com/Automattic/newspack-ads/issues/277)) ([e6bd34c](https://github.com/Automattic/newspack-ads/commit/e6bd34ce3bf8b0b128c3009c1e785d447d5d6869))
+* **header-bidding:** disable initial load for gtag ([#274](https://github.com/Automattic/newspack-ads/issues/274)) ([c7a4ec3](https://github.com/Automattic/newspack-ads/commit/c7a4ec39879dca699fa88cf7c9109631a327bf2e))
+
+
+### Features
+
+* allow empty sidebars for article and above copyright ([#270](https://github.com/Automattic/newspack-ads/issues/270)) ([f128e95](https://github.com/Automattic/newspack-ads/commit/f128e95470f4590d7c801b3e7874e63407d4da26))
+
 # [1.25.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.25.0-alpha.1...v1.25.0-alpha.2) (2022-01-18)
 
 
