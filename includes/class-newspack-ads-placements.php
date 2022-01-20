@@ -77,22 +77,62 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Sanitize placement data given it's key.
+	 *
+	 * @param array $data Placement data.
+	 *
+	 * @return array Sanitized placement data.
+	 */
+	public static function sanitize_placement( $data ) {
+
+		$sanitized_data = [];
+
+		if ( ! is_array( $data ) ) {
+			return $sanitized_data;
+		}
+
+		if ( isset( $data['ad_unit'] ) ) {
+			$sanitized_data['ad_unit'] = sanitize_text_field( $data['ad_unit'] );
+		}
+
+		if ( isset( $data['bidders_ids'] ) ) {
+			$sanitized_data['bidders_ids'] = self::sanitize_bidders_ids( $data['bidders_ids'] );
+		}
+
+		if ( isset( $data['hooks'] ) ) {
+			$sanitized_data['hooks'] = self::sanitize_hooks_data( $data['hooks'] );
+		}
+
+		if ( isset( $data['stick_to_top'] ) ) {
+			$sanitized_data['stick_to_top'] = rest_sanitize_boolean( $data['stick_to_top'] );
+		}
+
+		return $sanitized_data;
+	}
+
+	/**
 	 * Sanitize hooks data.
 	 *
-	 * @param array           $hooks   Hooks data.
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param array                  $hooks   Hooks data.
+	 * @param WP_REST_Request|string $request Optional full details about the request or placement key.
 	 *
 	 * @return array Sanitized hooks data.
 	 */
-	public static function sanitize_hooks_data( $hooks, $request ) {
-		$placement_key   = (string) $request->get_param( 'placement' );
-		$placements      = self::get_placements();
-		$placement       = $placements[ $placement_key ];
+	public static function sanitize_hooks_data( $hooks, $request = '' ) {
+		if ( is_string( $request ) ) {
+			$placement_key = $request;
+		} else {
+			$placement_key = (string) $request->get_param( 'placement' );
+		}
+		if ( $placement_key ) {
+			$placements = self::get_placements();
+			$placement  = $placements[ $placement_key ];
+		}
 		$sanitized_hooks = [];
 		if ( is_array( $hooks ) ) {
 			foreach ( $hooks as $key => $hook ) {
-				// Check if hook is valid.
-				if ( isset( $placement['hooks'][ $key ] ) ) {
+				// If placement is available, check if hook is valid.
+				if ( ! $placement_key || ( $placement && isset( $placement['hooks'][ $key ] ) ) ) {
 					// Sanitize bidders IDs data.
 					if ( isset( $hooks['bidders_ids'] ) ) {
 						$hook['bidders_ids'] = self::sanitize_bidders_ids( $hook['bidders_ids'] );
@@ -200,7 +240,7 @@ class Newspack_Ads_Placements {
 	 * 
 	 * @return string Option name. 
 	 */
-	private static function get_option_name( $placement_key ) {
+	public static function get_option_name( $placement_key ) {
 		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
 	}
 
@@ -451,7 +491,7 @@ class Newspack_Ads_Placements {
 					array(
 						'enabled' => false,
 					),
-					$placement_data 
+					$placement_data
 				)
 			)
 		);

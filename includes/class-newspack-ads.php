@@ -79,6 +79,7 @@ final class Newspack_Ads {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-gam.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-model.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-widget.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/customizer/class-newspack-ads-customizer.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/suppress-ads.php';
 	}
 
