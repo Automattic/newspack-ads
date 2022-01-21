@@ -1,4 +1,27 @@
-import { set } from 'lodash';
+const set = ( obj = {}, paths = [], value ) => {
+	const inputObj = obj === null ? {} : { ...obj };
+
+	if ( ! Array.isArray( paths ) ) {
+		paths = [ paths ];
+	}
+
+	if ( paths.length === 0 ) {
+		return inputObj;
+	}
+
+	if ( paths.length === 1 ) {
+		const path = paths[ 0 ];
+		inputObj[ path ] = value;
+		return { ...inputObj, [ path ]: value };
+	}
+
+	const [ path, ...rest ] = paths;
+	const currentNode = inputObj[ path ];
+
+	const childNode = set( currentNode, rest, value );
+
+	return { ...inputObj, [ path ]: childNode };
+};
 
 ( function( $ ) {
 	wp.customize.bind( 'ready', function() {
@@ -11,29 +34,27 @@ import { set } from 'lodash';
 			if ( control.params.type !== 'newspack_ads_placement' ) {
 				return;
 			}
-			const $json = control.container.find( 'input[type=hidden]' );
 			let value;
 			try {
 				value = JSON.parse( control.setting.get() || '{}' );
 			} catch ( e ) {
 				value = { enabled: false };
 			}
-			control.container.on( 'change', 'input[type=checkbox]', function() {
-				set( value, 'enabled', $( this ).is( ':checked' ) );
-				$json.val( JSON.stringify( value ) );
+			const updateValue = ( path, val ) => {
+				value = set( value, path, val );
 				control.setting.set( JSON.stringify( value ) );
+			};
+			control.container.on( 'change', 'input[type=checkbox]', function() {
+				updateValue( 'enabled', $( this ).is( ':checked' ) );
 			} );
 			control.container.on( 'change', 'select', function() {
 				const $select = $( this );
-				const ad_unit = $select.val();
 				const hook = $select.data( 'hook' );
 				let path = 'ad_unit';
 				if ( hook ) {
 					path = [ 'hooks', hook, 'ad_unit' ];
 				}
-				set( value, path, ad_unit );
-				$json.val( JSON.stringify( value ) );
-				control.setting.set( JSON.stringify( value ) );
+				updateValue( path, $select.val() );
 			} );
 		} );
 	} );

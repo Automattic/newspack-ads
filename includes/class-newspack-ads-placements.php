@@ -91,6 +91,10 @@ class Newspack_Ads_Placements {
 			return $sanitized_data;
 		}
 
+		if ( isset( $data['enabled'] ) ) {
+			$sanitized_data['enabled'] = rest_sanitize_boolean( $data['enabled'] );
+		}
+
 		if ( isset( $data['ad_unit'] ) ) {
 			$sanitized_data['ad_unit'] = sanitize_text_field( $data['ad_unit'] );
 		}
@@ -252,7 +256,7 @@ class Newspack_Ads_Placements {
 	 *
 	 * @return object Placement ad unit data.
 	 */
-	private static function get_placement_data( $placement_key, $config = array() ) {
+	public static function get_placement_data( $placement_key, $config = array() ) {
 		/**
 		 * Default placement data to return if not configured or stored yet.
 		 */
@@ -572,6 +576,8 @@ class Newspack_Ads_Placements {
 	 * @param string $hook_key      Optional hook key in case of multiple hooks available.
 	 */
 	public static function inject_placement_ad( $placement_key, $hook_key = '' ) {
+
+		do_action( 'newspack_ads_placement_ad', $placement_key, $hook_key );
 
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;

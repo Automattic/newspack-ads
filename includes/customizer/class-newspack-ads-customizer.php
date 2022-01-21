@@ -16,6 +16,7 @@ class Newspack_Ads_Customizer {
 	public static function init() {
 		add_action( 'customize_register', [ __CLASS__, 'register_customizer_controls' ] );
 		add_action( 'customize_controls_enqueue_scripts', [ __CLASS__, 'enqueue' ] );
+		add_action( 'newspack_ads_placement_ad', [ __CLASS__, 'render_placement' ], 10, 2 );
 	}
 
 	/**
@@ -45,12 +46,12 @@ class Newspack_Ads_Customizer {
 	/**
 	 * Sanitize placement value.
 	 *
-	 * @param array[] $value Placement value.
+	 * @param string $value Placement value in JSON.
 	 *
 	 * @return array[] Sanitized placement value.
 	 */
 	public static function sanitize( $value ) {
-		return wp_json_encode( Newspack_Ads_Placements::sanitize_placement( $value ) );
+		return wp_json_encode( Newspack_Ads_Placements::sanitize_placement( json_decode( $value, true ) ) );
 	}
 
 	/**
@@ -93,6 +94,7 @@ class Newspack_Ads_Customizer {
 				[
 					'type'              => 'option',
 					'capability'        => $capability,
+					'transport'         => 'postMessage',
 					'sanitize_callback' => [ __CLASS__, 'sanitize' ],
 				] 
 			);
@@ -107,7 +109,40 @@ class Newspack_Ads_Customizer {
 					]
 				)
 			);
+			$wp_customize->selective_refresh->add_partial(
+				$setting_id,
+				[
+					'selector'            => sprintf( '.newspack-ads-customizer-placement.%s', $placement_key ),
+					'container_inclusive' => false,
+					'fallback_refresh'    => false,
+					'render_callback'     => function( $wp_customize_partial ) use ( $placement_key ) {
+						// TODO: Support inject placement hooks.
+					},
+				]
+			);
 		}
+	}
+
+	/**
+	 * Render placement metadata for customizer.
+	 *
+	 * @param string $placement_key Placement key.
+	 * @param string $hook_key      Optional hook key.
+	 */
+	public static function render_placement( $placement_key, $hook_key = '' ) {
+		if ( empty( $GLOBALS['wp_customize'] ) ) {
+			return;
+		}
+		$placements = Newspack_Ads_Placements::get_placements();
+		$placement  = $placements[ $placement_key ];
+		?>
+		<div class="newspack-ads-customizer-placement <?php echo esc_attr( $placement_key ); ?>">
+			<p>
+				<?php echo esc_html( $placement['name'] ); ?>
+				<?php echo esc_html( $hook_key ); ?>
+			</p>
+		</div>
+		<?php
 	}
 }
 Newspack_Ads_Customizer::init();

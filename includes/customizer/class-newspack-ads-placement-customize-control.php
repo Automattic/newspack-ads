@@ -142,7 +142,6 @@ class Newspack_Ads_Placement_Customize_Control extends \WP_Customize_Control {
 		$enabled         = $value && isset( $value['enabled'] ) && $value['enabled'];
 		$enabled_id      = $this->get_element_id( 'input', [ 'enabled' ] );
 		$enabled_desc_id = $this->get_element_id( 'description', [ 'enabled' ] );
-		$json_id         = $this->get_element_id( 'input', [ 'json' ] );
 		?>
 		<div id="<?php echo esc_attr( $container_id ); ?>">
 			<span class="customize-control">
@@ -166,7 +165,6 @@ class Newspack_Ads_Placement_Customize_Control extends \WP_Customize_Control {
 				}
 			}
 			?>
-			<input type="hidden" id="<?php echo esc_attr( $json_id ); ?>" value="<?php echo esc_attr( $this->value() ); ?>" />
 		</div>
 		<?php
 	}
