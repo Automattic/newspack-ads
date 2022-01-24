@@ -10,10 +10,11 @@ module.exports = {
 	env: {
 		browser: true,
 	},
+	ignorePatterns: [ 'dist/', 'node_modules/', 'postcss.config.js' ],
 	rules: {
 		// Disallow importing or requiring packages that are not listed in package.json
 		// This prevents us from depending on transitive dependencies, which could break in unexpected ways.
-		'import/no-extraneous-dependencies': ['error'],
+		'import/no-extraneous-dependencies': [ 'error' ],
 		// Skip prop types validation for now
 		'react/prop-types': 'off',
 		// Allow exporting components as default exports

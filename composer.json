@@ -12,8 +12,12 @@
   },
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "post-install-cmd": [ "vendor/bin/cghooks add --no-lock" ],
-    "post-update-cmd": [ "vendor/bin/cghooks update" ]
+    "post-install-cmd": [
+      "vendor/bin/cghooks add --no-lock"
+    ],
+    "post-update-cmd": [
+      "vendor/bin/cghooks update"
+    ]
   },
   "extra": {
     "hooks": {
@@ -21,7 +25,7 @@
         "./node_modules/.bin/lint-staged"
       ],
       "commit-msg": [
-        "cat $1 | ./node_modules/.bin/commitlint"
+        "cat $1 | ./node_modules/.bin/newspack-scripts commitlint"
       ]
     }
   },
