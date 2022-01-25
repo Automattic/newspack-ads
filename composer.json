@@ -1,34 +1,35 @@
 {
-  "name": "automattic/newspack-ads",
-  "description": "Newspack Ad integrations.",
-  "type": "wordpress-plugin",
-  "require-dev": {
-    "automattic/vipwpcs": "^2.0",
-    "wp-coding-standards/wpcs": "^2.2",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-    "phpcompatibility/phpcompatibility-wp": "^2.1",
-    "brainmaestro/composer-git-hooks": "^2.8"
-  },
-  "license": "GPL-2.0-or-later",
-  "scripts": {
-    "post-install-cmd": [
-      "vendor/bin/cghooks add --no-lock"
-    ],
-    "post-update-cmd": [
-      "vendor/bin/cghooks update"
-    ]
-  },
-  "extra": {
-    "hooks": {
-      "pre-commit": [
-        "./node_modules/.bin/lint-staged"
-      ],
-      "commit-msg": [
-        "cat $1 | ./node_modules/.bin/newspack-scripts commitlint"
-      ]
-    }
-  },
-  "require": {
-    "googleads/googleads-php-lib": "^55.0"
-  }
+	"name": "automattic/newspack-ads",
+	"description": "Newspack Ad integrations.",
+	"type": "wordpress-plugin",
+	"require-dev": {
+		"composer/installers": "~1.6",
+		"automattic/vipwpcs": "^2.0.0",
+		"brainmaestro/composer-git-hooks": "^2.6",
+		"wp-coding-standards/wpcs": "*",
+		"dealerdirect/phpcodesniffer-composer-installer": "*",
+		"phpcompatibility/phpcompatibility-wp": "*"
+	},
+	"license": "GPL-3.0-or-later",
+	"scripts": {
+		"post-install-cmd": [
+			"vendor/bin/cghooks add --no-lock"
+		],
+		"post-update-cmd": [
+			"vendor/bin/cghooks update"
+		]
+	},
+	"extra": {
+		"hooks": {
+			"pre-commit": [
+				"./node_modules/.bin/lint-staged"
+			],
+			"commit-msg": [
+				"cat $1 | ./node_modules/.bin/commitlint"
+			]
+		}
+	},
+	"require": {
+		"googleads/googleads-php-lib": "^55.0"
+	}
 }
