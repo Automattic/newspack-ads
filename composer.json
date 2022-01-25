@@ -3,14 +3,14 @@
   "description": "Newspack Ad integrations.",
   "type": "wordpress-plugin",
   "require-dev": {
-    "composer/installers": "~1.6",
-    "automattic/vipwpcs": "^2.0.0",
-    "brainmaestro/composer-git-hooks": "^2.6",
-    "wp-coding-standards/wpcs": "*",
-    "dealerdirect/phpcodesniffer-composer-installer": "*",
-    "phpcompatibility/phpcompatibility-wp": "*"
+    "composer/installers": "~2.0",
+    "automattic/vipwpcs": "^2.0",
+    "wp-coding-standards/wpcs": "^2.2",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+    "phpcompatibility/phpcompatibility-wp": "^2.1",
+    "brainmaestro/composer-git-hooks": "^2.8"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "post-install-cmd": [
       "vendor/bin/cghooks add --no-lock"

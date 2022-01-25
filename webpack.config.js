@@ -7,7 +7,8 @@
  * External dependencies
  */
 const fs = require( 'fs' );
-const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.js' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
+const prebidConfig = require( 'prebid.js/.babelrc.js' );
 const path = require( 'path' );
 
 /**
@@ -67,7 +68,10 @@ webpackConfig.module.rules.push( {
 		loader: 'babel-loader',
 		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
 		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
-		options: require( 'prebid.js/.babelrc.js' ),
+		options: {
+			...prebidConfig,
+			// extends: 'newspack-scripts/config/babel.config.js',
+		},
 	},
 } );
 

@@ -6,8 +6,8 @@
   "scripts": {
     "cm": "newspack-scripts commit",
     "semantic-release": "newspack-scripts release --files=newspack-ads.php",
-    "build": "calypso-build",
-    "watch": "calypso-build --watch",
+    "build": "newspack-scripts build",
+    "watch": "newspack-scripts watch",
     "start": "npm ci && npm run watch",
     "clean": "rm -rf dist/",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -38,33 +38,15 @@
     "url": "https://github.com/Automattic/newspack-ads/issues"
   },
   "devDependencies": {
-    "@automattic/calypso-build": "^10.0.0",
+    "@rushstack/eslint-patch": "^1.1.0",
     "classnames": "^2.3.1",
     "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jsdoc": "^37.6.3",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
     "lint-staged": "^12.3.1",
     "newspack-scripts": "^3.0.0",
     "prettier": "npm:wp-prettier@^2.2.1-beta-1",
-    "stylelint": "^13.13.1",
-    "stylelint-scss": "^4.1.0"
+    "stylelint": "^13.13.1"
   },
   "dependencies": {
-    "@wordpress/api-fetch": "^3.11.0",
-    "@wordpress/base-styles": "^3.4.1",
-    "@wordpress/blocks": "^6.4.0",
-    "@wordpress/components": "^9.2.4",
-    "@wordpress/compose": "^3.11.0",
-    "@wordpress/data": "^4.14.1",
-    "@wordpress/edit-post": "^3.13.6",
-    "@wordpress/element": "^2.5.0",
-    "@wordpress/eslint-plugin": "^4.0.0",
-    "@wordpress/i18n": "^3.9.0",
-    "@wordpress/plugins": "^2.12.0",
     "prebid.js": "^6.4.0"
   }
 }
