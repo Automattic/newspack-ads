@@ -3,7 +3,6 @@
   "description": "Newspack Ad integrations.",
   "type": "wordpress-plugin",
   "require-dev": {
-    "composer/installers": "~2.0",
     "automattic/vipwpcs": "^2.0",
     "wp-coding-standards/wpcs": "^2.2",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
