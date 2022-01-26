@@ -8,7 +8,6 @@
  */
 const fs = require( 'fs' );
 const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
-const prebidConfig = require( 'prebid.js/.babelrc.js' );
 const path = require( 'path' );
 
 /**
@@ -69,7 +68,19 @@ webpackConfig.module.rules.push( {
 		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
 		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
 		options: {
-			...prebidConfig,
+			presets: [
+				[
+					require.resolve( '@babel/preset-env' ),
+					{
+						useBuiltIns: 'entry',
+						corejs: 3.6,
+					},
+				],
+			],
+			plugins: [
+				require.resolve( './config/pbjsGlobals.js' ),
+				require.resolve( 'babel-plugin-transform-object-assign' ),
+			],
 			configFile: false,
 		},
 	},

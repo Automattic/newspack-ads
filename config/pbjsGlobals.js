@@ -1,6 +1,6 @@
 
 let t = require('@babel/core').types;
-let prebid = require('../package.json');
+let prebid = require('prebid.js/package.json');
 const path = require('path');
 
 module.exports = function(api, options) {
