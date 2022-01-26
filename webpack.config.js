@@ -70,7 +70,6 @@ webpackConfig.module.rules.push( {
 		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
 		options: {
 			...prebidConfig,
-			// extends: 'newspack-scripts/config/babel.config.js',
 		},
 	},
 } );
