@@ -63,13 +63,14 @@ const webpackConfig = getBaseWebpackConfig(
 
 webpackConfig.module.rules.push( {
 	test: /.js$/,
-	include: new RegExp( `\\${ path.sep }prebid\.js` ),
+	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
 		loader: 'babel-loader',
 		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
 		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
 		options: {
 			...prebidConfig,
+			configFile: false,
 		},
 	},
 } );
