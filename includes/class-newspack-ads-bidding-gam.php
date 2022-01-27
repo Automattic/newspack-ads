@@ -751,7 +751,7 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Get a number converted to micro amounts rounded by the given precision.
+	 * Convert a number to micro amounts rounded by the given precision.
 	 *
 	 * @param int|float $number    A number to convert to micro amounts.
 	 * @param int       $precision The precision to round to.
