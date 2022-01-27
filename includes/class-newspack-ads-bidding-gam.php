@@ -83,12 +83,17 @@ class Newspack_Ads_Bidding_GAM {
 		);
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
-			'/bidding/gam/create/(?P<type>[\a-z]+)',
+			'/bidding/gam/create',
 			[
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => [ __CLASS__, 'api_create' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
 				'args'                => [
+					'type'  => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+						'validate_callback' => [ __CLASS__, 'validate_create_type' ],
+					],
 					'name'  => [
 						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
@@ -112,6 +117,17 @@ class Newspack_Ads_Bidding_GAM {
 				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
 			)
 		);
+	}
+
+	/**
+	 * Validate if given type is a valid type for creating a new GAM entity.
+	 *
+	 * @param string $type Type to validate.
+	 *
+	 * @return bool Whether the type is valid.
+	 */
+	public static function validate_create_type( $type ) {
+		return in_array( $type, [ 'order', 'line_items', 'creatives' ], true );
 	}
 
 	/**

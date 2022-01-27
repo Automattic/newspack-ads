@@ -70,9 +70,10 @@ const HeaderBiddingGAM = () => {
 	};
 	const createType = async ( type, batch = 0 ) => {
 		return await apiFetch( {
-			path: '/newspack-ads/v1/bidding/gam/create/' + type,
+			path: '/newspack-ads/v1/bidding/gam/create',
 			method: 'POST',
 			data: {
+				type,
 				name: orderName,
 				batch,
 			},
