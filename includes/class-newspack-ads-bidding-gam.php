@@ -255,6 +255,9 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return array|WP_Error Created GAM config or WP_Error if setup errors.
 	 */
 	private static function initial_setup() {
+		if ( ! self::is_connected() ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Google Ad Manager is not connected.', 'newspack-ads' ) );
+		}
 		$advertiser = self::get_advertiser();
 		if ( \is_wp_error( $advertiser ) ) {
 			return $advertiser;
@@ -478,7 +481,11 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
 	 */
 	private static function create_order( $name, $price_granularity_key ) {
-		$config            = self::initial_setup();
+		$config = self::initial_setup();
+		if ( \is_wp_error( $config ) ) {
+			return $config;
+		}
+
 		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
 
 		if ( false === $price_granularity ) {
