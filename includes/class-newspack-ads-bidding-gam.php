@@ -419,6 +419,15 @@ class Newspack_Ads_Bidding_GAM {
 	 * @return array The stored order setup.
 	 */
 	private static function get_order( $price_granularity_key ) {
+		if ( ! self::is_connected() ) {
+			return new WP_Error(
+				'newspack_ads_bidding_gam_error',
+				__( 'Not authenticated.', 'newspack-ads' ),
+				[
+					'status' => '500',
+				]
+			);
+		}
 		$orders     = get_option( self::get_option_name( 'orders' ), [] );
 		$order_hash = self::get_order_hash( $price_granularity_key );
 
