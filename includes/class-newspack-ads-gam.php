@@ -1105,6 +1105,8 @@ class Newspack_Ads_GAM {
 			$targeting_key = $found_keys[0];
 		}
 
+		$found_values   = [];
+		$created_values = [];
 		if ( $targeting_key && count( $values ) ) {
 			$key_id           = $targeting_key->getId();
 			$values_statement = new Statement(
