@@ -233,7 +233,7 @@ const HeaderBiddingGAM = () => {
 							<Notice
 								isWarning
 								noticeText={ __(
-									"Order and line items exists but it's missing the creatives associations.",
+									"Order and line items exist, but are missing creative associations.",
 									'newspack-ads'
 								) }
 							/>
