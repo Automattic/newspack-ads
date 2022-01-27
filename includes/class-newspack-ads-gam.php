@@ -770,6 +770,7 @@ class Newspack_Ads_GAM {
 	 * @throws \Exception If unsupported configuration or unable to create line items.
 	 */
 	public static function create_line_items( $line_item_configs = [] ) {
+		$network    = self::get_gam_network();
 		$line_items = [];
 		foreach ( $line_item_configs as $config ) {
 			$config    = wp_parse_args(
@@ -811,6 +812,9 @@ class Newspack_Ads_GAM {
 			// Cost options.
 			$line_item->setCostType( $config['cost_type'] );
 			if ( isset( $config['cost_per_unit'] ) ) {
+				if ( ! isset( $config['cost_per_unit']['currency_code'] ) ) {
+					$config['cost_per_unit']['currency_code'] = $network->getCurrencyCode();
+				}
 				$cost_per_unit = new Money( $config['cost_per_unit']['currency_code'], $config['cost_per_unit']['micro_amount'] );
 				$line_item->setCostPerUnit( $cost_per_unit );
 			}
@@ -823,7 +827,6 @@ class Newspack_Ads_GAM {
 				// Default is "Run of network", which is targeted to the network's root ad unit including descendants.
 				$inventory_targeting = new InventoryTargeting();
 				if ( ! isset( $config['targeting']['inventory_targeting'] ) ) {
-					$network = self::get_gam_network();
 					$inventory_targeting->setTargetedAdUnits( [ new AdUnitTargeting( $network->getEffectiveRootAdUnitId(), true ) ] );
 				} else {
 					throw new \Exception( 'Inventory targeting is not supported yet' );

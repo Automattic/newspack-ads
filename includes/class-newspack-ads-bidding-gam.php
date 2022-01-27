@@ -638,8 +638,7 @@ class Newspack_Ads_Bidding_GAM {
 					'goal_type' => 'NONE',
 				],
 				'cost_per_unit'           => [
-					'currency_code' => 'USD',
-					'micro_amount'  => $price_micro,
+					'micro_amount' => $price_micro,
 				],
 				'targeting'               => [
 					'custom_targeting' => [
