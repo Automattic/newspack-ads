@@ -147,7 +147,10 @@ const HeaderBiddingGAM = () => {
 	useEffect(() => {
 		if ( isCreating ) {
 			window.onbeforeunload = () => {
-				return __( 'Are you sure you want to leave this page? Header bidding setup is incomplete.', 'newspack' );
+				return __(
+					'Are you sure you want to leave this page? Header bidding setup is incomplete.',
+					'newspack'
+				);
 			};
 		} else {
 			window.onbeforeunload = null;
@@ -233,7 +236,7 @@ const HeaderBiddingGAM = () => {
 							<Notice
 								isWarning
 								noticeText={ __(
-									"Order and line items exist, but are missing creative associations.",
+									'Order and line items exist, but are missing creative associations.',
 									'newspack-ads'
 								) }
 							/>
