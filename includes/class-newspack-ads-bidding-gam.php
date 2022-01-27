@@ -765,7 +765,14 @@ class Newspack_Ads_Bidding_GAM {
 			},
 			$lica_configs
 		);
-		$licas        = Newspack_Ads_GAM::associate_creatives_to_line_items( $lica_configs );
+		try {
+			$licas = Newspack_Ads_GAM::associate_creatives_to_line_items( $lica_configs );
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+		if ( is_wp_error( $licas ) ) {
+			return $licas;
+		}
 
 		$orders = get_option( self::get_option_name( 'orders' ) );
 		$orders[ $price_granularity_key ]['lica_batch_count'] = $batch;

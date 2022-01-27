@@ -111,6 +111,9 @@ class Newspack_Ads_GAM {
 		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
 			$error_message = __( 'Name must be unique.', 'newspack-ads' );
 		}
+		if ( in_array( 'CommonError.CONCURRENT_MODIFICATION', $errors ) ) {
+			$error_message = __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' );
+		}
 		return new WP_Error(
 			'newspack_ads_gam_error',
 			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
@@ -912,9 +915,32 @@ class Newspack_Ads_GAM {
 			}
 			$licas[] = $lica;
 		}
-		$session = self::get_gam_session();
-		$service = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $session );
-		return $service->createLineItemCreativeAssociations( $licas );
+		$session        = self::get_gam_session();
+		$service        = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $session );
+		$attempt_create = true;
+		while ( $attempt_create ) {
+			try {
+				$result         = $service->createLineItemCreativeAssociations( array_values( $licas ) );
+				$attempt_create = false;
+			} catch ( ApiException $e ) {
+				foreach ( $e->getErrors() as $error ) {
+					if ( 'CommonError.ALREADY_EXISTS' === $error->getErrorString() ) {
+						// Attempt to create again without duplicate associations.
+						$index = $error->getFieldPathElements()[0]->getIndex();
+						unset( $licas[ $index ] );
+					} else {
+						// Bail if there are other errors.
+						return self::get_api_error( $e, __( 'Unexpected error while creating creative associations.', 'newspack-ads' ) );
+					}
+				}
+				// Leave without errors if entire batch exists.
+				if ( 0 === count( $licas ) ) {
+					$attempt_create = false;
+					return [];
+				}
+			}
+		}
+		return $result;
 	}
 
 	/**
