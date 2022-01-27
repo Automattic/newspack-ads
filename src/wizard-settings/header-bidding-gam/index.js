@@ -5,6 +5,7 @@
 /**
  * WordPress dependencies.
  */
+import { addFilter } from '@wordpress/hooks';
 import { sprintf, __, _n } from '@wordpress/i18n';
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
@@ -119,11 +120,11 @@ const HeaderBiddingGAM = () => {
 			case 0:
 				return '';
 			case 1:
-				return __( 'Creating Order...', 'newspack-ads' );
+				return __( 'Creating Order…', 'newspack-ads' );
 			case 2:
-				return __( 'Creating Line Items...', 'newspack-ads' );
+				return __( 'Creating Line Items…', 'newspack-ads' );
 			default:
-				return __( 'Associating Creatives...', 'newspack-ads' );
+				return __( 'Associating Creatives…', 'newspack-ads' );
 		}
 	};
 	const isValid = () => {
@@ -139,13 +140,13 @@ const HeaderBiddingGAM = () => {
 	};
 	const getMissingOrderMessage = () => {
 		return inFlight
-			? __( 'Loading...', 'newspack-ads' )
+			? __( 'Loading…', 'newspack-ads' )
 			: __( 'Missing order configuration', 'newspack-ads' );
 	};
-	useEffect(() => {
+	useEffect( () => {
 		fetchOrder();
-	}, []);
-	useEffect(() => {
+	}, [] );
+	useEffect( () => {
 		if ( isCreating ) {
 			window.onbeforeunload = () => {
 				return __(
@@ -156,7 +157,7 @@ const HeaderBiddingGAM = () => {
 		} else {
 			window.onbeforeunload = null;
 		}
-	}, [ isCreating ]);
+	}, [ isCreating ] );
 	const stepName = getStepName();
 	return (
 		<Fragment>
@@ -171,7 +172,7 @@ const HeaderBiddingGAM = () => {
 							<div className="newspack-ads__header-bidding-gam__order-description">
 								{ order?.order_id ? (
 									<span>
-										{ __( 'Order:', 'newspack-ads' ) }{' '}
+										{ __( 'Order:', 'newspack-ads' ) }{ ' ' }
 										<a
 											href={ getOrderUrl( order.order_id ) }
 											target="_blank"
@@ -182,6 +183,7 @@ const HeaderBiddingGAM = () => {
 										{ ', ' }
 										{ order?.line_item_ids
 											? sprintf(
+													// Translators: Number of line items in the order.
 													_n(
 														'containing %s line item',
 														'containing %s line items',
@@ -276,7 +278,7 @@ const HeaderBiddingGAM = () => {
 	);
 };
 
-wp.hooks.addFilter(
+addFilter(
 	'newspack.settingSection.bidding.beforeControls',
 	'newspack-ads/header-bidding-gam',
 	( AfterControls, props ) => {
