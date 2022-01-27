@@ -147,7 +147,7 @@ const HeaderBiddingGAM = () => {
 	useEffect(() => {
 		if ( isCreating ) {
 			window.onbeforeunload = () => {
-				return __( 'Are you sure you want to leave this page?', 'newspack' );
+				return __( 'Are you sure you want to leave this page? Header bidding setup is incomplete.', 'newspack' );
 			};
 		} else {
 			window.onbeforeunload = null;
