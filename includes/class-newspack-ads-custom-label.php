@@ -29,20 +29,19 @@ class Newspack_Ads_Custom_Label {
 		return array_merge(
 			[
 				[
-					'description' => __( 'Custom ad label', 'newspack-ads' ),
-					'help'        => __( 'Add a custom text to be displayed right before your rendered ads.' ),
+					'description' => esc_html__( 'Custom ad label', 'newspack-ads' ),
+					'help'        => esc_html__( 'Add a custom text to be displayed right before your rendered ads.' ),
 					'section'     => 'custom_label',
 					'key'         => 'active',
 					'type'        => 'boolean',
 					'default'     => false,
 				],
 				[
-					'description' => __( 'Label text', 'newspack-ads' ),
-					'help'        => __( 'The custom text to be displayed right before your rendered ads.', 'newspack-ads' ),
+					'description' => esc_html__( 'Label', 'newspack-ads' ),
 					'section'     => 'custom_label',
 					'key'         => 'label_text',
 					'type'        => 'string',
-					'default'     => __( 'Advertising', 'newspack-ads' ),
+					'default'     => esc_html__( 'Advertising', 'newspack-ads' ),
 				],
 			],
 			$settings_list
@@ -62,13 +61,13 @@ class Newspack_Ads_Custom_Label {
 		<style>
 			.newspack_global_ad > div::before {
 				content: '<?php echo esc_html( $label_text ); ?>';
-				text-align: center;
-				margin-bottom: 10px;
 				display: block;
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 				font-size: 10px;
-				text-transform: uppercase;
-				letter-spacing: 1.5px;
-				color: #777;
+				line-height: 1.6;
+				margin-bottom: 0.4em;
+				opacity: 0.75;
+				text-align: center;
 			}
 		</style>
 		<?php
