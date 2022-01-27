@@ -92,6 +92,36 @@ class Newspack_Ads_GAM {
 	];
 
 	/**
+	 * Get a WP_Error object from an optional ApiException or message.
+	 *
+	 * @param ApiException $exception       Optional Google Ads API exception.
+	 * @param string       $default_message Optional default message to use.
+	 *
+	 * @return WP_Error Error.
+	 */
+	private static function get_api_error( ApiException $exception = null, $default_message = null ) {
+		$error_message = $default_message;
+		$errors        = [];
+		if ( ! is_null( $exception ) ) {
+			$error_message = $error_message ?? $exception->getMessage();
+			foreach ( $exception->getErrors() as $error ) {
+				$errors[] = $error->getErrorString();
+			}
+		}
+		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
+			$error_message = __( 'Name must be unique.', 'newspack-ads' );
+		}
+		return new WP_Error(
+			'newspack_ads_gam_error',
+			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
+			array(
+				'status' => '400',
+				'level'  => 'warning',
+			)
+		);
+	}
+
+	/**
 	 * Set the network code to be used.
 	 *
 	 * @param string $network_code Network code.
@@ -688,15 +718,19 @@ class Newspack_Ads_GAM {
 	 * @param string $name          Order Name.
 	 * @param string $advertiser_id Order Advertiser ID.
 	 *
-	 * @return object Created order.
+	 * @return object|WP_Error Serialised created order or error if it fails.
 	 */
 	public static function create_order( $name, $advertiser_id ) {
 		$order = new Order();
 		$order->setName( $name );
 		$order->setAdvertiserId( $advertiser_id );
 		$order->setTraffickerId( self::get_current_user()->getId() );
-		$service        = self::get_order_service();
-		$created_orders = $service->createOrders( [ $order ] );
+		try {
+			$service        = self::get_order_service();
+			$created_orders = $service->createOrders( [ $order ] );
+		} catch ( ApiException $e ) {
+			return self::get_api_error( $e, __( 'Order was not created due to an unexpected error.', 'newspack-ads' ) );
+		}
 		return self::get_serialised_orders( $created_orders )[0];
 	}
 
@@ -951,36 +985,6 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get a WP_Error object from an optional ApiException or message.
-	 *
-	 * @param ApiException $exception       Optional Google Ads API exception.
-	 * @param string       $default_message Optional default message to use.
-	 *
-	 * @return WP_Error Error.
-	 */
-	private static function get_ad_unit_api_error( ApiException $exception = null, $default_message = null ) {
-		$error_message = $default_message;
-		$errors        = [];
-		if ( ! is_null( $exception ) ) {
-			$error_message = $error_message ?? $exception->getMessage();
-			foreach ( $exception->getErrors() as $error ) {
-				$errors[] = $error->getErrorString();
-			}
-		}
-		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
-			$error_message = __( 'Ad Unit with the same name already exists.', 'newspack-ads' );
-		}
-		return new WP_Error(
-			'newspack_ads',
-			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
-			array(
-				'status' => '400',
-				'level'  => 'warning',
-			)
-		);
-	}
-
-	/**
 	 * Update Ad Unit.
 	 *
 	 * @param object $ad_unit_config Ad Unit configuration.
@@ -991,17 +995,17 @@ class Newspack_Ads_GAM {
 			$inventory_service = self::get_gam_inventory_service();
 			$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
 			if ( empty( $found_ad_units ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
 			}
 			$result = $inventory_service->updateAdUnits(
 				[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
 			);
 			if ( empty( $result ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 			}
 			return $result[0];
 		} catch ( ApiException $e ) {
-			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+			return self::get_api_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 		}
 	}
 
@@ -1018,11 +1022,11 @@ class Newspack_Ads_GAM {
 			$ad_unit           = self::modify_ad_unit( $ad_unit_config );
 			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
 			if ( empty( $created_ad_units ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 			}
 			return self::serialize_ad_unit( $created_ad_units[0] );
 		} catch ( ApiException $e ) {
-			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+			return self::get_api_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
 	}
 

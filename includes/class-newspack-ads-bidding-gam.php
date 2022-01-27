@@ -507,6 +507,10 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
 
+		if ( \is_wp_error( $order ) ) {
+			return $order;
+		}
+
 		$order_config  = [
 			'order_id'   => $order['id'],
 			'order_name' => $name,
