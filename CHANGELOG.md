@@ -1,3 +1,10 @@
+# [1.26.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.25.0...v1.26.0-alpha.1) (2022-01-27)
+
+
+### Features
+
+* custom ad label ([#292](https://github.com/Automattic/newspack-ads/issues/292)) ([fbc8034](https://github.com/Automattic/newspack-ads/commit/fbc8034e4fe815d7b8f9bf6ee4e518a2b9e6314e))
+
 # [1.25.0](https://github.com/Automattic/newspack-ads/compare/v1.24.0...v1.25.0) (2022-01-19)
 
 
