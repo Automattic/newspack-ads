@@ -779,7 +779,7 @@ class Newspack_Ads_Bidding_GAM {
 
 		try {
 			$line_items = Newspack_Ads_GAM::create_line_items( $line_item_configs );
-		} catch ( Exception $e ) {
+		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
 		if ( \is_wp_error( $line_items ) ) {
