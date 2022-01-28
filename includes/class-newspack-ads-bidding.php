@@ -34,7 +34,7 @@ class Newspack_Ads_Bidding {
 	 * @var array
 	 */
 	protected $bidders = array();
-	
+
 	/**
 	 * The single instance of the class.
 	 *
@@ -353,8 +353,19 @@ class Newspack_Ads_Bidding {
 	 * @return bool Whether header bidding is active.
 	 */
 	public static function is_enabled() {
-		$settings = self::get_settings();
-		return isset( $settings['active'] ) && $settings['active'];
+		return Newspack_Ads_Settings::get_setting( self::SETTINGS_SECTION_NAME, 'active' );
+	}
+
+	/**
+	 * Return whether the bidder adapter is enabled.
+	 *
+	 * @param string $bidder_id Bidder ID.
+	 *
+	 * @return boolean Whether the bidder adapter is enabled.
+	 */
+	public static function is_bidder_enabled( $bidder_id ) { 
+		$enabled_bidders = Newspack_Ads_Settings::get_setting( self::SETTINGS_SECTION_NAME, 'enabled_bidders', [] );
+		return in_array( $bidder_id, $enabled_bidders );
 	}
 
 	/**
@@ -366,7 +377,7 @@ class Newspack_Ads_Bidding {
 
 		$bidders  = array();
 		$settings = self::get_settings();
-		
+
 		if ( self::is_enabled() ) {
 			$bidders_configs = $this->bidders;
 
@@ -374,8 +385,10 @@ class Newspack_Ads_Bidding {
 
 				// Check if bidder is active or doesn't require activation.
 				if (
-					! isset( $bidder_config['active_key'] ) ||
-					( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
+					self::is_bidder_enabled( $bidder_id ) && (
+						! isset( $bidder_config['active_key'] ) ||
+						( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
+					)
 				) {
 
 					// Add bidder settings data.
@@ -453,6 +466,32 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Get setting for toggling bidder adapters.
+	 *
+	 * @return array Setting for toggling bidder adapters.
+	 */
+	private function get_enabled_bidders_setting() {
+		return [
+			'section'     => self::SETTINGS_SECTION_NAME,
+			'type'        => 'string',
+			'key'         => 'enabled_bidders',
+			'description' => __( 'Adapters', 'newspack' ),
+			'help'        => __( 'Select which bidder adapters should be enabled.', 'newspack' ),
+			'multiple'    => true,
+			'options'     => array_map(
+				function( $bidder_id, $bidder ) {
+					return [
+						'name'  => $bidder['name'],
+						'value' => $bidder_id,
+					];
+				},
+				array_keys( $this->bidders ),
+				array_values( $this->bidders ) 
+			),
+		];
+	}
+
+	/**
 	 * Register API endpoints.
 	 */
 	public function register_api_endpoints() {
@@ -505,36 +544,7 @@ class Newspack_Ads_Bidding {
 					'type'        => 'boolean',
 					'default'     => false,
 				),
-				array(
-					'description' => __( 'Price granularity', 'newspack-ads' ),
-					'help'        => __( 'The level of the price target set in the header bidding line items. The price buckets impact the line items’ ability to compete optimally with your other price-based ad campaigns.', 'newspack-ads' ),
-					'section'     => self::SETTINGS_SECTION_NAME,
-					'key'         => 'price_granularity',
-					'type'        => 'string',
-					'default'     => 'dense',
-					'options'     => array(
-						array(
-							'value' => 'low',
-							'name'  => __( 'Low', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'medium',
-							'name'  => __( 'Medium', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'high',
-							'name'  => __( 'High', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'auto',
-							'name'  => __( 'Auto', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'dense',
-							'name'  => __( 'Dense', 'newspack-ads' ),
-						),
-					),
-				),
+				$this->get_enabled_bidders_setting(),
 			),
 			$this->get_bidders_settings_config(),
 			array(
