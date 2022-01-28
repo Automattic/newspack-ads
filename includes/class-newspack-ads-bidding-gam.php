@@ -131,7 +131,7 @@ class Newspack_Ads_Bidding_GAM {
 	 */
 	public static function api_get_order_count() {
 		$count = self::get_order_count();
-		return \rest_ensure_response( is_wp_error( $count ) ? $count : [ 'count' => self::get_order_count() ] );
+		return \rest_ensure_response( is_wp_error( $count ) ? $count : [ 'count' => $count ] );
 	}
 
 	/**
