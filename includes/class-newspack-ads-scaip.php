@@ -26,6 +26,9 @@ class Newspack_Ads_SCAIP {
 	// Name of the hook to be created for the custom placement.
 	const HOOK_NAME = 'newspack_ads_scaip_placement_%s';
 
+	// Placement name prefix.
+	const PLACEMENT_PREFIX = 'scaip-';
+
 	/**
 	 * Initialize SCAIP Hooks.
 	 */
@@ -37,6 +40,7 @@ class Newspack_Ads_SCAIP {
 		// Placements hooks.
 		add_action( 'scaip_shortcode', [ __CLASS__, 'create_placement_action' ] );
 		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_placements' ] );
+		add_filter( 'newspack_ads_maybe_use_responsive_placement', [ __CLASS__, 'use_responsive_placement' ], 10, 2 );
 
 		// Deprecate sidebar.
 		if ( ! self::is_legacy_widgets() ) {
@@ -153,7 +157,7 @@ class Newspack_Ads_SCAIP {
 
 		$amount = get_option( self::OPTIONS_MAP['repetitions'], self::DEFAULT_REPETITIONS );
 		for ( $i = 1; $i <= $amount; $i++ ) {
-			$placements[ 'scaip-' . $i ] = array(
+			$placements[ self::PLACEMENT_PREFIX . $i ] = array(
 				// translators: %s is the number of the placement.
 				'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
 				// translators: %s is the number of the placement.
@@ -177,7 +181,7 @@ class Newspack_Ads_SCAIP {
 	 * @return array The placement data.
 	 */
 	public static function get_ad_unit_from_widget( $placement_data, $placement_key, $placement ) {
-		if ( $placement_data || 0 !== strpos( $placement_key, 'scaip-' ) ) {
+		if ( $placement_data || 0 !== strpos( $placement_key, self::PLACEMENT_PREFIX ) ) {
 			return $placement_data;
 		}
 		global $wp_registered_widgets;
@@ -202,6 +206,21 @@ class Newspack_Ads_SCAIP {
 			}
 		}
 		return $placement_data;
+	}
+
+	/**
+	 * Use responsive placement for SCAIP placements.
+	 *
+	 * @param boolean $responsive Default value of whether to use responsive placement.
+	 * @param string  $placement  ID of the ad placement.
+	 *
+	 * @return boolean Whether to use responsive placement.
+	 */
+	public static function use_responsive_placement( $responsive, $placement ) {
+		if ( 0 === strpos( $placement, self::PLACEMENT_PREFIX ) ) {
+			return true;
+		}
+		return $responsive;
 	}
 }
 Newspack_Ads_SCAIP::init();
