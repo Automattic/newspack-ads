@@ -28,6 +28,8 @@ use Google\AdsApi\AdManager\v202111\AdUnit;
 use Google\AdsApi\AdManager\v202111\AdUnitSize;
 use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
 use Google\AdsApi\AdManager\v202111\Order;
+use Google\AdsApi\AdManager\v202111\ArchiveOrders;
+use Google\AdsApi\AdManager\v202111\UpdateResult;
 use Google\AdsApi\AdManager\v202111\Creative;
 use Google\AdsApi\AdManager\v202111\LineItem;
 use Google\AdsApi\AdManager\v202111\EnvironmentType;
@@ -436,16 +438,17 @@ class Newspack_Ads_GAM {
 	/**
 	 * Get all GAM orders in the user's network.
 	 *
-	 * @param int[] $ids Optional array of order ids.
+	 * @param StatementBuilder $statement_builder (optional) Statement builder.
 	 * 
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders( $ids = [] ) {
+	private static function get_orders( StatementBuilder $statement_builder = null ) {
 		$orders                = [];
 		$order_service         = self::get_order_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$total_result_set_size = 0;
-		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		$statement_builder     = $statement_builder ?? new StatementBuilder();
+		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
 		if ( ! empty( $ids ) ) {
 			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		}
@@ -460,6 +463,33 @@ class Newspack_Ads_GAM {
 			$statement_builder->increaseOffsetBy( $page_size );
 		} while ( $statement_builder->getOffset() < $total_result_set_size );
 		return $orders;
+	}
+
+	/**
+	 * Get orders by a list of IDs.
+	 *
+	 * @param int[] $ids Array of order IDs.
+	 *
+	 * @return Order[] Array of Orders.
+	 */
+	public static function get_orders_by_id( $ids = [] ) { 
+		if ( ! is_array( $ids ) ) {
+			$ids = [ $ids ];
+		}
+		$statement_builder = ( new StatementBuilder() )->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		return self::get_orders( $statement_builder );
+	}
+
+	/**
+	 * Get orders by advertiser ID.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return Order[] Array of Orders.
+	 */
+	public static function get_orders_by_advertiser( $advertiser_id ) { 
+		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
+		return self::get_orders( $statement_builder );
 	}
 
 	/**
@@ -944,20 +974,21 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Update a GAM Order.
+	 * Archive a GAM Order.
 	 *
-	 * @param object $order_config Order configuration.
+	 * @param int $order_id Order ID.
 	 *
-	 * @return object Updated order.
+	 * @return UpdateResult
 	 */
-	public static function update_order( $order_config ) {
-		$order = self::get_orders( [ $order_config['id'] ] )[0];
-		$order->setName( $order_config['name'] );
-		$order->setAdvertiserId( $order_config['advertiser_id'] );
-		$order->setTraffickerId( self::get_current_user()->getId() );
-		$service       = self::get_order_service();
-		$updated_order = $service->updateOrders( [ $order ] );
-		return self::get_serialised_orders( $updated_order )[0];
+	public static function archive_order( $order_id ) {
+		return self::get_order_service()->performOrderAction(
+			new ArchiveOrders(),
+			( new StatementBuilder() )->where( 'id = :id' )
+				->orderBy( 'id ASC' )
+				->limit( StatementBuilder::SUGGESTED_PAGE_LIMIT )
+				->withBindVariableValue( 'id', $order_id )
+				->toStatement()
+		);
 	}
 
 	/**

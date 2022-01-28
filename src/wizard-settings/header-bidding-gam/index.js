@@ -37,19 +37,21 @@ const getOrderUrl = orderId => {
 const HeaderBiddingGAM = () => {
 	const [ inFlight, setInFlight ] = useState( true );
 	const [ isCreating, setIsCreating ] = useState( false );
+	const [ initialOrder, setInitialOrder ] = useState( null );
 	const [ orderName, setOrderName ] = useState( 'Newspack Header Bidding' );
 	const [ order, setOrder ] = useState( null );
 	const [ error, setError ] = useState( null );
+	const [ unrecoverable, setUnrecoverable ] = useState( null );
 	const [ step, setStep ] = useState( 0 );
 	const [ totalBatches, setTotalBatches ] = useState( 1 );
 	const [ totalSteps, setTotalSteps ] = useState( 4 );
 	const fetchOrder = async () => {
 		setInFlight( true );
+		let data;
 		try {
-			const data = await apiFetch( {
+			data = await apiFetch( {
 				path: '/newspack-ads/v1/bidding/gam/order',
 				method: 'GET',
-				data: null,
 			} );
 			if ( data.line_item_ids?.length ) {
 				const licaConfig = await fetchLicaConfig();
@@ -64,6 +66,32 @@ const HeaderBiddingGAM = () => {
 		} finally {
 			setInFlight( false );
 		}
+		return data;
+	};
+	const updateOrderName = async () => {
+		setInFlight( true );
+		let data;
+		try {
+			data = await apiFetch( {
+				path: '/newspack-ads/v1/bidding/gam/order_count',
+				method: 'GET',
+			} );
+		} catch {
+			// Ignore errors.
+		} finally {
+			if ( data?.count ) {
+				setOrderName( `Newspack Header Bidding #${ data.count + 1 }` );
+			} else {
+				setOrderName( 'Newspack Header Bidding' );
+			}
+			setInFlight( false );
+		}
+	};
+	const archiveOrder = async () => {
+		return await apiFetch( {
+			path: '/newspack-ads/v1/bidding/gam/order',
+			method: 'DELETE',
+		} );
 	};
 	const fetchLicaConfig = async () => {
 		const licaConfig = await apiFetch( { path: '/newspack-ads/v1/bidding/gam/lica_config' } );
@@ -82,16 +110,19 @@ const HeaderBiddingGAM = () => {
 	};
 	const create = async () => {
 		setError( null );
+		setUnrecoverable( null );
 		setInFlight( true );
 		let pendingOrder = { ...order };
 		try {
 			if ( ! pendingOrder || ! pendingOrder.order_id ) {
 				setStep( 1 );
 				pendingOrder = await createType( 'order' );
+				setOrder( pendingOrder );
 			}
 			if ( ! pendingOrder?.line_item_ids?.length ) {
 				setStep( 2 );
 				pendingOrder = await createType( 'line_items' );
+				setOrder( pendingOrder );
 			}
 			const licaConfig = await fetchLicaConfig();
 			const batches = Math.ceil( licaConfig.length / lica_batch_size );
@@ -103,13 +134,28 @@ const HeaderBiddingGAM = () => {
 					const batch = i + 1;
 					setStep( 2 + batch );
 					pendingOrder = await createType( 'creatives', batch );
+					setOrder( pendingOrder );
 				}
 			}
 			setStep( 3 + batches );
 			await fetchOrder();
 			setIsCreating( false );
 		} catch ( err ) {
-			setError( err );
+			if ( initialOrder?.order_id ) {
+				try {
+					await archiveOrder();
+					await updateOrderName();
+				} catch {
+					// Ignore errors while archiving unrecoverable order.
+				}
+				setUnrecoverable( err );
+			} else {
+				// Set as initial order so it fails unrecoverably on next attempt.
+				if ( pendingOrder?.order_id ) {
+					setInitialOrder( pendingOrder );
+				}
+				setError( err );
+			}
 		} finally {
 			setStep( 0 );
 			setInFlight( false );
@@ -143,9 +189,16 @@ const HeaderBiddingGAM = () => {
 			? __( 'Loading…', 'newspack-ads' )
 			: __( 'Missing order configuration', 'newspack-ads' );
 	};
-	useEffect( () => {
-		fetchOrder();
+	useEffect( async () => {
+		const result = await fetchOrder();
+		await updateOrderName();
+		setInitialOrder( result );
 	}, [] );
+	useEffect( () => {
+		if ( unrecoverable ) {
+			setOrder( null );
+		}
+	}, [ unrecoverable ] );
 	useEffect( () => {
 		if ( isCreating ) {
 			window.onbeforeunload = () => {
@@ -220,6 +273,15 @@ const HeaderBiddingGAM = () => {
 					{ error && error.data?.status !== '404' && (
 						<Notice isError noticeText={ error.message } />
 					) }
+					{ unrecoverable && (
+						<Notice
+							isError
+							noticeText={ __(
+								"We weren't able to fix the issues for this order and we have archived it. Please create a new order below.",
+								'newspack-ads'
+							) }
+						/>
+					) }
 					<TextControl
 						label={ __( 'Order name', 'newspack-ads' ) }
 						disabled={ inFlight || order?.order_name }
@@ -267,7 +329,7 @@ const HeaderBiddingGAM = () => {
 							{ __( 'Cancel', 'newspack-ads' ) }
 						</Button>
 						<Button isPrimary disabled={ ! orderName || inFlight } onClick={ create }>
-							{ order?.order_id
+							{ initialOrder?.order_id
 								? __( 'Fix issues', 'newspack-ads' )
 								: __( 'Create Order', 'newspack-ads' ) }
 						</Button>
