@@ -41,7 +41,7 @@ class Newspack_Ads_Custom_Label {
 					'section'     => 'custom_label',
 					'key'         => 'label_text',
 					'type'        => 'string',
-					'default'     => esc_html__( 'Advertising', 'newspack-ads' ),
+					'default'     => esc_html__( 'Advertisement', 'newspack-ads' ),
 				],
 			],
 			$settings_list
