@@ -197,6 +197,7 @@ const HeaderBiddingGAM = () => {
 	useEffect( () => {
 		if ( unrecoverable ) {
 			setOrder( null );
+			setInitialOrder( null );
 		}
 	}, [ unrecoverable ] );
 	useEffect( () => {
@@ -277,7 +278,7 @@ const HeaderBiddingGAM = () => {
 						<Notice
 							isError
 							noticeText={ __(
-								"We weren't able to fix the issues for this order and we have archived it. Please create a new order below.",
+								'We were unable to fix the issues with this order and have archived it. Please create a new order below.',
 								'newspack-ads'
 							) }
 						/>
