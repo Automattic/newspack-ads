@@ -90,7 +90,17 @@ class Newspack_Ads_Settings {
 		$sanitized_settings = [];
 		foreach ( $settings as $key => $value ) {
 			$config = self::get_setting_config( $section, $key );
-			settype( $value, $config['type'] );
+			if ( isset( $config['options'] ) && isset( $config['multiple'] ) && true === $config['multiple'] ) {
+				$value = array_map(
+					function ( $value ) use ( $config ) {
+						settype( $value, $config['type'] );
+						return $value;
+					},
+					$value
+				);
+			} else {
+				settype( $value, $config['type'] );
+			}
 			$sanitized_settings[ $key ] = $value;
 		}
 		return $sanitized_settings;
@@ -210,7 +220,17 @@ class Newspack_Ads_Settings {
 				$default_value = isset( $item['default'] ) ? $item['default'] : false;
 				$value         = get_option( self::get_setting_option_name( $item ), $default_value );
 				if ( false !== $value ) {
-					settype( $value, $item['type'] );
+					if ( isset( $item['options'] ) && isset( $item['multiple'] ) && true === $item['multiple'] ) {
+						$value = array_map(
+							function ( $value ) use ( $item ) {
+								settype( $value, $item['type'] );
+								return $value;
+							},
+							$value
+						);
+					} else {
+						settype( $value, $item['type'] );
+					}
 					$item['value'] = $value;
 				}
 				return $item;
@@ -295,12 +315,34 @@ class Newspack_Ads_Settings {
 				},
 				$config['options']
 			);
-			if ( ! in_array( $value, $accepted_values, true ) ) {
+			if ( isset( $config['multiple'] ) && true === $config['multiple'] ) {
+				if ( ! is_array( $value ) ) {
+					// translators: %s is the description of the option.
+					return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
+				}
+				$value = array_map(
+					function ( $option ) use ( $accepted_values ) {
+						return in_array( $option, $accepted_values, true ) ? $option : '';
+					},
+					$value
+				);
+				$value = array_filter( $value );
+			} elseif ( in_array( $value, $accepted_values, true ) ) {
 				// translators: %s is the description of the option.
 				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
-		return update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
+		return update_option(
+			self::get_setting_option_name( $config ),
+			is_array( $value ) ?
+				array_map(
+					function( $value ) use ( $config ) {
+						return self::sanitize_setting_option( $config['type'], $value );
+					},
+					$value 
+				) :
+				self::sanitize_setting_option( $config['type'], $value )
+		);
 	}
 
 	/**
