@@ -629,7 +629,6 @@ class Newspack_Ads_Bidding_GAM {
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
-
 		if ( \is_wp_error( $order ) ) {
 			return $order;
 		}
@@ -777,7 +776,15 @@ class Newspack_Ads_Bidding_GAM {
 				'creative_placeholders'   => newspack_get_ads_bidder_sizes(),
 			];
 		}
-		$line_items = Newspack_Ads_GAM::create_line_items( $line_item_configs );
+
+		try {
+			$line_items = Newspack_Ads_GAM::create_line_items( $line_item_configs );
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+		if ( \is_wp_error( $line_items ) ) {
+			return $line_items;
+		}
 
 		// Update order config with line item IDs.
 		$orders[ $price_granularity_key ]['line_item_ids'] = array_map(
