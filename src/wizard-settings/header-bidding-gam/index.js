@@ -80,7 +80,7 @@ const HeaderBiddingGAM = () => {
 			// Ignore errors.
 		} finally {
 			if ( data?.count ) {
-				setOrderName( `Newspack Header Bidding #${ data.count + 1 }` );
+				setOrderName( `Newspack Header Bidding v${ data.count + 1 }` );
 			} else {
 				setOrderName( 'Newspack Header Bidding' );
 			}
