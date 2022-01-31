@@ -91,6 +91,7 @@ class Newspack_Ads_GAM {
 		'slug',
 		'category',
 		'post_type',
+		'template',
 	];
 
 	/**
