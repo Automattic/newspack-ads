@@ -365,7 +365,7 @@ class Newspack_Ads_GAM {
 		// Get all non-archived ad units, unless ids are specified.
 		$statement_builder = new StatementBuilder();
 		if ( empty( $ids ) ) {
-			$statement_builder = $statement_builder->where( "Status IN('ACTIVE', 'INACTIVE')" );
+			$statement_builder = $statement_builder->where( "Status IN('ACTIVE')" );
 		} else {
 			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		}
