@@ -405,7 +405,7 @@ class Newspack_Ads_GAM {
 	 * 
 	 * @return array[] Array of serialised companies.
 	 */
-	public static function get_serialised_advertisers( $companies = [] ) {
+	public static function get_serialised_advertisers( $companies = null ) {
 		return array_map(
 			function( $item ) {
 				return [
@@ -413,7 +413,7 @@ class Newspack_Ads_GAM {
 					'name' => $item->getName(),
 				];
 			},
-			count( $companies ) ? $companies : self::get_advertisers()
+			null !== $companies ? $companies : self::get_advertisers()
 		);
 	}
 
@@ -499,7 +499,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return object[] Array of serialised orders.
 	 */
-	public static function get_serialised_orders( $orders = [] ) {
+	public static function get_serialised_orders( $orders = null ) {
 		return array_map(
 			function( $order ) {
 				return [
@@ -512,7 +512,7 @@ class Newspack_Ads_GAM {
 					'creator_id'    => $order->getCreatorId(),
 				];
 			},
-			! empty( $orders ) ? $orders : self::get_orders()
+			null !== $orders ? $orders : self::get_orders()
 		);
 	}
 
@@ -562,7 +562,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return array[] Array of serialised creatives.
 	 */
-	public static function get_serialised_creatives( $creatives = [] ) {
+	public static function get_serialised_creatives( $creatives = null ) {
 		return array_map(
 			function( $creatives ) {
 				return [
@@ -571,7 +571,7 @@ class Newspack_Ads_GAM {
 					'advertiserId' => $creatives->getAdvertiserId(),
 				];
 			},
-			! empty( $creatives ) ? $creatives : self::get_creatives()
+			null !== $creatives ? $creatives : self::get_creatives()
 		);
 	}
 
@@ -617,7 +617,7 @@ class Newspack_Ads_GAM {
 	 *
 	 * @return object[] Array of serialised orders.
 	 */
-	public static function get_serialised_line_items( $line_items = [] ) {
+	public static function get_serialised_line_items( $line_items = null ) {
 		return array_map(
 			function( $item ) {
 				return [
@@ -629,7 +629,7 @@ class Newspack_Ads_GAM {
 					'type'        => $item->getLineItemType(),
 				];
 			},
-			! empty( $line_items ) ? $line_items : self::get_line_items()
+			null !== $line_items ? $line_items : self::get_line_items()
 		);
 	}
 
