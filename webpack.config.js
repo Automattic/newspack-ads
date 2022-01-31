@@ -7,7 +7,7 @@
  * External dependencies
  */
 const fs = require( 'fs' );
-const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.js' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
 const path = require( 'path' );
 
 /**
@@ -16,6 +16,7 @@ const path = require( 'path' );
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
+const headerBiddingGAM = path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' );
 const prebid = path.join( __dirname, 'src', 'prebid' );
 
 function blockScripts( type, inputDir, blocks ) {
@@ -54,6 +55,7 @@ const webpackConfig = getBaseWebpackConfig(
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
 			frontend,
+			'header-bidding-gam': headerBiddingGAM,
 			prebid,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
@@ -62,12 +64,27 @@ const webpackConfig = getBaseWebpackConfig(
 
 webpackConfig.module.rules.push( {
 	test: /.js$/,
-	include: new RegExp( `\\${ path.sep }prebid\.js` ),
+	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
 		loader: 'babel-loader',
 		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
 		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
-		options: require( 'prebid.js/.babelrc.js' ),
+		options: {
+			presets: [
+				[
+					require.resolve( '@babel/preset-env' ),
+					{
+						useBuiltIns: 'entry',
+						corejs: 3.6,
+					},
+				],
+			],
+			plugins: [
+				require.resolve( './config/pbjsGlobals.js' ),
+				require.resolve( 'babel-plugin-transform-object-assign' ),
+			],
+			configFile: false,
+		},
 	},
 } );
 

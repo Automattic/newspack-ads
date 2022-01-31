@@ -300,7 +300,10 @@ class Newspack_Ads_Settings {
 				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
-		return update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
+		do_action( 'newspack_ads_before_update_setting', $section, $key, $value );
+		$updated = update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
+		do_action( 'newspack_ads_after_update_setting', $updated, $section, $key, $value );
+		return $updated;
 	}
 
 	/**
@@ -353,5 +356,18 @@ class Newspack_Ads_Settings {
 		}
 	}
 
+	/**
+	 * Get a setting value.
+	 *
+	 * @param string $section       The section to retrieve settings from.
+	 * @param string $key           The key of the setting to retrieve.
+	 * @param mixed  $default_value The default value to return if the setting is not found.
+	 *
+	 * @return mixed The setting value or null if not found.
+	 */
+	public static function get_setting( $section, $key, $default_value = null ) {
+		$settings = self::get_settings( $section );
+		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
+	}
 }
 Newspack_Ads_Settings::init();
