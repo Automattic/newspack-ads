@@ -1,3 +1,10 @@
+## [1.26.1-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.0...v1.26.1-hotfix.1) (2022-01-31)
+
+
+### Bug Fixes
+
+* default arg for serialise gam methods ([94a8675](https://github.com/Automattic/newspack-ads/commit/94a8675e2394230d7cd2f6d5e64bad6391f0fb5c))
+
 # [1.26.0](https://github.com/Automattic/newspack-ads/compare/v1.25.0...v1.26.0) (2022-01-31)
 
 
