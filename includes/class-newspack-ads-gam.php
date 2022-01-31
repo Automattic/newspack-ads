@@ -9,21 +9,42 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\Util\v202111\StatementBuilder;
+use Google\AdsApi\AdManager\AdManagerSession;
+use Google\AdsApi\AdManager\v202111\AdUnitTargeting;
+use Google\AdsApi\AdManager\v202111\LineItemCreativeAssociation;
 use Google\AdsApi\AdManager\v202111\Statement;
 use Google\AdsApi\AdManager\v202111\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202111\TextValue;
 use Google\AdsApi\AdManager\v202111\SetValue;
 use Google\AdsApi\AdManager\v202111\CustomTargetingKey;
+use Google\AdsApi\AdManager\v202111\CustomTargetingValue;
 use Google\AdsApi\AdManager\v202111\ServiceFactory;
 use Google\AdsApi\AdManager\v202111\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202111\ActivateAdUnits as ActivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202111\DeactivateAdUnits as DeactivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202111\Network;
+use Google\AdsApi\AdManager\v202111\User;
 use Google\AdsApi\AdManager\v202111\AdUnit;
 use Google\AdsApi\AdManager\v202111\AdUnitSize;
 use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202111\Order;
+use Google\AdsApi\AdManager\v202111\ArchiveOrders;
+use Google\AdsApi\AdManager\v202111\UpdateResult;
+use Google\AdsApi\AdManager\v202111\Creative;
+use Google\AdsApi\AdManager\v202111\LineItem;
 use Google\AdsApi\AdManager\v202111\EnvironmentType;
 use Google\AdsApi\AdManager\v202111\Size;
+use Google\AdsApi\AdManager\v202111\Company;
+use Google\AdsApi\AdManager\v202111\CompanyType;
+
+use Google\AdsApi\AdManager\v202111\Goal;
+use Google\AdsApi\AdManager\v202111\CreativePlaceholder;
+use Google\AdsApi\AdManager\v202111\Money;
+use Google\AdsApi\AdManager\v202111\Targeting;
+use Google\AdsApi\AdManager\v202111\CustomCriteriaSet;
+use Google\AdsApi\AdManager\v202111\CustomCriteria;
+use Google\AdsApi\AdManager\v202111\InventoryTargeting;
+
 use Google\AdsApi\AdManager\v202111\ApiException;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
@@ -36,6 +57,8 @@ class Newspack_Ads_GAM {
 	const GAM_APP_NAME_FOR_LOGS = 'Newspack';
 
 	const SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
+
+	const GAM_API_VERSION = 'v202111';
 
 	/**
 	 * Codes of networks that the user has access to.
@@ -69,6 +92,39 @@ class Newspack_Ads_GAM {
 		'category',
 		'post_type',
 	];
+
+	/**
+	 * Get a WP_Error object from an optional ApiException or message.
+	 *
+	 * @param ApiException $exception       Optional Google Ads API exception.
+	 * @param string       $default_message Optional default message to use.
+	 *
+	 * @return WP_Error Error.
+	 */
+	private static function get_api_error( ApiException $exception = null, $default_message = null ) {
+		$error_message = $default_message;
+		$errors        = [];
+		if ( ! is_null( $exception ) ) {
+			$error_message = $error_message ?? $exception->getMessage();
+			foreach ( $exception->getErrors() as $error ) {
+				$errors[] = $error->getErrorString();
+			}
+		}
+		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
+			$error_message = __( 'Name must be unique.', 'newspack-ads' );
+		}
+		if ( in_array( 'CommonError.CONCURRENT_MODIFICATION', $errors ) ) {
+			$error_message = __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' );
+		}
+		return new WP_Error(
+			'newspack_ads_gam_error',
+			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
+			array(
+				'status' => '400',
+				'level'  => 'warning',
+			)
+		);
+	}
 
 	/**
 	 * Set the network code to be used.
@@ -125,6 +181,18 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Get GAM service account user.
+	 *
+	 * @return User Current user.
+	 */
+	private static function get_current_user() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		$service         = $service_factory->createUserService( $session );
+		return $service->getCurrentUser();
 	}
 
 	/**
@@ -242,6 +310,50 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Create order service.
+	 *
+	 * @return OrderService Order service.
+	 */
+	private static function get_order_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createOrderService( $session );
+	}
+
+	/**
+	 * Create creative service.
+	 *
+	 * @return CreativeService Creative service.
+	 */
+	private static function get_creative_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createCreativeService( $session );
+	}
+
+	/**
+	 * Create line item service.
+	 *
+	 * @return LineItemService Line Item service.
+	 */
+	private static function get_line_item_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createLineItemService( $session );
+	}
+
+	/**
+	 * Create company service.
+	 *
+	 * @return CompanyService Company service.
+	 */
+	private static function get_company_service() {
+		$service_factory = new ServiceFactory();
+		$session         = self::get_gam_session();
+		return $service_factory->createCompanyService( $session );
+	}
+
+	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
 	 * @param int[] $ids Optional array of ad unit ids.
@@ -261,6 +373,50 @@ class Newspack_Ads_GAM {
 		return $statement_builder;
 	}
 
+
+	/**
+	 * Get all GAM Advertisers in the user's network.
+	 * 
+	 * @return Company[] Array of Companies of typer Advertiser.
+	 */
+	private static function get_advertisers() {
+		$line_items            = [];
+		$service               = self::get_company_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size )->withBindVariableValue( 'type', CompanyType::ADVERTISER );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getCompaniesByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $company ) {
+					$line_items[] = $company;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all Advertisers in the user's network, serialised.
+	 *
+	 * @param Company[] $companies Optional array of companies to serialise. If empty, return all advertisers.
+	 * 
+	 * @return array[] Array of serialised companies.
+	 */
+	public static function get_serialised_advertisers( $companies = [] ) {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'   => $item->getId(),
+					'name' => $item->getName(),
+				];
+			},
+			count( $companies ) ? $companies : self::get_advertisers()
+		);
+	}
+
 	/**
 	 * Get details of the authorised GAM user.
 	 *
@@ -277,6 +433,204 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return [];
 		}
+	}
+
+	/**
+	 * Get all GAM orders in the user's network.
+	 *
+	 * @param StatementBuilder $statement_builder (optional) Statement builder.
+	 * 
+	 * @return Order[] Array of Orders.
+	 */
+	private static function get_orders( StatementBuilder $statement_builder = null ) {
+		$orders                = [];
+		$order_service         = self::get_order_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$total_result_set_size = 0;
+		$statement_builder     = $statement_builder ?? new StatementBuilder();
+		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
+		if ( ! empty( $ids ) ) {
+			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		}
+		do {
+			$page = $order_service->getOrdersByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $order ) {
+					$orders[] = $order;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $orders;
+	}
+
+	/**
+	 * Get orders by a list of IDs.
+	 *
+	 * @param int[] $ids Array of order IDs.
+	 *
+	 * @return Order[] Array of Orders.
+	 */
+	public static function get_orders_by_id( $ids = [] ) { 
+		if ( ! is_array( $ids ) ) {
+			$ids = [ $ids ];
+		}
+		$statement_builder = ( new StatementBuilder() )->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		return self::get_orders( $statement_builder );
+	}
+
+	/**
+	 * Get orders by advertiser ID.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return Order[] Array of Orders.
+	 */
+	public static function get_orders_by_advertiser( $advertiser_id ) { 
+		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
+		return self::get_orders( $statement_builder );
+	}
+
+	/**
+	 * Get all orders in the user's network, serialised.
+	 *
+	 * @param Order[] $orders (optional) Array of Orders.
+	 *
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_orders( $orders = [] ) {
+		return array_map(
+			function( $order ) {
+				return [
+					'id'            => $order->getId(),
+					'name'          => $order->getName(),
+					'status'        => $order->getStatus(),
+					'is_archived'   => $order->getIsArchived(),
+					'advertiser_id' => $order->getAdvertiserId(),
+					'agency_id'     => $order->getAgencyId(),
+					'creator_id'    => $order->getCreatorId(),
+				];
+			},
+			! empty( $orders ) ? $orders : self::get_orders()
+		);
+	}
+
+	/**
+	 * Get creatives from an optional initialized statement builder.
+	 *
+	 * @param StatementBuilder $statement_builder (optional) Statement builder.
+	 *
+	 * @return Creative[] Array of creatives.
+	 */
+	private static function get_creatives( StatementBuilder $statement_builder = null ) {
+		$creatives             = [];
+		$creative_service      = self::get_creative_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$total_result_set_size = 0;
+		$statement_builder     = $statement_builder ?? new StatementBuilder();
+		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
+		do {
+			$page = $creative_service->getCreativesByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $creative ) {
+					$creatives[] = $creative;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $creatives;
+	}
+
+	/**
+	 * Get creatives from an advertiser.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return Creative[] Array of creatives.
+	 */
+	private static function get_creatives_by_advertiser( $advertiser_id ) { 
+		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
+		return self::get_creatives( $statement_builder );
+	}
+
+	/**
+	 * Get all creatives in the user's network, serialised.
+	 *
+	 * @param Creative[] $creatives (optional) Array of Creatives.
+	 *
+	 * @return array[] Array of serialised creatives.
+	 */
+	public static function get_serialised_creatives( $creatives = [] ) {
+		return array_map(
+			function( $creatives ) {
+				return [
+					'id'           => $creatives->getId(),
+					'name'         => $creatives->getName(),
+					'advertiserId' => $creatives->getAdvertiserId(),
+				];
+			},
+			! empty( $creatives ) ? $creatives : self::get_creatives()
+		);
+	}
+
+	/**
+	 * Get creatives from an advertiser, serialised.
+	 *
+	 * @param int $advertiser_id Advertiser ID.
+	 *
+	 * @return array[] Array of serialised creatives.
+	 */
+	public static function get_serialised_creatives_by_advertiser( $advertiser_id ) {
+		return self::get_serialised_creatives( self::get_creatives_by_advertiser( $advertiser_id ) );
+	}
+
+	/**
+	 * Get all GAM Line Items in the user's network.
+	 * 
+	 * @return LineItem[] Array of Orders.
+	 */
+	private static function get_line_items() {
+		$line_items            = [];
+		$service               = self::get_line_item_service();
+		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+		$total_result_set_size = 0;
+		do {
+			$page = $service->getLineItemsByStatement( $statement_builder->toStatement() );
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $line_item ) {
+					$line_items[] = $line_item;
+				}
+			}
+			$statement_builder->increaseOffsetBy( $page_size );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+		return $line_items;
+	}
+
+	/**
+	 * Get all Line Items in the user's network, serialised.
+	 *
+	 * @param LineItem[] $line_items (optional) Array of line items.
+	 *
+	 * @return object[] Array of serialised orders.
+	 */
+	public static function get_serialised_line_items( $line_items = [] ) {
+		return array_map(
+			function( $item ) {
+				return [
+					'id'          => $item->getId(),
+					'orderId'     => $item->getOrderId(),
+					'name'        => $item->getName(),
+					'status'      => $item->getStatus(),
+					'is_archived' => $item->getIsArchived(),
+					'type'        => $item->getLineItemType(),
+				];
+			},
+			! empty( $line_items ) ? $line_items : self::get_line_items()
+		);
 	}
 
 	/**
@@ -374,6 +728,270 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
+	 * Create an advertiser in GAM.
+	 *
+	 * @param string $name The advertiser name.
+	 *
+	 * @return array The created serialized advertiser.
+	 *
+	 * @throws \Exception In case of error in googleads lib.
+	 */
+	public static function create_advertiser( $name ) {
+		$advertiser = new Company();
+		$advertiser->setName( $name );
+		$advertiser->setType( CompanyType::ADVERTISER );
+		$service = self::get_company_service();
+		$results = $service->createCompanies( [ $advertiser ] );
+		return self::get_serialised_advertisers( $results )[0];
+	}
+
+	/**
+	 * Create a GAM Order.
+	 *
+	 * @param string $name          Order Name.
+	 * @param string $advertiser_id Order Advertiser ID.
+	 *
+	 * @return object|WP_Error Serialised created order or error if it fails.
+	 */
+	public static function create_order( $name, $advertiser_id ) {
+		$order = new Order();
+		$order->setName( $name );
+		$order->setAdvertiserId( $advertiser_id );
+		$order->setTraffickerId( self::get_current_user()->getId() );
+		try {
+			$service        = self::get_order_service();
+			$created_orders = $service->createOrders( [ $order ] );
+		} catch ( ApiException $e ) {
+			return self::get_api_error( $e, __( 'Order was not created due to an unexpected error.', 'newspack-ads' ) );
+		}
+		return self::get_serialised_orders( $created_orders )[0];
+	}
+
+	/**
+	 * Create a GAM Creative.
+	 *
+	 * @param array[] $creatives_config Array of creative configurations.
+	 *
+	 * @return object Created creative.
+	 *
+	 * @throws \Exception If unable to create creatives.
+	 */
+	public static function create_creatives( $creatives_config = [] ) {
+		$creatives = [];
+		$xsi_types = [
+			'BaseDynamicAllocationCreative',
+			'BaseRichMediaStudioCreative',
+			'ClickTrackingCreative',
+			'HasDestinationUrlCreative',
+			'Html5Creative',
+			'InternalRedirectCreative',
+			'LegacyDfpCreative',
+			'ProgrammaticCreative',
+			'TemplateCreative',
+			'ThirdPartyCreative',
+			'UnsupportedCreative',
+			'VastRedirectCreative',
+		];
+		foreach ( $creatives_config as $creative_config ) {
+			$creative_config = wp_parse_args(
+				$creative_config,
+				[
+					'xsi_type' => 'Creative',
+				]
+			);
+			if ( ! in_array( $creative_config['xsi_type'], $xsi_types, true ) ) {
+				throw new \Exception( 'Invalid xsi type' );
+			}
+			$fully_qualified_creative_class = 'Google\\AdsApi\\AdManager\\' . self::GAM_API_VERSION . '\\' . $creative_config['xsi_type'];
+			$creative                       = new $fully_qualified_creative_class();
+			$creative->setName( $creative_config['name'] );
+			$creative->setAdvertiserId( $creative_config['advertiser_id'] );
+			$creative->setSize( new Size( $creative_config['width'], $creative_config['height'] ) );
+			switch ( $creative_config['xsi_type'] ) {
+				case 'ThirdPartyCreative':
+					$creative_config = wp_parse_args(
+						$creative_config,
+						[
+							'snippet'                  => '',
+							'is_safe_frame_compatible' => true,
+						]
+					);
+					$creative->setSnippet( $creative_config['snippet'] );
+					$creative->setIsSafeFrameCompatible( $creative_config['is_safe_frame_compatible'] );
+					break;
+			}
+			$creatives[] = $creative;
+		}
+		$service           = self::get_creative_service();
+		$created_creatives = $service->createCreatives( $creatives );
+		return self::get_serialised_creatives( $created_creatives );
+	}
+
+	/**
+	 * Create line items.
+	 *
+	 * @param array[] $line_item_configs List of line item configurations.
+	 *
+	 * @return LineItem[] Created line items.
+	 *
+	 * @throws \Exception If unsupported configuration or unable to create line items.
+	 */
+	public static function create_line_items( $line_item_configs = [] ) {
+		$network    = self::get_gam_network();
+		$line_items = [];
+		foreach ( $line_item_configs as $config ) {
+			$config    = wp_parse_args(
+				$config,
+				[
+					'start_date_time_type'   => 'IMMEDIATELY',
+					'line_item_type'         => 'PRICE_PRIORITY',
+					'cost_type'              => 'CPM',
+					'creative_rotation_type' => 'EVEN',
+					'primary_goal'           => [
+						'goal_type' => 'NONE',
+					],
+				]
+			);
+			$line_item = new LineItem();
+			$line_item->setOrderId( $config['order_id'] );
+			$line_item->setName( $config['name'] );
+			$line_item->setLineItemType( $config['line_item_type'] );
+			$line_item->setCreativeRotationType( $config['creative_rotation_type'] );
+			$line_item->setPrimaryGoal( new Goal( $config['primary_goal']['goal_type'] ) );
+
+			// Creative placeholders (or expected creatives).
+			if ( isset( $config['creative_placeholders'] ) ) {
+				$creative_placeholders = array_map(
+					function ( $size ) {
+						return new CreativePlaceholder( new Size( $size[0], $size[1] ) );
+					},
+					$config['creative_placeholders']
+				);
+				$line_item->setCreativePlaceholders( $creative_placeholders );
+			}
+
+			// Date and time options.
+			$line_item->setStartDateTimeType( $config['start_date_time_type'] );
+			if ( isset( $config['unlimited_end_date_time'] ) ) {
+				$line_item->setUnlimitedEndDateTime( (bool) $config['unlimited_end_date_time'] );
+			}
+
+			// Cost options.
+			$line_item->setCostType( $config['cost_type'] );
+			if ( isset( $config['cost_per_unit'] ) ) {
+				if ( ! isset( $config['cost_per_unit']['currency_code'] ) ) {
+					$config['cost_per_unit']['currency_code'] = $network->getCurrencyCode();
+				}
+				$cost_per_unit = new Money( $config['cost_per_unit']['currency_code'], $config['cost_per_unit']['micro_amount'] );
+				$line_item->setCostPerUnit( $cost_per_unit );
+			}
+
+			// Targeting options.
+			if ( isset( $config['targeting'] ) ) {
+				$targeting = new Targeting();
+
+				// Obligatory inventory targeting.
+				// Default is "Run of network", which is targeted to the network's root ad unit including descendants.
+				$inventory_targeting = new InventoryTargeting();
+				if ( ! isset( $config['targeting']['inventory_targeting'] ) ) {
+					$inventory_targeting->setTargetedAdUnits( [ new AdUnitTargeting( $network->getEffectiveRootAdUnitId(), true ) ] );
+				} else {
+					throw new \Exception( 'Inventory targeting is not supported yet' );
+				}
+				$targeting->setInventoryTargeting( $inventory_targeting );
+
+				// Custom targeting.
+				if ( isset( $config['targeting']['custom_targeting'] ) ) {
+					$criteria_set = new CustomCriteriaSet( 'AND' );
+					$children     = [];
+					foreach ( $config['targeting']['custom_targeting'] as $key_id => $value_ids ) {
+						$children[] = new CustomCriteria( $key_id, $value_ids, 'IS' );
+					}
+					$criteria_set->setChildren( $children );
+					$targeting->setCustomTargeting( $criteria_set );
+				}
+				
+				// Apply configured targeting to line item.
+				$line_item->setTargeting( $targeting );
+			}
+			$line_items[] = $line_item;
+		}
+		$service = self::get_line_item_service();
+		return $service->createLineItems( $line_items );
+	}
+
+	/**
+	 * Create line item to creative associations (LICAs).
+	 *
+	 * @param array[] $lica_configs LICA configurations.
+	 *
+	 * @return LineItemCreativeAssociation[] Created LICAs.
+	 */
+	public static function associate_creatives_to_line_items( $lica_configs ) {
+		$licas = [];
+		foreach ( $lica_configs as $lica_config ) {
+			$lica = new LineItemCreativeAssociation();
+			$lica->setLineItemId( (int) $lica_config['line_item_id'] );
+			$lica->setCreativeId( (int) $lica_config['creative_id'] );
+			if ( isset( $lica_config['sizes'] ) && ! empty( $lica_config['sizes'] ) ) {
+				$lica->setSizes(
+					array_map(
+						function ( $size ) {
+							return new Size( $size[0], $size[1] );
+						},
+						$lica_config['sizes']
+					) 
+				);
+			}
+			$licas[] = $lica;
+		}
+		$session        = self::get_gam_session();
+		$service        = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $session );
+		$attempt_create = true;
+		while ( $attempt_create ) {
+			try {
+				$result         = $service->createLineItemCreativeAssociations( array_values( $licas ) );
+				$attempt_create = false;
+			} catch ( ApiException $e ) {
+				foreach ( $e->getErrors() as $error ) {
+					if ( 'CommonError.ALREADY_EXISTS' === $error->getErrorString() ) {
+						// Attempt to create again without duplicate associations.
+						$index = $error->getFieldPathElements()[0]->getIndex();
+						unset( $licas[ $index ] );
+					} else {
+						// Bail if there are other errors.
+						return self::get_api_error( $e, __( 'Unexpected error while creating creative associations.', 'newspack-ads' ) );
+					}
+				}
+				// Leave without errors if entire batch exists.
+				if ( 0 === count( $licas ) ) {
+					$attempt_create = false;
+					return [];
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Archive a GAM Order.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return UpdateResult
+	 */
+	public static function archive_order( $order_id ) {
+		return self::get_order_service()->performOrderAction(
+			new ArchiveOrders(),
+			( new StatementBuilder() )->where( 'id = :id' )
+				->orderBy( 'id ASC' )
+				->limit( StatementBuilder::SUGGESTED_PAGE_LIMIT )
+				->withBindVariableValue( 'id', $order_id )
+				->toStatement()
+		);
+	}
+
+	/**
 	 * Modify a GAM Ad Unit.
 	 * Given a configuration object and an AdUnit instance, return modified AdUnit.
 	 * If the AdUnit is not provided, create a new one.
@@ -424,36 +1042,6 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Get a WP_Error object from an optional ApiException or message.
-	 *
-	 * @param ApiException $exception       Optional Google Ads API exception.
-	 * @param string       $default_message Optional default message to use.
-	 *
-	 * @return WP_Error Error.
-	 */
-	private static function get_ad_unit_api_error( ApiException $exception = null, $default_message = null ) {
-		$error_message = $default_message;
-		$errors        = [];
-		if ( ! is_null( $exception ) ) {
-			$error_message = $error_message ?? $exception->getMessage();
-			foreach ( $exception->getErrors() as $error ) {
-				$errors[] = $error->getErrorString();
-			}
-		}
-		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
-			$error_message = __( 'Ad Unit with the same name already exists.', 'newspack-ads' );
-		}
-		return new WP_Error(
-			'newspack_ads',
-			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
-			array(
-				'status' => '400',
-				'level'  => 'warning',
-			)
-		);
-	}
-
-	/**
 	 * Update Ad Unit.
 	 *
 	 * @param object $ad_unit_config Ad Unit configuration.
@@ -464,17 +1052,17 @@ class Newspack_Ads_GAM {
 			$inventory_service = self::get_gam_inventory_service();
 			$found_ad_units    = self::get_gam_ad_units( [ $ad_unit_config['id'] ] );
 			if ( empty( $found_ad_units ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
 			}
 			$result = $inventory_service->updateAdUnits(
 				[ self::modify_ad_unit( $ad_unit_config, $found_ad_units[0] ) ]
 			);
 			if ( empty( $result ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 			}
 			return $result[0];
 		} catch ( ApiException $e ) {
-			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+			return self::get_api_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 		}
 	}
 
@@ -491,11 +1079,11 @@ class Newspack_Ads_GAM {
 			$ad_unit           = self::modify_ad_unit( $ad_unit_config );
 			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
 			if ( empty( $created_ad_units ) ) {
-				return self::get_ad_unit_api_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+				return self::get_api_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 			}
 			return self::serialize_ad_unit( $created_ad_units[0] );
 		} catch ( ApiException $e ) {
-			return self::get_ad_unit_api_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+			return self::get_api_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
 	}
 
@@ -535,6 +1123,106 @@ class Newspack_Ads_GAM {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Create a custom targeting key-val segmentation with optional sample values.
+	 *
+	 * @param string   $name   The name of the key.
+	 * @param string[] $values Optional sample values.
+	 *
+	 * @return array[
+	 *  'targeting_key'  => CustomTargetingKey,
+	 *  'found_values'   => CustomTargetingValue[],
+	 *  'created_values' => CustomTargetingValue[]
+	 * ]
+	 *
+	 * @throws \Exception If there is an error while communicating with the API.
+	 */
+	public static function create_targeting_key( $name, $values = [] ) {
+		$session = self::get_gam_session();
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+
+		$statement = new Statement(
+			"WHERE name = :name AND status = 'ACTIVE'",
+			[
+				new String_ValueMapEntry(
+					'name',
+					new SetValue(
+						[
+							new TextValue( $name ),
+						]
+					)
+				),
+			]
+		);
+		
+		$targeting_key = null;
+		$found_keys    = $service->getCustomTargetingKeysByStatement( $statement )->getResults();
+		if ( empty( $found_keys ) ) {
+			$targeting_key = $service->createCustomTargetingKeys(
+				[
+					( new CustomTargetingKey() )->setName( $name )->setType( 'FREEFORM' )->setStatus( 'ACTIVE' ),
+				]
+			)[0];
+		} else {
+			$targeting_key = $found_keys[0];
+		}
+
+		$found_values   = [];
+		$created_values = [];
+		if ( $targeting_key && count( $values ) ) {
+			$key_id           = $targeting_key->getId();
+			$values_statement = new Statement(
+				"WHERE customTargetingKeyId = :key_id AND name = :name AND status = 'ACTIVE'",
+				[
+					new String_ValueMapEntry(
+						'key_id',
+						new SetValue(
+							[
+								new TextValue( $key_id ),
+							]
+						)
+					),
+					new String_ValueMapEntry(
+						'name',
+						new SetValue(
+							array_map(
+								function ( $key ) {
+									return new TextValue( $key );
+								},
+								$values
+							)
+						)
+					),
+				]
+			);
+			$found_values     = (array) $service->getCustomTargetingValuesByStatement( $values_statement )->getResults();
+			$values_to_create = array_values(
+				array_diff(
+					$values,
+					array_map(
+						function ( $value ) {
+							return $value->getName();
+						},
+						$found_values
+					)
+				)
+			);
+			$created_values   = $service->createCustomTargetingValues(
+				array_map(
+					function ( $value ) use ( $key_id ) {
+						return ( new CustomTargetingValue() )->setCustomTargetingKeyId( $key_id )->setName( $value );
+					},
+					$values_to_create
+				)
+			);
+		}
+		return [
+			'targeting_key'  => $targeting_key,
+			'found_values'   => is_array( $found_values ) && count( $found_values ) ? $found_values : [],
+			'created_values' => is_array( $created_values ) && count( $created_values ) ? $created_values : [],
+		];
 	}
 
 	/**

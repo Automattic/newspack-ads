@@ -47,6 +47,7 @@
     "stylelint": "^13.13.1"
   },
   "dependencies": {
+    "newspack-components": "^2.0.3",
     "prebid.js": "^6.4.0"
   }
 }
