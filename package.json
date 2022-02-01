@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.25.0",
+  "version": "1.26.2",
   "author": "Automattic",
   "private": true,
   "scripts": {
@@ -47,6 +47,7 @@
     "stylelint": "^13.13.1"
   },
   "dependencies": {
+    "newspack-components": "^2.0.3",
     "prebid.js": "^6.4.0"
   }
 }

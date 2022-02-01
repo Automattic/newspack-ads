@@ -332,17 +332,20 @@ class Newspack_Ads_Settings {
 				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
-		return update_option(
+		do_action( 'newspack_ads_before_update_setting', $section, $key, $value );
+		$updated = update_option(
 			self::get_setting_option_name( $config ),
 			is_array( $value ) ?
 				array_map(
 					function( $value ) use ( $config ) {
 						return self::sanitize_setting_option( $config['type'], $value );
 					},
-					$value 
+					$value
 				) :
 				self::sanitize_setting_option( $config['type'], $value )
 		);
+		do_action( 'newspack_ads_after_update_setting', $updated, $section, $key, $value );
+		return $updated;
 	}
 
 	/**

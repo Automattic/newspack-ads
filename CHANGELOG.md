@@ -1,3 +1,65 @@
+## [1.26.2](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2) (2022-02-01)
+
+
+### Bug Fixes
+
+* **header-bidding:** reindex filtered ad unit sizes ([#302](https://github.com/Automattic/newspack-ads/issues/302)) ([07d933d](https://github.com/Automattic/newspack-ads/commit/07d933d55184e9cc67acd336ad623362c2dfbb00))
+
+## [1.26.2-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2-hotfix.1) (2022-02-01)
+
+
+### Bug Fixes
+
+* reindex filtered sizes ([39a411e](https://github.com/Automattic/newspack-ads/commit/39a411ec8f5e69a1a9f140f4b8270e9dc4aaae60))
+
+## [1.26.1](https://github.com/Automattic/newspack-ads/compare/v1.26.0...v1.26.1) (2022-01-31)
+
+
+### Bug Fixes
+
+* gam serialised method arg ([#301](https://github.com/Automattic/newspack-ads/issues/301)) ([fbcbaab](https://github.com/Automattic/newspack-ads/commit/fbcbaaba6f03309581fdee823105b5dcbef805fd))
+
+## [1.26.1-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.0...v1.26.1-hotfix.1) (2022-01-31)
+
+
+### Bug Fixes
+
+* default arg for serialise gam methods ([94a8675](https://github.com/Automattic/newspack-ads/commit/94a8675e2394230d7cd2f6d5e64bad6391f0fb5c))
+
+# [1.26.0](https://github.com/Automattic/newspack-ads/compare/v1.25.0...v1.26.0) (2022-01-31)
+
+
+### Bug Fixes
+
+* ad label default value ([#294](https://github.com/Automattic/newspack-ads/issues/294)) ([b105fe4](https://github.com/Automattic/newspack-ads/commit/b105fe480b9be96123763c09d72c2b828244d43d))
+* use responsive strategy for scaip placements on amp ([#281](https://github.com/Automattic/newspack-ads/issues/281)) ([09e69fc](https://github.com/Automattic/newspack-ads/commit/09e69fce653f299b6c529f0316c5d68af355ddc3))
+
+
+### Features
+
+* custom ad label ([#292](https://github.com/Automattic/newspack-ads/issues/292)) ([fbc8034](https://github.com/Automattic/newspack-ads/commit/fbc8034e4fe815d7b8f9bf6ee4e518a2b9e6314e))
+* **header-bidding:** gam orders and line items push ([#271](https://github.com/Automattic/newspack-ads/issues/271)) ([c222306](https://github.com/Automattic/newspack-ads/commit/c22230697021b4566e3011fccd49092ad2bf6f49))
+
+# [1.26.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.26.0-alpha.1...v1.26.0-alpha.2) (2022-01-31)
+
+
+### Bug Fixes
+
+* ad label default value ([#294](https://github.com/Automattic/newspack-ads/issues/294)) ([b105fe4](https://github.com/Automattic/newspack-ads/commit/b105fe480b9be96123763c09d72c2b828244d43d))
+* use responsive strategy for scaip placements on amp ([#281](https://github.com/Automattic/newspack-ads/issues/281)) ([09e69fc](https://github.com/Automattic/newspack-ads/commit/09e69fce653f299b6c529f0316c5d68af355ddc3))
+
+
+### Features
+
+* **header-bidding:** gam orders and line items push ([#271](https://github.com/Automattic/newspack-ads/issues/271)) ([c222306](https://github.com/Automattic/newspack-ads/commit/c22230697021b4566e3011fccd49092ad2bf6f49))
+
+# [1.26.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.25.0...v1.26.0-alpha.1) (2022-01-27)
+
+
+### Features
+
+* custom ad label ([#292](https://github.com/Automattic/newspack-ads/issues/292)) ([fbc8034](https://github.com/Automattic/newspack-ads/commit/fbc8034e4fe815d7b8f9bf6ee4e518a2b9e6314e))
+
 # [1.25.0](https://github.com/Automattic/newspack-ads/compare/v1.24.0...v1.25.0) (2022-01-19)
 
 
