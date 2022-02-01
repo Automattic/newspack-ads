@@ -327,7 +327,7 @@ class Newspack_Ads_Settings {
 					$value
 				);
 				$value = array_filter( $value );
-			} elseif ( in_array( $value, $accepted_values, true ) ) {
+			} elseif ( ! in_array( $value, $accepted_values, true ) ) {
 				// translators: %s is the description of the option.
 				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
