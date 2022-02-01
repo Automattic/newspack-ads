@@ -1,3 +1,17 @@
+## [1.26.2](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2) (2022-02-01)
+
+
+### Bug Fixes
+
+* **header-bidding:** reindex filtered ad unit sizes ([#302](https://github.com/Automattic/newspack-ads/issues/302)) ([07d933d](https://github.com/Automattic/newspack-ads/commit/07d933d55184e9cc67acd336ad623362c2dfbb00))
+
+## [1.26.2-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2-hotfix.1) (2022-02-01)
+
+
+### Bug Fixes
+
+* reindex filtered sizes ([39a411e](https://github.com/Automattic/newspack-ads/commit/39a411ec8f5e69a1a9f140f4b8270e9dc4aaae60))
+
 ## [1.26.1](https://github.com/Automattic/newspack-ads/compare/v1.26.0...v1.26.1) (2022-01-31)
 
 

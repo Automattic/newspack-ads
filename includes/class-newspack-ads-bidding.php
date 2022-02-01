@@ -320,6 +320,8 @@ class Newspack_Ads_Bidding {
 					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
 					array_map( [ __CLASS__, 'get_size_string' ], $this->get_all_sizes() )
 				);
+				// Reindex filtered array.
+				$sizes = array_values( $sizes );
 				if ( ! count( $sizes ) ) {
 					continue;
 				}
