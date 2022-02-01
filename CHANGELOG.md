@@ -1,3 +1,10 @@
+## [1.26.2-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2-hotfix.1) (2022-02-01)
+
+
+### Bug Fixes
+
+* reindex filtered sizes ([39a411e](https://github.com/Automattic/newspack-ads/commit/39a411ec8f5e69a1a9f140f4b8270e9dc4aaae60))
+
 ## [1.26.1](https://github.com/Automattic/newspack-ads/compare/v1.26.0...v1.26.1) (2022-01-31)
 
 
