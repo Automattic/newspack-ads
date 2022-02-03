@@ -1,3 +1,17 @@
+## [1.26.3](https://github.com/Automattic/newspack-ads/compare/v1.26.2...v1.26.3) (2022-02-03)
+
+
+### Bug Fixes
+
+* use amp responsive placements for sidebar placements ([#306](https://github.com/Automattic/newspack-ads/issues/306)) ([f8c43ab](https://github.com/Automattic/newspack-ads/commit/f8c43ab86e2300e84e079bb06e607b5fad93c596))
+
+## [1.26.3-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.2...v1.26.3-hotfix.1) (2022-02-03)
+
+
+### Bug Fixes
+
+* use amp responsive placements for sidebar placements ([1105eae](https://github.com/Automattic/newspack-ads/commit/1105eae9004f109d1ef8e8e4f4af6f05bb9070cf))
+
 ## [1.26.2](https://github.com/Automattic/newspack-ads/compare/v1.26.1...v1.26.2) (2022-02-01)
 
 
