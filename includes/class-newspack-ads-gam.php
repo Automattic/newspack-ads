@@ -87,7 +87,7 @@ class Newspack_Ads_GAM {
 	 * @var string[]
 	 */
 	public static $custom_targeting_keys = [
-		'ID',
+		'id',
 		'slug',
 		'category',
 		'post_type',
@@ -1237,25 +1237,21 @@ class Newspack_Ads_GAM {
 		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
 
 		// Find existing keys.
-		$key_map   = [
-			new String_ValueMapEntry(
-				'name',
-				new SetValue(
-					array_map(
-						function ( $key ) {
-							return new TextValue( $key );
-						},
-						self::$custom_targeting_keys
-					)
-				)
-			),
-		];
-		$statement = new Statement( "WHERE name = :name AND status = 'ACTIVE'", $key_map );
+		$or_clauses = implode(
+			' OR ',
+			array_map(
+				function( $key ) {
+					return sprintf( "name LIKE '%s'", strtolower( $key ) );
+				},
+				self::$custom_targeting_keys
+			)
+		);
+		$statement  = new Statement( sprintf( "WHERE ( %s ) AND status = 'ACTIVE'", $or_clauses ) );
 		try {
 			$keys = $service->getCustomTargetingKeysByStatement( $statement );
 		} catch ( \Exception $e ) {
 			$error_message = $e->getMessage();
-			if ( 0 <= strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
+			if ( false !== strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
 				throw new \Exception( __( 'API access for this GAM account is disabled.', 'newspack-ads' ) );
 			} else {
 				throw new \Exception( __( 'Unable to find existing targeting keys.', 'newspack-ads' ) );
@@ -1267,7 +1263,7 @@ class Newspack_Ads_GAM {
 				self::$custom_targeting_keys,
 				array_map(
 					function ( $key ) {
-						return $key->getName();
+						return strtolower( $key->getName() );
 					},
 					(array) $keys->getResults()
 				)
