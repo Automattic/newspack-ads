@@ -73,6 +73,9 @@ final class Newspack_Ads {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-custom-label.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-bidding.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-newspack-ads-bidder-medianet.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-newspack-ads-bidder-openx.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-newspack-ads-bidder-pubmatic.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-newspack-ads-bidder-sovrn.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-bidding-gam.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-placements.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-newspack-ads-sidebar-placements.php';
