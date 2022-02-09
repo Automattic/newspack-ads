@@ -161,7 +161,7 @@ const HeaderBiddingGAM = () => {
 												|{ ' ' }
 												{ sprintf(
 													// Translators: comma-separated list of adapters for the order or "any" if undefined.
-													__( 'Adapters: %s', 'newspack-ads' ),
+													__( 'Bidders: %s', 'newspack-ads' ),
 													__( 'any', 'newspack-ads' )
 												) }
 											</span>
