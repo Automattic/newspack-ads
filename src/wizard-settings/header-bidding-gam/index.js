@@ -223,7 +223,7 @@ const HeaderBiddingGAM = () => {
 						{ error ? (
 							error.message
 						) : (
-							<div className="newspack-ads__header-bidding-gam__order-description">
+							<span className="newspack-ads__header-bidding-gam__order-description">
 								{ order?.order_id ? (
 									<span>
 										{ __( 'Order:', 'newspack-ads' ) }{ ' ' }
@@ -252,7 +252,7 @@ const HeaderBiddingGAM = () => {
 								) : (
 									getMissingOrderMessage()
 								) }
-							</div>
+							</span>
 						) }
 					</Fragment>
 				) }
