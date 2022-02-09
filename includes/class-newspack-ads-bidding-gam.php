@@ -65,10 +65,10 @@ class Newspack_Ads_Bidding_GAM {
 	public static function register_api_endpoints() {
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
-			'/bidding/gam/order_count',
+			'/bidding/gam/orders',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ __CLASS__, 'api_get_order_count' ],
+				'callback'            => [ __CLASS__, 'api_get_orders' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
 			]
 		);
@@ -79,6 +79,12 @@ class Newspack_Ads_Bidding_GAM {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_order' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'id' => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
 			]
 		);
 		register_rest_route(
@@ -88,6 +94,12 @@ class Newspack_Ads_Bidding_GAM {
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ __CLASS__, 'api_archive_order' ],
 				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'id' => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
 			]
 		);
 		register_rest_route(
@@ -125,39 +137,34 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * API method for getting the amount of GAM orders on the advertiser.
+	 * API method for getting the current GAM order.
 	 *
-	 * @return WP_REST_Response containing the amount of orders.
+	 * @return WP_REST_Response containing the current order.
 	 */
-	public static function api_get_order_count() {
-		$count = self::get_order_count();
-		return \rest_ensure_response( is_wp_error( $count ) ? $count : [ 'count' => $count ] );
+	public static function api_get_orders() {
+		return \rest_ensure_response( self::get_advertiser_orders() );
 	}
 
 	/**
 	 * API method for getting the current GAM order.
 	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
 	 * @return WP_REST_Response containing the current order.
 	 */
-	public static function api_get_order() {
-		return \rest_ensure_response(
-			self::get_order(
-				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
-			)
-		);
+	public static function api_get_order( $request ) {
+		return \rest_ensure_response( self::get_order( $request->get_param( 'id' ) ) );
 	}
 
 	/**
 	 * API method for archiving the current GAM order.
 	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
 	 * @return WP_Rest_Response containing a boolean indicating success.
 	 */
-	public static function api_archive_order() {
-		return \rest_ensure_response(
-			self::archive_order(
-				Newspack_Ads_Bidding::get_setting( 'price_granularity', Newspack_Ads_Bidding::DEFAULT_PRICE_GRANULARITY )
-			)
-		);
+	public static function api_archive_order( $request ) {
+		return \rest_ensure_response( self::archive_order( $request->get_param( 'id' ) ) );
 	}
 
 	/**
@@ -447,33 +454,11 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Get unique order config hash for a given price granularity.
+	 * Get all orders from our configured advertiser.
 	 *
-	 * @param string $price_granularity_key The price granularity key.
-	 *
-	 * @return string The order hash.
+	 * @return array[] The advertiser orders.
 	 */
-	private static function get_order_hash( $price_granularity_key ) {
-		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $price_granularity_key );
-		if ( false === $price_granularity ) {
-			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
-		}
-		return md5(
-			wp_json_encode(
-				[
-					$price_granularity_key,
-					$price_granularity['buckets'],
-				]
-			) 
-		);
-	}
-
-	/**
-	 * Get the amount of orders created.
-	 *
-	 * @return int|WP_Error The number of orders or error.
-	 */
-	private static function get_order_count() {
+	private static function get_advertiser_orders() {
 		if ( ! self::is_connected() ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_error',
@@ -484,22 +469,21 @@ class Newspack_Ads_Bidding_GAM {
 			);
 		}
 		try {
-			$advertiser = self::get_advertiser();
-			$orders     = Newspack_Ads_GAM::get_orders_by_advertiser( $advertiser['id'] );
+			$orders = Newspack_Ads_GAM::get_orders_by_advertiser( self::get_advertiser()['id'] );
+			return Newspack_Ads_GAM::get_serialised_orders( $orders );
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
-		return count( $orders );
 	}
 
 	/**
-	 * Get order config for a given price granularity.
+	 * Get order config for a given GAM Order ID.
 	 *
-	 * @param string $price_granularity_key The price granularity key.
+	 * @param int $order_id GAM Order Id.
 	 *
 	 * @return array The stored order setup.
 	 */
-	private static function get_order( $price_granularity_key ) {
+	private static function get_order( $order_id ) {
 		if ( ! self::is_connected() ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_error',
@@ -509,42 +493,9 @@ class Newspack_Ads_Bidding_GAM {
 				]
 			);
 		}
-		$orders     = get_option( self::get_option_name( 'orders' ), [] );
-		$order_hash = self::get_order_hash( $price_granularity_key );
-
-		if ( ! isset( $orders[ $price_granularity_key ] ) ) {
-			return new WP_Error(
-				'newspack_ads_bidding_gam_order_not_found_local',
-				__( 'Order not created yet.', 'newspack-ads' ),
-				[
-					'status' => '404',
-				]
-			);
-		}
-
-		$order = $orders[ $price_granularity_key ];
-		if ( $order_hash !== $order['hash'] ) {
-			return new WP_Error(
-				'newspack_ads_bidding_gam_order_mismatch',
-				__( 'Order config hash mismatch.', 'newspack-ads' ),
-				[
-					'status' => '400',
-				] 
-			);
-		}
-
-		if ( ! isset( $order['order_id'] ) ) {
-			return new WP_Error(
-				'newspack_ads_bidding_gam_order_not_found_id',
-				__( 'Order ID not found.', 'newspack-ads' ),
-				[
-					'status' => '404',
-				]
-			);
-		}
 
 		try {
-			$gam_order = Newspack_Ads_GAM::get_orders_by_id( [ $order['order_id'] ] );
+			$gam_order = Newspack_Ads_GAM::get_orders_by_id( [ $order_id ] );
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
@@ -557,18 +508,40 @@ class Newspack_Ads_Bidding_GAM {
 				]
 			);
 		}
+		$gam_order = Newspack_Ads_GAM::get_serialised_orders( $gam_order )[0];
 
-		return $order;
+		$orders = get_option( self::get_option_name( 'orders' ), [] );
+		$order  = $orders[ $order_id ] ?? array_filter(
+			$orders,
+			function( $order ) use ( $order_id ) {
+				return $order['order_id'] === $order_id;
+			}
+		);
+
+		if ( ! isset( $order['order_id'] ) ) {
+			// TODO: Create order locally.
+			$order = [];
+		}
+
+		return wp_parse_args(
+			$order,
+			[
+				'order_id'      => $gam_order['id'],
+				'name'          => $gam_order['name'],
+				'revenue_share' => 0,
+				'bidders'       => [],
+			]
+		);
 	}
 
 	/**
 	 * Archive the order for a given price granularity.
 	 *
-	 * @param string $price_granularity_key The price granularity key.
+	 * @param string $order_id The GAM Order ID.
 	 *
 	 * @return boolean|WP_Error True if order was successfully archived or error.
 	 */
-	private static function archive_order( $price_granularity_key ) {
+	private static function archive_order( $order_id ) {
 		if ( ! self::is_connected() ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_error',
@@ -579,24 +552,17 @@ class Newspack_Ads_Bidding_GAM {
 			);
 		}
 
-		$orders = get_option( self::get_option_name( 'orders' ), [] );
-		$order  = $orders[ $price_granularity_key ];
-		if ( ! isset( $order['order_id'] ) ) {
-			return new WP_Error(
-				'newspack_ads_bidding_gam_order_not_found_id',
-				__( 'Order ID not found.', 'newspack-ads' ),
-				[
-					'status' => '404',
-				]
-			);
+		$orders      = get_option( self::get_option_name( 'orders' ), [] );
+		$order_index = array_search( $order_id, array_column( $orders, 'order_id' ) );
+		if ( false !== $order_index ) {
+			// If found in local storage, remove the local order regardless of the GAM API result.
+			$order = $orders[ array_search( $order_id, array_column( $orders, 'order_id' ) ) ];
+			unset( $orders[ $order_index ] );
+			update_option( self::get_option_name( 'orders' ), array_values( $orders ) );
 		}
 
-		// Remove the order from the local storage regardless of the GAM API result.
-		unset( $orders[ $price_granularity_key ] );
-		update_option( self::get_option_name( 'orders' ), array_values( $orders ) );
-
 		try {
-			Newspack_Ads_GAM::archive_order( [ $order['order_id'] ] );
+			Newspack_Ads_GAM::archive_order( [ $order_id ] );
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
