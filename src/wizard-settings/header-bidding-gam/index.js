@@ -9,30 +9,18 @@ import { addFilter } from '@wordpress/hooks';
 import { sprintf, __, _n } from '@wordpress/i18n';
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
-import { Path, SVG } from '@wordpress/components';
-import { link, pencil } from '@wordpress/icons';
-
-const archive = (
-	<SVG xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-		<Path d="m15.976 14.139-3.988 3.418L8 14.14 8.976 13l2.274 1.949V10.5h1.5v4.429L15 13l.976 1.139Z" />
-		<Path
-			clipRule="evenodd"
-			d="M4 9.232A2 2 0 0 1 3 7.5V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.5a2 2 0 0 1-1 1.732V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9.232ZM5 5.5h14a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V6a.5.5 0 0 1 .5-.5Zm.5 4V18a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5V9.5h-13Z"
-			fillRule="evenodd"
-		/>
-	</SVG>
-);
 
 /**
  * Newspack dependencies.
  */
-import { ActionCard, Card, Modal, Button } from 'newspack-components';
+import { ActionCard, Card, Modal } from 'newspack-components';
 
 /**
  * Internal dependencies.
  */
 import './style.scss';
 import Order from './order';
+import OrderPopover from './order-popover';
 
 const { network_code } = window.newspack_ads_bidding_gam;
 
@@ -152,6 +140,7 @@ const HeaderBiddingGAM = () => {
 										key={ order.id }
 										title={ order.name }
 										badge={ order.status }
+										titleLink={ getOrderUrl( order.id ) }
 										description={ () => (
 											<span>
 												{
@@ -167,45 +156,19 @@ const HeaderBiddingGAM = () => {
 											</span>
 										) }
 										actionText={
-											<div className="flex items-center">
-												{ order.status === 'DRAFT' && (
-													<Button
-														onClick={ async () => {
-															setInFlight( true );
-															await archiveOrder( order.id );
-															setInFlight( false );
-															await fetchOrders();
-														} }
-														icon={ archive }
-														label={ __( 'Archive order', 'newspack-ads' ) }
-														isQuaternary={ true }
-														isSmall={ true }
-														tooltipPosition="bottom center"
-														disabled={ inFlight }
-													/>
-												) }
-												<Button
-													onClick={ async () => {
-														setEditingOrder( order.id );
-													} }
-													icon={ pencil }
-													label={ __( 'Edit order', 'newspack-ads' ) }
-													isQuaternary={ true }
-													isSmall={ true }
-													tooltipPosition="bottom center"
-													disabled={ inFlight }
-												/>
-												<Button
-													href={ getOrderUrl( order.id ) }
-													target="_blank"
-													rel="external noreferrer noopener"
-													icon={ link }
-													label={ __( 'GAM Dashboard', 'newspack-ads' ) }
-													isQuaternary={ true }
-													isSmall={ true }
-													tooltipPosition="bottom center"
-												/>
-											</div>
+											<OrderPopover
+												isDraft={ order.status === 'DRAFT' }
+												onArchive={ async () => {
+													setInFlight( true );
+													await archiveOrder( order.id );
+													setInFlight( false );
+													await fetchOrders();
+												} }
+												onEdit={ () => {
+													setEditingOrder( order.id );
+												} }
+												gamLink={ getOrderUrl( order.id ) }
+											/>
 										}
 										className="mv0"
 										isSmall
