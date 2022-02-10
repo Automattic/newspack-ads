@@ -787,6 +787,11 @@ class Newspack_Ads_Model {
 				$targeting['slug'] = sanitize_text_field( $slug );
 			}
 
+			$template_slug = get_page_template_slug();
+			if ( ! empty( $template_slug ) ) {
+				$targeting['template'] = sanitize_title( $template_slug );
+			}
+
 			// Add the category slugs to targeting.
 			$categories = wp_get_post_categories( get_the_ID(), [ 'fields' => 'slugs' ] );
 			if ( ! empty( $categories ) ) {

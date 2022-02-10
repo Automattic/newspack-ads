@@ -27,7 +27,7 @@ class Newspack_Ads_Bidder_Medianet {
 	public static function init() {
 
 		// Require environment variable due to its experimental nature.
-		if ( ! defined( 'NEWSPACK_ADS_EXPERIMENTAL_MEDIANET' ) ) {
+		if ( ! defined( 'NEWSPACK_ADS_EXPERIMENTAL_BIDDERS' ) ) {
 			return;
 		}
 
