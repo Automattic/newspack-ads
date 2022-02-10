@@ -1,3 +1,17 @@
+## [1.26.4](https://github.com/Automattic/newspack-ads/compare/v1.26.3...v1.26.4) (2022-02-08)
+
+
+### Bug Fixes
+
+* **gam:** targeting key names are case-insensitive ([#308](https://github.com/Automattic/newspack-ads/issues/308)) ([9a4a021](https://github.com/Automattic/newspack-ads/commit/9a4a021541cb4e970a4df8625b33c6dafe75369a))
+
+## [1.26.4-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.26.3...v1.26.4-hotfix.1) (2022-02-08)
+
+
+### Bug Fixes
+
+* **gam:** targeting keys names are case insensitive ([da31c69](https://github.com/Automattic/newspack-ads/commit/da31c69d36b61bd555fe70b3b7e7ca10410078bd))
+
 ## [1.26.3](https://github.com/Automattic/newspack-ads/compare/v1.26.2...v1.26.3) (2022-02-03)
 
 
