@@ -140,7 +140,6 @@ const HeaderBiddingGAM = () => {
 										key={ order.id }
 										title={ order.name }
 										badge={ order.status }
-										titleLink={ getOrderUrl( order.id ) }
 										description={ () => (
 											<span>
 												{

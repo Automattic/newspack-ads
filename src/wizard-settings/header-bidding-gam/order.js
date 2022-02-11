@@ -28,8 +28,17 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 		revenueShare: 0,
 		bidders: [],
 	} );
-	const fetchLicaConfig = async () => {
-		const licaConfig = await apiFetch( { path: '/newspack-ads/v1/bidding/gam/lica_config' } );
+	const hasIssues = () => {
+		return (
+			! inFlight &&
+			order?.order_id &&
+			( ! order?.line_item_ids?.length || totalBatches > ( order?.lica_batch_count || 0 ) )
+		);
+	};
+	const fetchLicaConfig = async id => {
+		const licaConfig = await apiFetch( {
+			path: `/newspack-ads/v1/bidding/gam/lica_config?id=${ id }`,
+		} );
 		return licaConfig;
 	};
 	const getStepName = () => {
@@ -80,8 +89,13 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			path: '/newspack-ads/v1/bidding/gam/create',
 			method: 'POST',
 			data: {
+				id: config?.orderId || null,
 				type,
-				name: config.name,
+				config: {
+					order_name: config?.name,
+					revenue_share: config?.revenueShare,
+					bidders: config?.bidders,
+				},
 				batch,
 			},
 		} );
@@ -103,7 +117,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 				pendingOrder = await createType( 'line_items' );
 				setOrder( pendingOrder );
 			}
-			const licaConfig = await fetchLicaConfig();
+			const licaConfig = await fetchLicaConfig( pendingOrder.order_id );
 			const batches = Math.ceil( licaConfig.length / lica_batch_size );
 			setTotalBatches( batches );
 			setTotalSteps( 3 + batches );
@@ -123,6 +137,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 		} catch ( err ) {
 			if ( orderId || isLastAttempt ) {
 				// Unrecoverable error.
+				// TODO: Should archive the order.
 				if ( typeof onUnrecoverable === 'function' ) await onUnrecoverable( config );
 				setUnrecoverable( err );
 			} else {
@@ -176,7 +191,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 					'This is agreed upon revenue share between you and the bid partner. Input the percentage that goes to the bidder, i.e. 20 for 20%.',
 					'newspack-ads'
 				) }
-				disabled={ inFlight || order?.order_name }
+				disabled={ inFlight }
 				value={ config.revenueShare }
 				onChange={ value =>
 					setConfig( {
@@ -203,24 +218,12 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 					} )
 				}
 			/>
-			{ ! inFlight && order?.order_id && ! order?.line_item_ids?.length && (
+			{ hasIssues() && (
 				<Notice
 					isWarning
-					noticeText={ __( "Order exists but it's missing its line items.", 'newspack-ads' ) }
+					noticeText={ __( "Order exists but it's misconfigured.", 'newspack-ads' ) }
 				/>
 			) }
-			{ ! inFlight &&
-				order?.order_id &&
-				order?.line_item_ids?.length &&
-				totalBatches > ( order?.lica_batch_count || 0 ) && (
-					<Notice
-						isWarning
-						noticeText={ __(
-							'Order and line items exist, but are missing creative associations.',
-							'newspack-ads'
-						) }
-					/>
-				) }
 			{ step && stepName ? (
 				<Fragment>
 					<Notice
@@ -249,14 +252,14 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 					isPrimary
 					disabled={ ! config.name || inFlight }
 					onClick={ () => {
-						if ( config.orderId ) {
-							// Update
-						} else {
+						if ( hasIssues() || ! config.orderId ) {
 							create();
+						} else {
+							// Update
 						}
 					} }
 				>
-					{ config.orderId
+					{ hasIssues()
 						? __( 'Fix issues', 'newspack-ads' )
 						: __( 'Create Order', 'newspack-ads' ) }
 				</Button>

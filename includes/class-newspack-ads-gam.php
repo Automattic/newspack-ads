@@ -917,8 +917,32 @@ class Newspack_Ads_GAM {
 			}
 			$line_items[] = $line_item;
 		}
-		$service = self::get_line_item_service();
-		return $service->createLineItems( $line_items );
+		$service        = self::get_line_item_service();
+		$attempt_create = true;
+		while ( $attempt_create ) {
+			try {
+				$result         = $service->createLineItems( array_values( $line_items ) );
+				$attempt_create = false;
+			} catch ( ApiException $e ) {
+				foreach ( $e->getErrors() as $error ) {
+					// TODO: Handle duplicates error.
+					if ( 'CommonError.ALREADY_EXISTS' === $error->getErrorString() ) {
+						// Attempt to create again without duplicate associations.
+						$index = $error->getFieldPathElements()[0]->getIndex();
+						unset( $line_items[ $index ] );
+					} else {
+						// Bail if there are other errors.
+						return self::get_api_error( $e, __( 'Unexpected error while creating line items.', 'newspack-ads' ) );
+					}
+				}
+				// Leave without errors if entire batch exists.
+				if ( 0 === count( $line_items ) ) {
+					$attempt_create = false;
+					return [];
+				}
+			}
+		}
+		return $result;
 	}
 
 	/**
