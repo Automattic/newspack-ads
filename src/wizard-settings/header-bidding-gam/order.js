@@ -30,7 +30,6 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 	} );
 	const hasIssues = () => {
 		return (
-			! inFlight &&
 			order?.order_id &&
 			( ! order?.line_item_ids?.length || totalBatches > ( order?.lica_batch_count || 0 ) )
 		);
@@ -84,23 +83,24 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			setOrder( null );
 		}
 	}, [ unrecoverable ] );
-	const createType = async ( type, batch = 0 ) => {
+	const createType = async ( type, requestData = { batch: 0, fixing: false } ) => {
 		return await apiFetch( {
 			path: '/newspack-ads/v1/bidding/gam/create',
 			method: 'POST',
 			data: {
+				...requestData,
 				id: config?.orderId || null,
 				type,
 				config: {
+					price_granularity_key: 'low',
 					order_name: config?.name,
 					revenue_share: config?.revenueShare,
 					bidders: config?.bidders,
 				},
-				batch,
 			},
 		} );
 	};
-	const create = async () => {
+	const create = async ( fixing = false ) => {
 		setError( null );
 		setUnrecoverable( null );
 		setInFlight( true );
@@ -108,13 +108,13 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 		try {
 			if ( ! pendingOrder || ! pendingOrder.order_id ) {
 				setStep( 1 );
-				pendingOrder = await createType( 'order' );
+				pendingOrder = await createType( 'order', { fixing } );
 				setOrder( pendingOrder );
 				setConfig( { ...config, orderId: pendingOrder.order_id } );
 			}
 			if ( ! pendingOrder?.line_item_ids?.length ) {
 				setStep( 2 );
-				pendingOrder = await createType( 'line_items' );
+				pendingOrder = await createType( 'line_items', { fixing } );
 				setOrder( pendingOrder );
 			}
 			const licaConfig = await fetchLicaConfig( pendingOrder.order_id );
@@ -126,7 +126,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 				for ( let i = start; i < batches; i++ ) {
 					const batch = i + 1;
 					setStep( 2 + batch );
-					pendingOrder = await createType( 'creatives', batch );
+					pendingOrder = await createType( 'creatives', { batch, fixing } );
 					setOrder( pendingOrder );
 				}
 			}
@@ -202,6 +202,8 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			/>
 			<SelectControl
 				label={ __( 'Bidders', 'newspack-ads' ) }
+				disabled={ inFlight }
+				value={ config.bidders }
 				help={ __(
 					'Which bidders to include in this order. Select bidders that all have the same revenue share and make sure to not include the same bidder in more than one header bidding order.',
 					'newspack-ads'
@@ -218,7 +220,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 					} )
 				}
 			/>
-			{ hasIssues() && (
+			{ ! inFlight && hasIssues() && (
 				<Notice
 					isWarning
 					noticeText={ __( "Order exists but it's misconfigured.", 'newspack-ads' ) }
@@ -253,7 +255,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 					disabled={ ! config.name || inFlight }
 					onClick={ () => {
 						if ( hasIssues() || ! config.orderId ) {
-							create();
+							create( hasIssues() );
 						} else {
 							// Update
 						}

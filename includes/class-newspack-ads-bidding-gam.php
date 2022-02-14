@@ -151,6 +151,9 @@ class Newspack_Ads_Bidding_GAM {
 					'batch'  => [
 						'sanitize_callback' => 'absint',
 					],
+					'fixing' => [ 
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
 				],
 			]
 		);
@@ -233,13 +236,13 @@ class Newspack_Ads_Bidding_GAM {
 			self::$default_order_config
 		);
 		$type   = $request->get_param( 'type' );
+		$fixing = $request->get_param( 'fixing' ) ?? false;
 		switch ( $type ) {
 			case 'order':
-				$name   = $request->get_param( 'name' );
-				$result = self::create_order( $name, $config );
+				$result = self::create_order( $config );
 				break;
 			case 'line_items':
-				$result = self::create_line_items( $request->get_param( 'id' ) );
+				$result = self::create_line_items( $request->get_param( 'id' ), $fixing );
 				break;
 			case 'creatives':
 				$result = self::associate_creatives( $request->get_param( 'id' ), $request->get_param( 'batch' ) );
@@ -252,7 +255,7 @@ class Newspack_Ads_Bidding_GAM {
 				);
 		}
 		if ( 'order' === $type ) {
-			$order_id = $result['order_id'];
+			$order_id = $result['id'];
 		} else {
 			$order_id = $request->get_param( 'id' );
 		}
@@ -422,13 +425,23 @@ class Newspack_Ads_Bidding_GAM {
 			return self::$targeting_keys;
 		}
 		$key_names = [
-			'hb_pb',
+			'hb_pb'     => [],
+			'hb_bidder' => array_keys( newspack_get_ads_bidders() ),
 		];
 		try {
 			$targeting_keys = [];
-			foreach ( $key_names as $key_name ) {
-				$result                      = Newspack_Ads_GAM::create_targeting_key( $key_name );
-				$targeting_keys[ $key_name ] = $result['targeting_key']->getId();
+			foreach ( $key_names as $key_name => $key_values ) {
+				$result                      = Newspack_Ads_GAM::create_targeting_key( $key_name, $key_values );
+				$values                      = array_merge( $result['created_values'], $result['found_values'] );
+				$targeting_keys[ $key_name ] = [
+					'id'         => $result['targeting_key']->getId(),
+					'values_ids' => array_map(
+						function( $targeting_value ) {
+							return $targeting_value->getId();
+						},
+						$values
+					),
+				];
 			}
 			self::$targeting_keys = $targeting_keys;
 			return $targeting_keys;
@@ -676,12 +689,11 @@ class Newspack_Ads_Bidding_GAM {
 	/**
 	 * Create order and line items based on price granularity.
 	 *
-	 * @param string $name                  Name of the order.
-	 * @param array  $order_config          Optional order config.
+	 * @param array $order_config Optional order config.
 	 *
 	 * @return array|WP_Error The serialized order or WP_Error if creation fails.
 	 */
-	private static function create_order( $name, $order_config = [] ) {
+	private static function create_order( $order_config = [] ) {
 		$config = self::initial_setup();
 		if ( \is_wp_error( $config ) ) {
 			return $config;
@@ -696,7 +708,7 @@ class Newspack_Ads_Bidding_GAM {
 		}
 
 		try {
-			$order = Newspack_Ads_GAM::create_order( $name, $config['advertiser_id'] );
+			$order = Newspack_Ads_GAM::create_order( $order_config['order_name'], $config['advertiser_id'] );
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
@@ -708,13 +720,30 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
-	 * Create GAM line items based on price granularity
+	 * Validate order's existing line items.
 	 *
 	 * @param int $order_id The GAM Order ID.
 	 *
+	 * @return int[] Map of existing line item IDs keyed by their cost value per unit in micro amount.
+	 */
+	private static function validate_order_line_items( $order_id ) {
+		$line_items = Newspack_Ads_GAM::get_line_items_by_order_id( $order_id );
+		$value_map  = [];
+		foreach ( $line_items as $line_item ) {
+			$value_map[ $line_item->getCostPerUnit()->getMicroAmount() ] = $line_item->getId();
+		}
+		return $value_map;
+	}
+
+	/**
+	 * Create GAM line items based on price granularity
+	 *
+	 * @param int     $order_id The GAM Order ID.
+	 * @param boolean $validate Wether to validate order's existing line items before creating.
+	 *
 	 * @return LineItem[] Array of line items.
 	 */
-	private static function create_line_items( $order_id ) {
+	private static function create_line_items( $order_id, $validate = false ) {
 
 		$config = get_option( self::get_option_name( 'config' ) );
 		if ( ! $config ) {
@@ -730,6 +759,11 @@ class Newspack_Ads_Bidding_GAM {
 
 		if ( false === $price_granularity ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
+		}
+
+		$order_line_items = [];
+		if ( true === $validate ) {
+			$order_line_items = self::validate_order_line_items( $order_id );
 		}
 
 		// Sort buckets by max value.
@@ -783,7 +817,7 @@ class Newspack_Ads_Bidding_GAM {
 		}
 
 		// Batch create `hb_pb` values for all prices.
-		$targeting_keys_result = Newspack_Ads_GAM::create_targeting_key(
+		$pb_targeting_keys_result = Newspack_Ads_GAM::create_targeting_key(
 			'hb_pb',
 			array_map(
 				function( $price ) {
@@ -792,21 +826,44 @@ class Newspack_Ads_Bidding_GAM {
 				$prices
 			)
 		);
+		$pb_targeting_keys_values = array_merge( $pb_targeting_keys_result['found_values'], $pb_targeting_keys_result['created_values'] );
 		// Store result in value map for line item targeting.
-		$targeting_key_id        = $targeting_keys_result['targeting_key']->getId();
-		$targeting_values_id_map = [];
-		foreach ( $targeting_keys_result['found_values'] as $value ) {
-			$targeting_values_id_map[ $value->getName() ] = $value->getId();
+		$pb_targeting_key_id = $pb_targeting_keys_result['targeting_key']->getId();
+		$pb_values           = [];
+		foreach ( $pb_targeting_keys_values as $value ) {
+			$pb_values[ $value->getName() ] = $value->getId();
 		}
-		foreach ( $targeting_keys_result['created_values'] as $value ) {
-			$targeting_values_id_map[ $value->getName() ] = $value->getId();
+
+		// Create `hb_bidder` values for selected bidders.
+		if ( isset( $order_config['bidders'] ) ) {
+			$bidders        = $order_config['bidders'];
+			$bidders_result = Newspack_Ads_GAM::create_targeting_key(
+				'hb_bidder',
+				$bidders
+			);
+			$bidders_values = array_merge( $bidders_result['found_values'], $bidders_result['created_values'] );
+			$bidders_values = array_map(
+				function( $value ) {
+					return $value->getId();
+				},
+				$bidders_values
+			);
 		}
 
 		$line_item_configs = [];
 		foreach ( $prices as $price_micro ) {
-			$price_number        = self::get_micro_to_number( $price_micro );
-			$price_str           = self::get_number_to_price_string( $price_number );
-			$line_item_configs[] = [
+			$price_number     = self::get_micro_to_number( $price_micro );
+			$price_str        = self::get_number_to_price_string( $price_number );
+			$custom_targeting = [
+				$pb_targeting_key_id => [
+					$pb_values[ $price_str ],
+				],
+			];
+			if ( isset( $order_config['bidders'] ) ) {
+				$custom_targeting[ $bidders_result['targeting_key']->getId() ] = $bidders_values;
+			}
+			$config = [
+				'id'                      => isset( $order_line_items[ $price_micro ] ) ? $order_line_items[ $price_micro ] : null,
 				'name'                    => sprintf( '%s - %s', self::ADVERTISER_NAME, $price_str ),
 				'order_id'                => $order_id,
 				'start_date_time_type'    => 'IMMEDIATELY',
@@ -821,18 +878,18 @@ class Newspack_Ads_Bidding_GAM {
 					'micro_amount' => $price_micro,
 				],
 				'targeting'               => [
-					'custom_targeting' => [
-						$targeting_key_id => [
-							$targeting_values_id_map[ $price_str ],
-						],
-					],
+					'custom_targeting' => $custom_targeting,
 				],
 				'creative_placeholders'   => newspack_get_ads_bidder_sizes(),
 			];
+			if ( isset( $order_config['revenue_share'] ) && 0 < absint( $order_config['revenue_share'] ) ) {
+				$config['cost_per_unit']['micro_amount_value'] = $price_micro - ( $price_micro * absint( $order_config['revenue_share'] ) / 100 );
+			}
+			$line_item_configs[] = $config;
 		}
 
 		try {
-			$line_items = Newspack_Ads_GAM::create_line_items( $line_item_configs );
+			$line_items = Newspack_Ads_GAM::create_or_update_line_items( $line_item_configs );
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
@@ -875,12 +932,6 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing order config', 'newspack-ads' ) );
 		}
 
-		$price_granularity = Newspack_Ads_Bidding::get_price_granularity( $order_config['price_granularity_key'] );
-
-		if ( false === $price_granularity ) {
-			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Invalid price granularity', 'newspack-ads' ) );
-		}
-
 		if ( ! isset( $order_config['line_item_ids'] ) || empty( $order_config['line_item_ids'] ) ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_error',
@@ -918,7 +969,7 @@ class Newspack_Ads_Bidding_GAM {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing order config', 'newspack-ads' ) );
 		}
 
-		$lica_configs = self::get_lica_config( $order_config['price_granularity_key'] );
+		$lica_configs = self::get_lica_config( $order_id );
 		if ( 0 < $batch ) {
 			$lica_configs = array_slice( $lica_configs, ( $batch - 1 ) * self::LICA_BATCH_SIZE, self::LICA_BATCH_SIZE );
 		}
