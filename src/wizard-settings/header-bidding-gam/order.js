@@ -50,12 +50,8 @@ const Order = ( {
 	const buttonText = () =>
 		orderId ? __( 'Update Order', 'newspack-ads' ) : __( 'Create Order', 'newspack-ads' );
 
-	const fetchLicaConfig = async id => {
-		const licaConfig = await apiFetch( {
-			path: `/newspack-ads/v1/bidding/gam/lica_config?id=${ id }`,
-		} );
-		return licaConfig;
-	};
+	const fetchLicaConfig = async id =>
+		await apiFetch( { path: `/newspack-ads/v1/bidding/gam/lica_config?id=${ id }` } );
 
 	const getStepName = () => {
 		switch ( step ) {
@@ -120,7 +116,6 @@ const Order = ( {
 				id: config?.orderId || requestData.id || null,
 				type,
 				config: {
-					price_granularity_key: 'low',
 					order_name: config?.name,
 					revenue_share: config?.revenueShare,
 					bidders: config?.bidders,
