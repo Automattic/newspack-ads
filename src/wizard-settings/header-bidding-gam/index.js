@@ -144,47 +144,74 @@ const HeaderBiddingGAM = () => {
 					onRequestClose={ () => ! inFlight && setIsManaging( false ) }
 				>
 					{ activeOrders.length && (
-						<Card noBorder>
-							{ activeOrders.map( order => (
-								<ActionCard
-									key={ order.id }
-									title={ order.name }
-									badge={ order.status }
-									description={ () => (
-										<span>
-											{ sprintf(
-												// Translators: the bidder revenue share for this order.
-												__( 'Bidder Revenue Share: %1$d%%', 'newspack-ads' ),
-												order.revenue_share || 0
-											) }{ ' ' }
-											|{ ' ' }
-											{ sprintf(
-												// Translators: comma-separated list of adapters for the order or "any" if undefined.
-												__( 'Bidders: %s', 'newspack-ads' ),
-												order.bidders?.length
-													? order.bidders.join( ', ' )
-													: __( 'any', 'newspack-ads' )
-											) }
-										</span>
-									) }
-									actionText={
-										<OrderPopover
-											isDraft={ order.status === 'DRAFT' }
-											disabled={ inFlight }
-											onArchive={ async () => {
-												setInFlight( true );
-												await archiveOrder( order.id );
-												setInFlight( false );
-												await fetchOrders();
-											} }
-											onEdit={ () => setEditingOrder( order.id ) }
-											gamLink={ getOrderUrl( order.id ) }
-										/>
-									}
-									className="mv0"
-									isSmall
-								/>
-							) ) }
+						<>
+							<Card noBorder>
+								{ activeOrders.map( order => (
+									<ActionCard
+										key={ order.id }
+										title={ order.name }
+										badge={ order.status }
+										description={ () => (
+											<span>
+												{ sprintf(
+													// Translators: the bidder revenue share for this order.
+													__( 'Bidder Revenue Share: %1$d%%', 'newspack-ads' ),
+													order.revenue_share || 0
+												) }{ ' ' }
+												|{ ' ' }
+												{ sprintf(
+													// Translators: comma-separated list of adapters for the order or "any" if undefined.
+													__( 'Bidders: %s', 'newspack-ads' ),
+													order.bidders?.length
+														? order.bidders
+																.map( bidderKey => bidders[ bidderKey ].name )
+																.join( ', ' )
+														: __( 'any', 'newspack-ads' )
+												) }
+											</span>
+										) }
+										actionText={
+											<OrderPopover
+												isDraft={ order.status === 'DRAFT' }
+												disabled={ inFlight }
+												onArchive={ async () => {
+													setInFlight( true );
+													await archiveOrder( order.id );
+													setInFlight( false );
+													await fetchOrders();
+												} }
+												onEdit={ () => setEditingOrder( order.id ) }
+												gamLink={ getOrderUrl( order.id ) }
+											/>
+										}
+										className="mv0"
+										isSmall
+									/>
+								) ) }
+							</Card>
+
+							{
+								// Display warning if a bidder is being targeted by more than one order.
+								Object.keys( bidders ).map( bidderKey => {
+									const bidderOrders = activeOrders.filter( order =>
+										order.bidders?.includes( bidderKey )
+									);
+									return (
+										bidderOrders.length > 1 && (
+											<Notice
+												key={ bidderKey }
+												isWarning
+												noticeText={ sprintf(
+													// Translators: %1 The name of the bidder. %2 The number of orders for the bidder.
+													__( '%1$s is being targeted by %2$d orders.', 'newspack-ads' ),
+													bidders[ bidderKey ].name,
+													bidderOrders.length
+												) }
+											/>
+										)
+									);
+								} )
+							}
 							<Card buttonsCard noBorder className="justify-end">
 								<Button isSecondary disabled={ inFlight } onClick={ () => setIsManaging( false ) }>
 									{ __( 'Cancel', 'newspack-ads' ) }
@@ -193,7 +220,7 @@ const HeaderBiddingGAM = () => {
 									Create new order
 								</Button>
 							</Card>
-						</Card>
+						</>
 					) }
 				</Modal>
 			) }
