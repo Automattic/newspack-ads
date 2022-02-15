@@ -509,8 +509,6 @@ class Newspack_Ads_GAM {
 					'status'        => $order->getStatus(),
 					'is_archived'   => $order->getIsArchived(),
 					'advertiser_id' => $order->getAdvertiserId(),
-					'agency_id'     => $order->getAgencyId(),
-					'creator_id'    => $order->getCreatorId(),
 				];
 			},
 			null !== $orders ? $orders : self::get_orders()
@@ -767,7 +765,7 @@ class Newspack_Ads_GAM {
 	 * @param string $name          Order Name.
 	 * @param string $advertiser_id Order Advertiser ID.
 	 *
-	 * @return object|WP_Error Serialised created order or error if it fails.
+	 * @return array|WP_Error Serialised created order or error if it fails.
 	 */
 	public static function create_order( $name, $advertiser_id ) {
 		$order = new Order();

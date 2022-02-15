@@ -115,6 +115,25 @@ class Newspack_Ads_Bidding_GAM {
 		);
 		register_rest_route(
 			Newspack_Ads_Settings::API_NAMESPACE,
+			'/bidding/gam/order',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_update_order' ],
+				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'args'                => [
+					'id'     => [
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'config' => [
+						'required'          => true,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_order_config' ],
+					],
+				],
+			]
+		);
+		register_rest_route(
+			Newspack_Ads_Settings::API_NAMESPACE,
 			'/bidding/gam/lica_config',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -191,6 +210,24 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
+	 * API method for archiving the current GAM order.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_Rest_Response containing a boolean indicating success.
+	 */
+	public static function api_update_order( $request ) {
+		return \rest_ensure_response(
+			self::update_order(
+				$request->get_param( 'id' ),
+				$request->get_param( 'config' )
+			)
+		);
+	}
+
+	
+
+	/**
 	 * Get a sanitized order config.
 	 *
 	 * @param array $order_config Config to sanitize.
@@ -255,11 +292,11 @@ class Newspack_Ads_Bidding_GAM {
 				);
 		}
 		if ( 'order' === $type ) {
-			$order_id = $result['id'];
+			$order_id = $result['order_id'];
 		} else {
 			$order_id = $request->get_param( 'id' );
 		}
-		return \rest_ensure_response( is_wp_error( $result ) ? $result : self::get_order( $order_id ) );
+		return \rest_ensure_response( \is_wp_error( $result ) ? $result : self::get_order( $order_id ) );
 	}
 
 	/**
@@ -526,8 +563,25 @@ class Newspack_Ads_Bidding_GAM {
 			);
 		}
 		try {
-			$orders = Newspack_Ads_GAM::get_orders_by_advertiser( self::get_advertiser()['id'] );
-			return Newspack_Ads_GAM::get_serialised_orders( $orders );
+			$orders         = Newspack_Ads_GAM::get_serialised_orders(
+				Newspack_Ads_GAM::get_orders_by_advertiser( self::get_advertiser()['id'] )
+			);
+			$orders_configs = get_option( self::get_option_name( 'orders' ), [] );
+			return array_map(
+				function( $order ) use ( $orders_configs ) {
+					$order_config = array_filter(
+						$orders_configs,
+						function( $order_config ) use ( $order ) {
+							return $order['id'] === $order_config['order_id'];
+						} 
+					);
+					if ( empty( $order_config ) ) {
+						return $order;
+					}
+					return array_merge( $order, array_shift( $order_config ) );
+				},
+				$orders 
+			);
 		} catch ( \Exception $e ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
 		}
@@ -617,11 +671,12 @@ class Newspack_Ads_Bidding_GAM {
 	/**
 	 * Get order config for a given GAM Order ID.
 	 *
-	 * @param int $order_id GAM Order ID.
+	 * @param int     $order_id     GAM Order ID.
+	 * @param boolean $fetch_remote Whether to fetch the order from GAM.
 	 *
 	 * @return array The stored order config.
 	 */
-	private static function get_order( $order_id ) {
+	private static function get_order( $order_id, $fetch_remote = false ) {
 		if ( ! self::is_connected() ) {
 			return new WP_Error(
 				'newspack_ads_bidding_gam_error',
@@ -632,23 +687,29 @@ class Newspack_Ads_Bidding_GAM {
 			);
 		}
 
-		try {
-			$order = Newspack_Ads_GAM::get_orders_by_id( [ $order_id ] );
-		} catch ( \Exception $e ) {
-			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
-		}
-		if ( empty( $order ) ) {
-			return new WP_Error(
-				'newspack_ads_bidding_gam_order_not_found_gam',
-				__( 'Order not found in Google Ad Manager.', 'newspack-ads' ),
-				[
-					'status' => '404',
-				]
-			);
-		}
-		$order = Newspack_Ads_GAM::get_serialised_orders( $order )[0];
+		$config = self::get_order_local_config( $order_id );
 
-		return self::get_order_local_config( $order_id, $order );
+		if ( empty( $config ) || true === $fetch_remote ) { 
+			try {
+				$order = Newspack_Ads_GAM::get_orders_by_id( [ $order_id ] );
+			} catch ( \Exception $e ) {
+				return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+			}
+			if ( empty( $order ) ) {
+				return new WP_Error(
+					'newspack_ads_bidding_gam_order_not_found_gam',
+					__( 'Order not found in Google Ad Manager.', 'newspack-ads' ),
+					[
+						'status' => '404',
+					]
+				);
+			}
+			$order = Newspack_Ads_GAM::get_serialised_orders( $order )[0];
+
+			$config = self::get_order_local_config( $order_id, $order );
+		}
+
+		return $config;
 	}
 
 	/**
@@ -720,6 +781,27 @@ class Newspack_Ads_Bidding_GAM {
 	}
 
 	/**
+	 * Update an existing order configuration.
+	 *
+	 * Supported changes are the revenue share and the targeted bidders.
+	 *
+	 * @param int   $order_id     The GAM Order ID.
+	 * @param array $order_config The order config to update.
+	 *
+	 * @return array|WP_Error The updated order config or WP_Error if update fails.
+	 */
+	private static function update_order( $order_id, $order_config ) {
+		$order_config = wp_parse_args( $order_config, self::get_order_local_config( $order_id ) );
+		try {
+			self::create_line_items( $order_config, true );
+		} catch ( \Exception $e ) {
+			return new WP_Error( 'newspack_ads_bidding_gam_error', $e->getMessage() );
+		}
+		self::update_order_local_config( $order_id, $order_config );
+		return $order_config;
+	}
+
+	/**
 	 * Validate order's existing line items.
 	 *
 	 * @param int $order_id The GAM Order ID.
@@ -738,19 +820,26 @@ class Newspack_Ads_Bidding_GAM {
 	/**
 	 * Create GAM line items based on price granularity
 	 *
-	 * @param int     $order_id The GAM Order ID.
-	 * @param boolean $validate Wether to validate order's existing line items before creating.
+	 * @param int|array $order_id_or_config The GAM Order ID or the order config.
+	 * @param boolean   $validate           Wether to validate order's existing line items before creating.
 	 *
 	 * @return LineItem[] Array of line items.
 	 */
-	private static function create_line_items( $order_id, $validate = false ) {
+	private static function create_line_items( $order_id_or_config, $validate = false ) {
 
 		$config = get_option( self::get_option_name( 'config' ) );
 		if ( ! $config ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing config', 'newspack-ads' ) );
 		}
 
-		$order_config = self::get_order_local_config( $order_id );
+		if ( is_array( $order_id_or_config ) ) {
+			$order_config = $order_id_or_config;
+			$order_id     = $order_config['order_id'];
+		} else {
+			$order_id     = $order_id_or_config;
+			$order_config = self::get_order_local_config( $order_id );
+		}
+
 		if ( false === $order_config ) {
 			return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing order config', 'newspack-ads' ) );
 		}

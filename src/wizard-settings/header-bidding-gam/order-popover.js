@@ -12,25 +12,22 @@ import { ESCAPE } from '@wordpress/keycodes';
  */
 import { Button, Popover } from 'newspack-components';
 
-const OrderPopover = ( { isDraft, onEdit, onArchive, gamLink } ) => {
+const OrderPopover = ( { disabled = false, isDraft, onEdit, onArchive, gamLink } ) => {
 	const [ isVisible, setIsVisible ] = useState( false );
-	const toggleVisible = () => {
-		console.log( 'toggling', isVisible );
-		setIsVisible( state => ! state );
-	};
-
+	const toggleVisible = () => setIsVisible( state => ! state );
 	return (
 		<>
 			<Button
 				isQuaternary
 				isSmall
+				disabled={ disabled }
 				className={ isVisible && 'popover-active' }
 				onClick={ toggleVisible }
 				icon={ moreVertical }
 				label={ __( 'More options', 'newspack' ) }
 				tooltipPosition="bottom center"
 			/>
-			{ isVisible && (
+			{ ! disabled && isVisible && (
 				<Popover
 					position="bottom left"
 					onFocusOutside={ toggleVisible }

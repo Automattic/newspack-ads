@@ -12,34 +12,51 @@ import { Card, Notice, TextControl, SelectControl, Button, ProgressBar } from 'n
 
 const { lica_batch_size } = window.newspack_ads_bidding_gam;
 
-const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel } ) => {
+const Order = ( {
+	orderId = null,
+	defaultName = '',
+	onPending = () => {},
+	onError,
+	onSuccess,
+	onUnrecoverable,
+	onCancel,
+	...props
+} ) => {
 	const [ inFlight, setInFlight ] = useState( false );
-	const [ bidders, setBidders ] = useState( {} );
-	const [ error, setError ] = useState( null );
+	const [ bidders, setBidders ] = useState( props.bidders || {} );
+	const [ error, setError ] = useState( props.error || null );
 	const [ order, setOrder ] = useState( null );
-	const [ unrecoverable, setUnrecoverable ] = useState( null );
 	const [ step, setStep ] = useState( 0 );
 	const [ totalBatches, setTotalBatches ] = useState( 1 );
 	const [ totalSteps, setTotalSteps ] = useState( 4 );
 	const [ isLastAttempt, setLastAttempt ] = useState( false );
 	const [ config, setConfig ] = useState( {
 		orderId,
-		name,
+		name: ! orderId ? defaultName : '',
 		revenueShare: 0,
 		bidders: [],
 	} );
-	const hasIssues = () => {
-		return (
-			order?.order_id &&
-			( ! order?.line_item_ids?.length || totalBatches > ( order?.lica_batch_count || 0 ) )
-		);
-	};
+
+	const hasIssues = () =>
+		order?.order_id &&
+		( ! order?.line_item_ids?.length || totalBatches > ( order?.lica_batch_count || 0 ) );
+
+	const canSubmit = () =>
+		hasIssues() ||
+		! orderId ||
+		parseInt( config.revenueShare ) !== parseInt( order?.revenue_share ) ||
+		JSON.stringify( config.bidders ) !== JSON.stringify( order?.bidders );
+
+	const buttonText = () =>
+		orderId ? __( 'Update Order', 'newspack-ads' ) : __( 'Create Order', 'newspack-ads' );
+
 	const fetchLicaConfig = async id => {
 		const licaConfig = await apiFetch( {
 			path: `/newspack-ads/v1/bidding/gam/lica_config?id=${ id }`,
 		} );
 		return licaConfig;
 	};
+
 	const getStepName = () => {
 		switch ( step ) {
 			case 0:
@@ -52,6 +69,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 				return __( 'Associating Creatives…', 'newspack-ads' );
 		}
 	};
+
 	useEffect( async () => {
 		setInFlight( true );
 		try {
@@ -60,6 +78,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			setError( err );
 		}
 		if ( orderId ) {
+			// Fetch order.
 			try {
 				const data = await apiFetch( {
 					path: `/newspack-ads/v1/bidding/gam/order?id=${ orderId }`,
@@ -75,21 +94,30 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			} catch ( err ) {
 				setError( err );
 			}
+			// Fetch LICA config.
+			try {
+				const licaConfig = await fetchLicaConfig( orderId );
+				const batches = Math.ceil( licaConfig.length / lica_batch_size );
+				setTotalBatches( batches );
+				setTotalSteps( 3 + batches );
+			} catch ( err ) {
+				setError( err );
+			}
 		}
 		setInFlight( false );
 	}, [] );
+
 	useEffect( () => {
-		if ( unrecoverable ) {
-			setOrder( null );
-		}
-	}, [ unrecoverable ] );
+		onPending( inFlight );
+	}, [ inFlight ] );
+
 	const createType = async ( type, requestData = { batch: 0, fixing: false } ) => {
 		return await apiFetch( {
 			path: '/newspack-ads/v1/bidding/gam/create',
 			method: 'POST',
 			data: {
 				...requestData,
-				id: config?.orderId || null,
+				id: config?.orderId || requestData.id || null,
 				type,
 				config: {
 					price_granularity_key: 'low',
@@ -100,9 +128,9 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			},
 		} );
 	};
+
 	const create = async ( fixing = false ) => {
 		setError( null );
-		setUnrecoverable( null );
 		setInFlight( true );
 		let pendingOrder = { ...order };
 		try {
@@ -114,7 +142,7 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 			}
 			if ( ! pendingOrder?.line_item_ids?.length ) {
 				setStep( 2 );
-				pendingOrder = await createType( 'line_items', { fixing } );
+				pendingOrder = await createType( 'line_items', { id: pendingOrder.order_id, fixing } );
 				setOrder( pendingOrder );
 			}
 			const licaConfig = await fetchLicaConfig( pendingOrder.order_id );
@@ -126,51 +154,76 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 				for ( let i = start; i < batches; i++ ) {
 					const batch = i + 1;
 					setStep( 2 + batch );
-					pendingOrder = await createType( 'creatives', { batch, fixing } );
+					pendingOrder = await createType( 'creatives', {
+						id: pendingOrder.order_id,
+						batch,
+						fixing,
+					} );
 					setOrder( pendingOrder );
 				}
 			}
 			setStep( 3 + batches );
-			if ( typeof onCreate === 'function' ) {
-				await onCreate( pendingOrder );
+			if ( typeof onSuccess === 'function' ) {
+				await onSuccess( pendingOrder );
 			}
 		} catch ( err ) {
 			if ( orderId || isLastAttempt ) {
 				// Unrecoverable error.
-				// TODO: Should archive the order.
-				if ( typeof onUnrecoverable === 'function' ) await onUnrecoverable( config );
-				setUnrecoverable( err );
+				if ( typeof onUnrecoverable === 'function' ) await onUnrecoverable( pendingOrder, err );
+				setOrder( null );
 			} else {
 				// Make it fail unrecoverably if it fails on next attempt.
 				if ( pendingOrder?.order_id ) {
 					setLastAttempt( true );
 				}
 				setError( err );
+				if ( typeof onError === 'function' ) await onError( err );
 			}
 		} finally {
 			setStep( 0 );
 			setInFlight( false );
 		}
 	};
+
+	const update = async () => {
+		setError( null );
+		setInFlight( true );
+		let data;
+		try {
+			data = await apiFetch( {
+				path: '/newspack-ads/v1/bidding/gam/order',
+				method: 'PUT',
+				data: {
+					id: orderId,
+					config: {
+						revenue_share: config?.revenueShare,
+						bidders: config?.bidders,
+					},
+				},
+			} );
+			setOrder( data );
+		} catch ( err ) {
+			setError( err );
+			if ( typeof onError === 'function' ) await onError( err );
+		} finally {
+			if ( typeof onSuccess === 'function' ) await onSuccess( data );
+			setInFlight( false );
+		}
+	};
+
 	const stepName = getStepName();
+
 	return (
 		<Card noBorder>
-			<p>
-				{ __(
-					'Create the order and line items on your Google Ad Manager network according to the pre-defined price bucket settings.',
-					'newspack-ads'
-				) }
-			</p>
-			{ error && error.data?.status !== '404' && <Notice isError noticeText={ error.message } /> }
-			{ unrecoverable && (
-				<Notice
-					isError
-					noticeText={ __(
-						'We were unable to fix the issues with this order and have archived it. Please create a new order below.',
+			{ ! orderId && (
+				<p>
+					{ __(
+						'Create the order and line items on your Google Ad Manager network according to the pre-defined price bucket settings.',
 						'newspack-ads'
 					) }
-				/>
+				</p>
 			) }
+			{ error && error.data?.status !== '404' && <Notice isError noticeText={ error.message } /> }
 			<TextControl
 				label={ __( 'Order name', 'newspack-ads' ) }
 				disabled={ inFlight || order?.order_name }
@@ -252,18 +305,17 @@ const Order = ( { orderId = null, name = '', onCreate, onUnrecoverable, onCancel
 				) }
 				<Button
 					isPrimary
-					disabled={ ! config.name || inFlight }
+					disabled={ ! canSubmit() || ! config.name || inFlight }
 					onClick={ () => {
-						if ( hasIssues() || ! config.orderId ) {
-							create( hasIssues() );
+						const fixing = hasIssues();
+						if ( fixing || ! config.orderId ) {
+							create( fixing );
 						} else {
-							// Update
+							update();
 						}
 					} }
 				>
-					{ hasIssues()
-						? __( 'Fix issues', 'newspack-ads' )
-						: __( 'Create Order', 'newspack-ads' ) }
+					{ hasIssues() ? __( 'Fix issues', 'newspack-ads' ) : buttonText() }
 				</Button>
 			</Card>
 		</Card>

@@ -13,7 +13,7 @@ import apiFetch from '@wordpress/api-fetch';
 /**
  * Newspack dependencies.
  */
-import { ActionCard, Card, Modal } from 'newspack-components';
+import { ActionCard, Card, Modal, Notice, Button } from 'newspack-components';
 
 /**
  * Internal dependencies.
@@ -30,6 +30,8 @@ const getOrderUrl = orderId => {
 
 const HeaderBiddingGAM = () => {
 	const [ inFlight, setInFlight ] = useState( true );
+	const [ bidders, setBidders ] = useState( {} );
+	const [ unrecoverable, setUnrecoverable ] = useState( null );
 	const [ isManaging, setIsManaging ] = useState( false );
 	const [ editingOrder, setEditingOrder ] = useState( false );
 	const [ orderName, setOrderName ] = useState( 'Newspack Header Bidding' );
@@ -70,11 +72,16 @@ const HeaderBiddingGAM = () => {
 	const getMissingOrderMessage = () => {
 		return inFlight
 			? __( 'Loading…', 'newspack-ads' )
-			: __( 'Missing order configuration', 'newspack-ads' );
+			: __( 'There are no orders configured.', 'newspack-ads' );
 	};
 
 	useEffect( async () => {
 		await fetchOrders();
+		try {
+			setBidders( await apiFetch( { path: '/newspack-ads/v1/bidders' } ) );
+		} catch ( err ) {
+			setError( err );
+		}
 	}, [] );
 
 	useEffect( () => {
@@ -86,16 +93,20 @@ const HeaderBiddingGAM = () => {
 	}, [ orders ] );
 
 	useEffect( () => {
-		if ( isManaging || editingOrder ) {
+		if ( editingOrder !== false ) {
 			window.onbeforeunload = () => {
 				return __( 'Are you sure you want to leave this page?', 'newspack-ads' );
 			};
 		} else {
 			window.onbeforeunload = null;
 		}
-	}, [ isManaging, editingOrder ] );
+	}, [ editingOrder ] );
 
 	const activeOrders = getActiveOrders();
+
+	const cardActionText = activeOrders.length
+		? __( 'Manage Orders', 'newspack-ads' )
+		: __( 'Create Order', 'newspack-ads' );
 
 	return (
 		<Fragment>
@@ -124,87 +135,109 @@ const HeaderBiddingGAM = () => {
 						) }
 					</Fragment>
 				) }
-				actionText={ canConfigure() ? __( 'Manage Orders', 'newspack-ads' ) : null }
-				onClick={ () => setIsManaging( true ) }
+				actionText={ canConfigure() ? cardActionText : null }
+				onClick={ () => ( activeOrders.length ? setIsManaging( true ) : setEditingOrder( 0 ) ) }
 			/>
-			{ isManaging && ! editingOrder && (
+			{ isManaging && editingOrder === false && (
 				<Modal
 					title={ __( 'Manage Orders', 'newspack-ads' ) }
 					onRequestClose={ () => ! inFlight && setIsManaging( false ) }
 				>
 					{ activeOrders.length && (
-						<>
-							<Card noBorder>
-								{ activeOrders.map( order => (
-									<ActionCard
-										key={ order.id }
-										title={ order.name }
-										badge={ order.status }
-										description={ () => (
-											<span>
-												{
-													// Translators: the bidder revenue share for this order.
-													sprintf( __( 'Bidder Revenue Share: %1$d%%', 'newspack-ads' ), 0 )
-												}{ ' ' }
-												|{ ' ' }
-												{ sprintf(
-													// Translators: comma-separated list of adapters for the order or "any" if undefined.
-													__( 'Bidders: %s', 'newspack-ads' ),
-													__( 'any', 'newspack-ads' )
-												) }
-											</span>
-										) }
-										actionText={
-											<OrderPopover
-												isDraft={ order.status === 'DRAFT' }
-												onArchive={ async () => {
-													setInFlight( true );
-													await archiveOrder( order.id );
-													setInFlight( false );
-													await fetchOrders();
-												} }
-												onEdit={ () => {
-													setEditingOrder( order.id );
-												} }
-												gamLink={ getOrderUrl( order.id ) }
-											/>
-										}
-										className="mv0"
-										isSmall
-									/>
-								) ) }
+						<Card noBorder>
+							{ activeOrders.map( order => (
+								<ActionCard
+									key={ order.id }
+									title={ order.name }
+									badge={ order.status }
+									description={ () => (
+										<span>
+											{ sprintf(
+												// Translators: the bidder revenue share for this order.
+												__( 'Bidder Revenue Share: %1$d%%', 'newspack-ads' ),
+												order.revenue_share || 0
+											) }{ ' ' }
+											|{ ' ' }
+											{ sprintf(
+												// Translators: comma-separated list of adapters for the order or "any" if undefined.
+												__( 'Bidders: %s', 'newspack-ads' ),
+												order.bidders?.length
+													? order.bidders.join( ', ' )
+													: __( 'any', 'newspack-ads' )
+											) }
+										</span>
+									) }
+									actionText={
+										<OrderPopover
+											isDraft={ order.status === 'DRAFT' }
+											disabled={ inFlight }
+											onArchive={ async () => {
+												setInFlight( true );
+												await archiveOrder( order.id );
+												setInFlight( false );
+												await fetchOrders();
+											} }
+											onEdit={ () => setEditingOrder( order.id ) }
+											gamLink={ getOrderUrl( order.id ) }
+										/>
+									}
+									className="mv0"
+									isSmall
+								/>
+							) ) }
+							<Card buttonsCard noBorder className="justify-end">
+								<Button isSecondary disabled={ inFlight } onClick={ () => setIsManaging( false ) }>
+									{ __( 'Cancel', 'newspack-ads' ) }
+								</Button>
+								<Button isPrimary disabled={ inFlight } onClick={ () => setEditingOrder( 0 ) }>
+									Create new order
+								</Button>
 							</Card>
-							<h3>{ __( 'Create new order', 'newspack-ads' ) }</h3>
-						</>
+						</Card>
 					) }
-					<Order
-						onUnrecoverable={ async () => {
-							await fetchOrders();
-						} }
-						onCreate={ async () => {
-							await fetchOrders();
-							setIsManaging( false );
-						} }
-						onCancel={ () => setIsManaging( false ) }
-						name={ orderName }
-					/>
 				</Modal>
 			) }
-			{ editingOrder && (
+			{ editingOrder !== false && (
 				<Modal
-					title={ __( 'Edit Order', 'newspack-ads' ) }
-					onRequestClose={ () => setEditingOrder( false ) }
+					title={
+						editingOrder ? __( 'Edit Order', 'newspack-ads' ) : __( 'Create Order', 'newspack-ads' )
+					}
+					onRequestClose={ () => ! inFlight && setEditingOrder( false ) }
 				>
+					{ unrecoverable && (
+						<Notice
+							isError
+							noticeText={ __(
+								'We were unable to fix the issues with this order and have archived it. Please create a new order below.',
+								'newspack-ads'
+							) }
+						/>
+					) }
 					<Order
-						onUnrecoverable={ async () => {
-							await fetchOrders();
-						} }
-						onCreate={ async () => {
-							await fetchOrders();
-							setEditingOrder( false );
-						} }
+						bidders={ bidders }
 						orderId={ editingOrder }
-						onCancel={ () => setEditingOrder( false ) }
+						defaultName={ orderName }
+						error={ error }
+						onPending={ pending => {
+							setInFlight( pending );
+						} }
+						onUnrecoverable={ async ( { order_id }, err ) => {
+							await archiveOrder( order_id );
+							await fetchOrders();
+							setUnrecoverable( err );
+							setEditingOrder( 0 );
+						} }
+						onSuccess={ async () => {
+							await fetchOrders();
+							setUnrecoverable( false );
+							setEditingOrder( false );
+							setIsManaging( true );
+						} }
+						onError={ async err => {
+							await fetchOrders();
+							setError( err );
+						} }
+						onCancel={ () => ! inFlight && setEditingOrder( false ) }
 					/>
 				</Modal>
 			) }
