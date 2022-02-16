@@ -90,6 +90,11 @@ const HeaderBiddingGAM = () => {
 		} else {
 			setOrderName( 'Newspack Header Bidding' );
 		}
+		// Switch to create new order if there are no orders and was previously managing.
+		if ( ! getActiveOrders().length && isManaging ) {
+			setIsManaging( false );
+			setEditingOrder( 0 );
+		}
 	}, [ orders ] );
 
 	useEffect( () => {
