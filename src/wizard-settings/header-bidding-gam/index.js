@@ -169,7 +169,7 @@ const HeaderBiddingGAM = () => {
 													__( 'Bidders: %s', 'newspack-ads' ),
 													order.bidders?.length
 														? order.bidders
-																.map( bidderKey => bidders[ bidderKey ].name )
+																.map( bidderKey => bidders[ bidderKey ]?.name || bidderKey )
 																.join( ', ' )
 														: __( 'any', 'newspack-ads' )
 												) }
