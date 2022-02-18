@@ -99,9 +99,16 @@ const Order = ( {
 			} catch ( err ) {
 				setError( err );
 			}
+		} else {
+			setConfig( {
+				orderId: null,
+				name: defaultName,
+				revenueShare: 0,
+				bidders: [],
+			} );
 		}
 		setInFlight( false );
-	}, [] );
+	}, [ orderId ] );
 
 	useEffect( () => {
 		onPending( inFlight );
@@ -164,8 +171,10 @@ const Order = ( {
 		} catch ( err ) {
 			if ( orderId || isLastAttempt ) {
 				// Unrecoverable error.
-				if ( typeof onUnrecoverable === 'function' ) await onUnrecoverable( pendingOrder, err );
+				setLastAttempt( false );
 				setOrder( null );
+				setConfig( { ...config, orderId: null } );
+				if ( typeof onUnrecoverable === 'function' ) await onUnrecoverable( pendingOrder, err );
 			} else {
 				// Make it fail unrecoverably if it fails on next attempt.
 				if ( pendingOrder?.order_id ) {
