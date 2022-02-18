@@ -833,8 +833,11 @@ class Newspack_Ads_Bidding_GAM {
 		}
 
 		if ( is_array( $order_id_or_config ) ) {
-			$order_config = $order_id_or_config;
-			$order_id     = $order_config['order_id'];
+			$order_config = wp_parse_args( $order_id_or_config, self::$default_order_config );
+			if ( ! isset( $order_config['order_id'] ) || ! $order_config['order_id'] ) {
+				return new WP_Error( 'newspack_ads_bidding_gam_error', __( 'Missing order ID', 'newspack-ads' ) );
+			}
+			$order_id = $order_config['order_id'];
 		} else {
 			$order_id     = $order_id_or_config;
 			$order_config = self::get_order_local_config( $order_id );
