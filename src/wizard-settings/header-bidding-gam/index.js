@@ -256,7 +256,6 @@ const HeaderBiddingGAM = () => {
 						bidders={ bidders }
 						orderId={ editingOrder }
 						defaultName={ orderName }
-						error={ error }
 						onPending={ pending => {
 							setInFlight( pending );
 						} }
