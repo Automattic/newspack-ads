@@ -180,10 +180,17 @@ const HeaderBiddingGAM = () => {
 												isDraft={ order.status === 'DRAFT' }
 												disabled={ inFlight }
 												onArchive={ async () => {
-													setInFlight( true );
-													await archiveOrder( order.id );
-													setInFlight( false );
-													await fetchOrders();
+													if (
+														// eslint-disable-next-line no-alert
+														confirm(
+															__( "Are you sure you'd like to archive this order?", 'newspack-ads' )
+														)
+													) {
+														setInFlight( true );
+														await archiveOrder( order.id );
+														setInFlight( false );
+														await fetchOrders();
+													}
 												} }
 												onEdit={ () => setEditingOrder( order.id ) }
 												gamLink={ getOrderUrl( order.id ) }
