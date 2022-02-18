@@ -927,7 +927,7 @@ class Newspack_Ads_Bidding_GAM {
 		}
 
 		// Create `hb_bidder` values for selected bidders.
-		if ( isset( $order_config['bidders'] ) ) {
+		if ( isset( $order_config['bidders'] ) && ! empty( $order_config['bidders'] ) ) {
 			$bidders        = $order_config['bidders'];
 			$bidders_result = Newspack_Ads_GAM::create_targeting_key(
 				'hb_bidder',
@@ -951,7 +951,7 @@ class Newspack_Ads_Bidding_GAM {
 					$pb_values[ $price_str ],
 				],
 			];
-			if ( isset( $order_config['bidders'] ) ) {
+			if ( isset( $bidders_result, $bidders_values ) && ! empty( $bidders_values ) ) {
 				$custom_targeting[ $bidders_result['targeting_key']->getId() ] = $bidders_values;
 			}
 			$config = [
