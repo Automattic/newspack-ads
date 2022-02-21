@@ -201,12 +201,14 @@ const HeaderBiddingGAM = () => {
 									/>
 								) ) }
 							</Card>
-
 							{
 								// Display warning if a bidder is being targeted by more than one order.
 								Object.keys( bidders ).map( bidderKey => {
-									const bidderOrders = activeOrders.filter( order =>
-										order.bidders?.includes( bidderKey )
+									const bidderOrders = activeOrders.filter(
+										order =>
+											order.bidders?.includes( bidderKey ) ||
+											! order.bidders ||
+											! order.bidders.length
 									);
 									return (
 										bidderOrders.length > 1 && (
