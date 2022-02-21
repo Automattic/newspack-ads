@@ -449,7 +449,7 @@ class Newspack_Ads_GAM {
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$total_result_set_size = 0;
 		$statement_builder     = $statement_builder ?? new StatementBuilder();
-		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
+		$statement_builder->orderBy( 'name ASC' )->limit( $page_size );
 		if ( ! empty( $ids ) ) {
 			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		}
