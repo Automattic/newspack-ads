@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/broadstreet/class-newspack-ads-broadstreet-provider.php';
+require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-newspack-ads-gam-provider.php';
 
 /**
  * Newspack Ads Providers
@@ -22,9 +23,17 @@ class Newspack_Ads_Providers {
 	protected static $providers = [];
 
 	/**
+	 * Default provider name.
+	 *
+	 * @var string
+	 */
+	public static $default_provider = 'gam';
+
+	/**
 	 * Initialize providers.
 	 */
 	public static function init() {
+		self::register_provider( new Newspack_Ads_GAM_Provider() );
 		self::register_provider( new Newspack_Ads_Broadstreet_Provider() );
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
@@ -127,6 +136,28 @@ class Newspack_Ads_Providers {
 			return false;
 		}
 		return self::$providers[ $provider_id ];
+	}
+
+	/**
+	 * Render the ad code for the given placement.
+	 *
+	 * @param string $placement_key  The placement key.
+	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
+	 * @param string $unit_id        The unit ID.
+	 * @param array  $placement_data The placement data.
+	 */
+	public static function render_placement_ad_code( $placement_key, $hook_key, $unit_id, $placement_data ) {
+		$placement_data = wp_parse_args(
+			$placement_data,
+			[
+				'provider' => self::$default_provider,
+			] 
+		);
+		if ( ! isset( self::$providers[ $placement_data['provider'] ] ) ) {
+			return;
+		}
+		$provider = self::$providers[ $placement_data['provider'] ];
+		$provider->render_code( $placement_key, $hook_key, $unit_id, $placement_data );
 	}
 }
 Newspack_Ads_Providers::init();

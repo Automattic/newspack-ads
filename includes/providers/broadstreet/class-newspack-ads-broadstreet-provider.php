@@ -36,7 +36,7 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 *
 	 * @return bool Whether the provider is enabled and ready to be used.
 	 */
-	public static function is_active() {
+	public function is_active() {
 		if ( ! self::is_plugin_active() ) {
 			return false;
 		}
@@ -58,10 +58,18 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 		$zones = Broadstreet_Utility::getZoneCache();
 		return array_map(
 			function( $zone ) {
-				return [
+				$unit = [
 					'name'  => $zone->name,
 					'value' => $zone->id,
+					'sizes' => [],
 				];
+				if ( isset( $zone->width ) && isset( $zone->height ) ) {
+					$unit['sizes'][] = [
+						$zone->width,
+						$zone->height,
+					];
+				}
+				return $unit;
 			},
 			array_values( $zones )
 		);
@@ -73,10 +81,11 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 * @param string $placement_key The placement key.
 	 * @param string $hook_key      The hook key, if the placement has multiple hooks.
 	 * @param string $unit_id       The unit ID.
+	 * @param array  $placement_data The placement data.
 	 *
 	 * @return string $ad_code The ad code for rendering.
 	 */
-	public static function get_ad_code( $placement_key, $hook_key, $unit_id ) {
+	public function get_ad_code( $placement_key, $hook_key, $unit_id, $placement_data ) {
 		if ( ! self::is_plugin_active() ) {
 			return '';
 		}

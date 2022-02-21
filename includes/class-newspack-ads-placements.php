@@ -44,6 +44,9 @@ class Newspack_Ads_Placements {
 					'placement'    => [
 						'sanitize_callback' => 'sanitize_title',
 					],
+					'provider'     => [
+						'sanitize_callback' => 'sanitize_title',
+					],
 					'ad_unit'      => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
@@ -139,6 +142,7 @@ class Newspack_Ads_Placements {
 	 */
 	public static function api_update_placement( $request ) {
 		$data   = [
+			'provider'     => $request['provider'],
 			'ad_unit'      => $request['ad_unit'],
 			'bidders_ids'  => $request['bidders_ids'],
 			'hooks'        => $request['hooks'],
@@ -406,10 +410,10 @@ class Newspack_Ads_Placements {
 			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
 		}
 
-		$placement = $placements[ $placement_key ];
-
 		// Updates always enables the placement.
 		$data['enabled'] = true;
+
+		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Newspack_Ads_Providers::$default_provider;
 
 		// Generate unique ID.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {
@@ -555,27 +559,11 @@ class Newspack_Ads_Placements {
 		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
-
-		$ad_unit = Newspack_Ads_Model::get_ad_unit_for_display(
-			$placement_data['ad_unit'],
-			array(
-				'unique_id' => $placement_data['id'],
-				'placement' => $placement_key,
-			)
-		);
-		if ( is_wp_error( $ad_unit ) ) {
-			return;
-		}
-
-		$is_amp = Newspack_Ads::is_amp();
-		$code   = $is_amp ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
-		if ( empty( $code ) ) {
-			return;
-		}
-
+		
+		$is_amp        = Newspack_Ads::is_amp();
+		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
-		$is_sticky_amp = 'sticky' === $placement_key && $is_amp;
 		/**
 		 * Filters the classnames applied to the ad container.
 		 *
@@ -600,24 +588,14 @@ class Newspack_Ads_Placements {
 
 		$classnames_str = implode( ' ', array_keys( array_filter( $classnames ) ) );
 
-		if ( $is_sticky_amp ) :
-			?>
-			<div class="newspack_amp_sticky_ad__container">
-				<amp-sticky-ad class='<?php echo esc_attr( $classnames_str ); ?>' layout="nodisplay">
-					<?php echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				</amp-sticky-ad>
-			</div>
-			<?php
-		else :
-			?>
-			<div class='<?php echo esc_attr( $classnames_str ); ?>'>
-				<?php if ( 'sticky' === $placement_key ) : ?>
-					<button class='newspack_sticky_ad__close'></button>
-				<?php endif; ?>
-				<?php echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			</div>
-			<?php
-		endif;
+		?>
+		<div class='<?php echo esc_attr( $classnames_str ); ?>'>
+			<?php if ( 'sticky' === $placement_key && false === $is_amp ) : ?>
+				<button class='newspack_sticky_ad__close'></button>
+			<?php endif; ?>
+			<?php Newspack_Ads_Providers::render_placement_ad_code( $placement_key, $hook_key, $placement_data['ad_unit'], $placement_data ); ?>
+		</div>
+		<?php
 
 		do_action( 'newspack_ads_after_placement_ad', $placement_key, $hook_key, $placement_data );
 	}

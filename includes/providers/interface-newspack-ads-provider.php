@@ -14,7 +14,7 @@ interface Newspack_Ads_Provider_Interface {
 	 *
 	 * @return bool Whether the provider is enabled and ready to be used.
 	 */
-	public static function is_active();
+	public function is_active();
 
 	/**
 	 * The provider ID.
@@ -43,11 +43,12 @@ interface Newspack_Ads_Provider_Interface {
 	/**
 	 * The ad code for rendering.
 	 *
-	 * @param string $placement_key The placement key.
-	 * @param string $hook_key      The hook key, if the placement has multiple hooks.
-	 * @param string $unit_id       The unit ID.
+	 * @param string $placement_key  The placement key.
+	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
+	 * @param string $unit_id        The unit ID.
+	 * @param array  $placement_data The placement data.
 	 *
 	 * @return string $ad_code The ad code for rendering.
 	 */
-	public static function get_ad_code( $placement_key, $hook_key, $unit_id );
+	public function get_ad_code( $placement_key, $hook_key, $unit_id, $placement_data );
 }
