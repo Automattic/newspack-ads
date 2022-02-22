@@ -55,7 +55,10 @@ class BiddingTest extends WP_UnitTestCase {
 	private static function set_bidder_active() {
 		Newspack_Ads_Settings::update_section(
 			Newspack_Ads_Bidding::SETTINGS_SECTION_NAME,
-			array( self::$bidder_active_key => '1234567890' )
+			array(
+				'enabled_bidders'        => array( self::$bidder_id ),
+				self::$bidder_active_key => '1234567890',
+			)
 		);
 	}
 
