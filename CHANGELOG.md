@@ -1,3 +1,16 @@
+# [1.27.0](https://github.com/Automattic/newspack-ads/compare/v1.26.4...v1.27.0) (2022-02-22)
+
+
+### Bug Fixes
+
+* dont query inactive ad units ([#296](https://github.com/Automattic/newspack-ads/issues/296)) ([91a6eda](https://github.com/Automattic/newspack-ads/commit/91a6eda80cf3afbd448e054800c599830a9ff96e))
+
+
+### Features
+
+* add OpenX, PubMatic and Sovrn to header bidding ([#290](https://github.com/Automattic/newspack-ads/issues/290)) ([f60c480](https://github.com/Automattic/newspack-ads/commit/f60c48019d2725cdd2ee5ce6d9475278f7fe4f99))
+* add template targeting key ([#297](https://github.com/Automattic/newspack-ads/issues/297)) ([be75360](https://github.com/Automattic/newspack-ads/commit/be753601a07a4fb3cc86ce955d04a628b29fc977))
+
 # [1.27.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.26.4...v1.27.0-alpha.1) (2022-02-10)
 
 
