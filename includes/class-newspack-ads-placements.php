@@ -575,11 +575,11 @@ class Newspack_Ads_Placements {
 		$classnames = apply_filters(
 			'newspack_ads_placement_classnames',
 			[
-				'newspack_global_ad'             => ! $is_sticky_amp,
-				'newspack_amp_sticky_ad'         => $is_sticky_amp,
-				$placement_key                   => true,
-				$placement_key . '-' . $hook_key => ! empty( $hook_key ),
-				'stick-to-top'                   => $stick_to_top,
+				'newspack_global_ad'                => ! $is_sticky_amp,
+				'newspack_amp_sticky_ad__container' => $is_sticky_amp,
+				$placement_key                      => true,
+				$placement_key . '-' . $hook_key    => ! empty( $hook_key ),
+				'stick-to-top'                      => $stick_to_top,
 			],
 			$placement_key,
 			$hook_key,

@@ -81,7 +81,7 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 			return;
 		}
 		if ( 'sticky' === $placement_key && true === $is_amp ) {
-			$code = '<amp-sticky-ad layout="nodisplay">' . $code . '</amp-sticky-ad>';
+			$code = '<amp-sticky-ad class="newspack_amp_sticky_ad" layout="nodisplay">' . $code . '</amp-sticky-ad>';
 		}
 		return $code;
 	}
