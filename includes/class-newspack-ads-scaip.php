@@ -40,7 +40,6 @@ class Newspack_Ads_SCAIP {
 		// Placements hooks.
 		add_action( 'scaip_shortcode', [ __CLASS__, 'create_placement_action' ] );
 		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_placements' ] );
-		add_filter( 'newspack_ads_maybe_use_responsive_placement', [ __CLASS__, 'use_responsive_placement' ], 10, 2 );
 
 		// Deprecate sidebar.
 		if ( ! self::is_legacy_widgets() ) {
@@ -206,21 +205,6 @@ class Newspack_Ads_SCAIP {
 			}
 		}
 		return $placement_data;
-	}
-
-	/**
-	 * Use responsive placement for SCAIP placements.
-	 *
-	 * @param boolean $responsive Default value of whether to use responsive placement.
-	 * @param string  $placement  ID of the ad placement.
-	 *
-	 * @return boolean Whether to use responsive placement.
-	 */
-	public static function use_responsive_placement( $responsive, $placement ) {
-		if ( 0 === strpos( $placement, self::PLACEMENT_PREFIX ) ) {
-			return true;
-		}
-		return $responsive;
 	}
 }
 Newspack_Ads_SCAIP::init();

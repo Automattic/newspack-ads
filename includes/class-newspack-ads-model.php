@@ -114,8 +114,7 @@ class Newspack_Ads_Model {
 		$placement = $config['placement'] ?? '';
 		$context   = $config['context'] ?? '';
 
-		$ad_unit               = \get_post( $id );
-		$responsive_placements = [ 'global_above_header', 'global_below_header', 'global_above_footer' ];
+		$ad_unit = \get_post( $id );
 
 		$prepared_ad_unit = [];
 
@@ -160,18 +159,11 @@ class Newspack_Ads_Model {
 			);
 		}
 
-		$responsive                     = apply_filters(
-			'newspack_ads_maybe_use_responsive_placement',
-			in_array( $placement, $responsive_placements ),
-			$placement,
-			$context
-		);
-		$prepared_ad_unit['responsive'] = $responsive;
-		$prepared_ad_unit['placement']  = $placement;
-		$prepared_ad_unit['context']    = $context;
+		$prepared_ad_unit['placement'] = $placement;
+		$prepared_ad_unit['context']   = $context;
 
-		$prepared_ad_unit['ad_code']     = self::code_for_ad_unit( $prepared_ad_unit, $unique_id );
-		$prepared_ad_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_ad_unit, $unique_id );
+		$prepared_ad_unit['ad_code']     = self::get_code_for_ad_unit( $prepared_ad_unit, $unique_id );
+		$prepared_ad_unit['amp_ad_code'] = self::get_amp_code_for_ad_unit( $prepared_ad_unit, $unique_id );
 		return $prepared_ad_unit;
 	}
 
@@ -487,7 +479,7 @@ class Newspack_Ads_Model {
 	 * @param array  $ad_unit   The ad unit to generate code for.
 	 * @param string $unique_id The unique ID for this ad displayment.
 	 */
-	public static function code_for_ad_unit( $ad_unit, $unique_id = '' ) {
+	public static function get_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
@@ -523,7 +515,7 @@ class Newspack_Ads_Model {
 	 * @param array  $ad_unit   The ad unit to generate AMP code for.
 	 * @param string $unique_id Optional pre-defined unique ID for this ad displayment.
 	 */
-	public static function amp_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
+	public static function get_amp_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
@@ -544,8 +536,8 @@ class Newspack_Ads_Model {
 			);
 		}
 
-		if ( $ad_unit['responsive'] ) {
-			return self::ad_elements_for_sizes( $ad_unit, $unique_id );
+		if ( 1 < count( $sizes ) && false === $ad_unit['fluid'] ) {
+			return self::get_responsive_amp_code_for_ad_unit( $ad_unit, $unique_id );
 		}
 
 		$attrs      = [];
@@ -558,6 +550,13 @@ class Newspack_Ads_Model {
 		}
 
 		if ( count( $sizes ) ) {
+			// Sort sizes by squareness.
+			usort(
+				$sizes,
+				function( $a, $b ) {
+					return $a[0] * $a[1] < $b[0] * $b[1];
+				}
+			);
 			if ( ! isset( $attrs['layout'] ) ) {
 				$attrs['width']  = max( array_column( $sizes, 0 ) );
 				$attrs['height'] = max( array_column( $sizes, 1 ) );
@@ -570,7 +569,7 @@ class Newspack_Ads_Model {
 
 		if ( 1 < count( $multisizes ) ) {
 			$attrs['data-multi-size']            = implode( ',', $multisizes );
-			$attrs['data-multi-size-validation'] = 'true';
+			$attrs['data-multi-size-validation'] = 'false';
 		}
 
 		$attrs['type']                  = 'doubleclick';
@@ -601,7 +600,7 @@ class Newspack_Ads_Model {
 	 * @param array  $ad_unit The ad unit to generate code for.
 	 * @param string $unique_id Unique ID for this ad unit instance.
 	 */
-	public static function ad_elements_for_sizes( $ad_unit, $unique_id ) {
+	public static function get_responsive_amp_code_for_ad_unit( $ad_unit, $unique_id ) {
 		$network_code = self::get_active_network_code();
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
