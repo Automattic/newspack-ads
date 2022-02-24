@@ -13,22 +13,16 @@ import apiFetch from '@wordpress/api-fetch';
 /**
  * Newspack dependencies.
  */
-import {
-	ActionCard,
-	Card,
-	Notice,
-	Modal,
-	TextControl,
-	Button,
-	ProgressBar,
-} from 'newspack-components';
+import { ActionCard, Card, Modal, Notice, Button } from 'newspack-components';
 
 /**
  * Internal dependencies.
  */
 import './style.scss';
+import Order from './order';
+import OrderPopover from './order-popover';
 
-const { network_code, lica_batch_size } = window.newspack_ads_bidding_gam;
+const { network_code } = window.newspack_ads_bidding_gam;
 
 const getOrderUrl = orderId => {
 	return `https://admanager.google.com/${ network_code }#delivery/order/order_overview/order_id=${ orderId }`;
@@ -36,30 +30,22 @@ const getOrderUrl = orderId => {
 
 const HeaderBiddingGAM = () => {
 	const [ inFlight, setInFlight ] = useState( true );
-	const [ isCreating, setIsCreating ] = useState( false );
-	const [ initialOrder, setInitialOrder ] = useState( null );
-	const [ orderName, setOrderName ] = useState( 'Newspack Header Bidding' );
-	const [ order, setOrder ] = useState( null );
-	const [ error, setError ] = useState( null );
+	const [ bidders, setBidders ] = useState( {} );
 	const [ unrecoverable, setUnrecoverable ] = useState( null );
-	const [ step, setStep ] = useState( 0 );
-	const [ totalBatches, setTotalBatches ] = useState( 1 );
-	const [ totalSteps, setTotalSteps ] = useState( 4 );
-	const fetchOrder = async () => {
+	const [ isManaging, setIsManaging ] = useState( false );
+	const [ editingOrder, setEditingOrder ] = useState( false );
+	const [ orderName, setOrderName ] = useState( 'Newspack Header Bidding' );
+	const [ orders, setOrders ] = useState( null );
+	const [ error, setError ] = useState( null );
+	const fetchOrders = async () => {
 		setInFlight( true );
 		let data;
 		try {
 			data = await apiFetch( {
-				path: '/newspack-ads/v1/bidding/gam/order',
+				path: '/newspack-ads/v1/bidding/gam/orders',
 				method: 'GET',
 			} );
-			if ( data.line_item_ids?.length ) {
-				const licaConfig = await fetchLicaConfig();
-				const batches = Math.ceil( licaConfig.length / lica_batch_size );
-				setTotalBatches( batches );
-				setTotalSteps( 3 + batches );
-			}
-			setOrder( data );
+			setOrders( data );
 			setError( null );
 		} catch ( err ) {
 			setError( err );
@@ -68,151 +54,65 @@ const HeaderBiddingGAM = () => {
 		}
 		return data;
 	};
-	const updateOrderName = async () => {
-		setInFlight( true );
-		let data;
-		try {
-			data = await apiFetch( {
-				path: '/newspack-ads/v1/bidding/gam/order_count',
-				method: 'GET',
-			} );
-		} catch {
-			// Ignore errors.
-		} finally {
-			if ( data?.count ) {
-				setOrderName( `Newspack Header Bidding v${ data.count + 1 }` );
-			} else {
-				setOrderName( 'Newspack Header Bidding' );
-			}
-			setInFlight( false );
-		}
+	const getActiveOrders = () => {
+		return orders?.filter( order => order.is_archived === false ) || [];
 	};
-	const archiveOrder = async () => {
+	const archiveOrder = async orderId => {
 		return await apiFetch( {
 			path: '/newspack-ads/v1/bidding/gam/order',
 			method: 'DELETE',
-		} );
-	};
-	const fetchLicaConfig = async () => {
-		const licaConfig = await apiFetch( { path: '/newspack-ads/v1/bidding/gam/lica_config' } );
-		return licaConfig;
-	};
-	const createType = async ( type, batch = 0 ) => {
-		return await apiFetch( {
-			path: '/newspack-ads/v1/bidding/gam/create',
-			method: 'POST',
 			data: {
-				type,
-				name: orderName,
-				batch,
+				id: orderId,
 			},
 		} );
 	};
-	const create = async () => {
-		setError( null );
-		setUnrecoverable( null );
-		setInFlight( true );
-		let pendingOrder = { ...order };
-		try {
-			if ( ! pendingOrder || ! pendingOrder.order_id ) {
-				setStep( 1 );
-				pendingOrder = await createType( 'order' );
-				setOrder( pendingOrder );
-			}
-			if ( ! pendingOrder?.line_item_ids?.length ) {
-				setStep( 2 );
-				pendingOrder = await createType( 'line_items' );
-				setOrder( pendingOrder );
-			}
-			const licaConfig = await fetchLicaConfig();
-			const batches = Math.ceil( licaConfig.length / lica_batch_size );
-			setTotalBatches( batches );
-			setTotalSteps( 3 + batches );
-			const start = pendingOrder?.lica_batch_count || 0;
-			if ( batches > start ) {
-				for ( let i = start; i < batches; i++ ) {
-					const batch = i + 1;
-					setStep( 2 + batch );
-					pendingOrder = await createType( 'creatives', batch );
-					setOrder( pendingOrder );
-				}
-			}
-			setStep( 3 + batches );
-			await fetchOrder();
-			setIsCreating( false );
-		} catch ( err ) {
-			if ( initialOrder?.order_id ) {
-				try {
-					await archiveOrder();
-					await updateOrderName();
-				} catch {
-					// Ignore errors while archiving unrecoverable order.
-				}
-				setUnrecoverable( err );
-			} else {
-				// Set as initial order so it fails unrecoverably on next attempt.
-				if ( pendingOrder?.order_id ) {
-					setInitialOrder( pendingOrder );
-				}
-				setError( err );
-			}
-		} finally {
-			setStep( 0 );
-			setInFlight( false );
-		}
-	};
-	const getStepName = () => {
-		switch ( step ) {
-			case 0:
-				return '';
-			case 1:
-				return __( 'Creating Order…', 'newspack-ads' );
-			case 2:
-				return __( 'Creating Line Items…', 'newspack-ads' );
-			default:
-				return __( 'Associating Creatives…', 'newspack-ads' );
-		}
-	};
-	const isValid = () => {
-		return (
-			order &&
-			order.order_id &&
-			order.line_item_ids?.length &&
-			order.lica_batch_count === totalBatches
-		);
-	};
 	const canConfigure = () => {
-		return ! inFlight && ! isCreating && ! isValid() && error?.data?.status !== '500';
+		return ! inFlight && ! isManaging && error?.data?.status !== '500';
 	};
 	const getMissingOrderMessage = () => {
 		return inFlight
 			? __( 'Loading…', 'newspack-ads' )
-			: __( 'Missing order configuration', 'newspack-ads' );
+			: __( 'There are no orders configured.', 'newspack-ads' );
 	};
+
 	useEffect( async () => {
-		const result = await fetchOrder();
-		await updateOrderName();
-		setInitialOrder( result );
-	}, [] );
-	useEffect( () => {
-		if ( unrecoverable ) {
-			setOrder( null );
-			setInitialOrder( null );
+		await fetchOrders();
+		try {
+			setBidders( await apiFetch( { path: '/newspack-ads/v1/bidders' } ) );
+		} catch ( err ) {
+			setError( err );
 		}
-	}, [ unrecoverable ] );
+	}, [] );
+
 	useEffect( () => {
-		if ( isCreating ) {
+		if ( orders?.length ) {
+			setOrderName( `Newspack Header Bidding v${ orders.length + 1 }` );
+		} else {
+			setOrderName( 'Newspack Header Bidding' );
+		}
+		// Switch to create new order if there are no orders and was previously managing.
+		if ( ! getActiveOrders().length && isManaging ) {
+			setIsManaging( false );
+			setEditingOrder( 0 );
+		}
+	}, [ orders ] );
+
+	useEffect( () => {
+		if ( editingOrder !== false ) {
 			window.onbeforeunload = () => {
-				return __(
-					'Are you sure you want to leave this page? Header bidding setup is incomplete.',
-					'newspack'
-				);
+				return __( 'Are you sure you want to leave this page?', 'newspack-ads' );
 			};
 		} else {
 			window.onbeforeunload = null;
 		}
-	}, [ isCreating ] );
-	const stepName = getStepName();
+	}, [ editingOrder ] );
+
+	const activeOrders = getActiveOrders();
+
+	const cardActionText = activeOrders.length
+		? __( 'Manage Orders', 'newspack-ads' )
+		: __( 'Create Order', 'newspack-ads' );
+
 	return (
 		<Fragment>
 			<ActionCard
@@ -224,56 +124,127 @@ const HeaderBiddingGAM = () => {
 							error.message
 						) : (
 							<span className="newspack-ads__header-bidding-gam__order-description">
-								{ order?.order_id ? (
-									<span>
-										{ __( 'Order:', 'newspack-ads' ) }{ ' ' }
-										<a
-											href={ getOrderUrl( order.order_id ) }
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											{ order.order_name }
-										</a>
-										{ ', ' }
-										{ order?.line_item_ids
-											? sprintf(
-													// Translators: Number of line items in the order.
-													_n(
-														'containing %s line item',
-														'containing %s line items',
-														order.line_item_ids.length,
-														'newspack-ads'
-													),
-													order.line_item_ids.length
-											  )
-											: __( 'missing line items configuration' ) }
-										.
-									</span>
-								) : (
-									getMissingOrderMessage()
-								) }
+								{ activeOrders.length
+									? sprintf(
+											// Translators: Number of line items in the order.
+											_n(
+												'There is %s available order.',
+												'There are %s available orders.',
+												activeOrders.length,
+												'newspack-ads'
+											),
+											activeOrders.length
+									  )
+									: getMissingOrderMessage() }
 							</span>
 						) }
 					</Fragment>
 				) }
-				checkbox={ isValid() ? 'checked' : 'unchecked' }
-				actionText={ canConfigure() ? __( 'Configure', 'newspack-ads' ) : null }
-				onClick={ () => setIsCreating( true ) }
+				actionText={ canConfigure() ? cardActionText : null }
+				onClick={ () => ( activeOrders.length ? setIsManaging( true ) : setEditingOrder( 0 ) ) }
 			/>
-			{ isCreating && (
+			{ isManaging && editingOrder === false && (
 				<Modal
-					title={ __( 'Create Order', 'newspack-ads' ) }
-					onRequestClose={ () => ! inFlight && setIsCreating( false ) }
+					title={ __( 'Manage Orders', 'newspack-ads' ) }
+					onRequestClose={ () => ! inFlight && setIsManaging( false ) }
 				>
-					<p>
-						{ __(
-							'Create the order and line items on your Google Ad Manager network according to the pre-defined price bucket settings.',
-							'newspack-ads'
-						) }
-					</p>
-					{ error && error.data?.status !== '404' && (
-						<Notice isError noticeText={ error.message } />
+					{ activeOrders.length && (
+						<>
+							<Card noBorder>
+								{ activeOrders.map( order => (
+									<ActionCard
+										key={ order.id }
+										title={ order.name }
+										badge={ order.status }
+										description={ () => (
+											<span>
+												{ sprintf(
+													// Translators: the bidder revenue share for this order.
+													__( 'Bidder Revenue Share: %1$d%%', 'newspack-ads' ),
+													order.revenue_share || 0
+												) }{ ' ' }
+												|{ ' ' }
+												{ sprintf(
+													// Translators: comma-separated list of adapters for the order or "any" if undefined.
+													__( 'Bidders: %s', 'newspack-ads' ),
+													order.bidders?.length
+														? order.bidders
+																.map( bidderKey => bidders[ bidderKey ]?.name || bidderKey )
+																.join( ', ' )
+														: __( 'any', 'newspack-ads' )
+												) }
+											</span>
+										) }
+										actionText={
+											<OrderPopover
+												isDraft={ order.status === 'DRAFT' }
+												disabled={ inFlight }
+												onArchive={ async () => {
+													if (
+														// eslint-disable-next-line no-alert
+														confirm(
+															__( "Are you sure you'd like to archive this order?", 'newspack-ads' )
+														)
+													) {
+														setInFlight( true );
+														await archiveOrder( order.id );
+														setInFlight( false );
+														await fetchOrders();
+													}
+												} }
+												onEdit={ () => setEditingOrder( order.id ) }
+												gamLink={ getOrderUrl( order.id ) }
+											/>
+										}
+										className="mv0"
+										isSmall
+									/>
+								) ) }
+							</Card>
+							{
+								// Display warning if a bidder is being targeted by more than one order.
+								Object.keys( bidders ).map( bidderKey => {
+									const bidderOrders = activeOrders.filter(
+										order =>
+											order.bidders?.includes( bidderKey ) ||
+											! order.bidders ||
+											! order.bidders.length
+									);
+									return (
+										bidderOrders.length > 1 && (
+											<Notice
+												key={ bidderKey }
+												isWarning
+												noticeText={ sprintf(
+													// Translators: %1 The name of the bidder. %2 The number of orders for the bidder.
+													__( '%1$s is being targeted by %2$d orders.', 'newspack-ads' ),
+													bidders[ bidderKey ].name,
+													bidderOrders.length
+												) }
+											/>
+										)
+									);
+								} )
+							}
+							<Card buttonsCard noBorder className="justify-end">
+								<Button isSecondary disabled={ inFlight } onClick={ () => setIsManaging( false ) }>
+									{ __( 'Cancel', 'newspack-ads' ) }
+								</Button>
+								<Button isPrimary disabled={ inFlight } onClick={ () => setEditingOrder( 0 ) }>
+									Create new order
+								</Button>
+							</Card>
+						</>
 					) }
+				</Modal>
+			) }
+			{ editingOrder !== false && (
+				<Modal
+					title={
+						editingOrder ? __( 'Edit Order', 'newspack-ads' ) : __( 'Create Order', 'newspack-ads' )
+					}
+					onRequestClose={ () => ! inFlight && setEditingOrder( false ) }
+				>
 					{ unrecoverable && (
 						<Notice
 							isError
@@ -283,58 +254,31 @@ const HeaderBiddingGAM = () => {
 							) }
 						/>
 					) }
-					<TextControl
-						label={ __( 'Order name', 'newspack-ads' ) }
-						disabled={ inFlight || order?.order_name }
-						value={ order?.order_name ? order.order_name : orderName }
-						onChange={ value => setOrderName( value ) }
+					<Order
+						bidders={ bidders }
+						orderId={ editingOrder }
+						defaultName={ orderName }
+						onPending={ pending => {
+							setInFlight( pending );
+						} }
+						onUnrecoverable={ async ( { order_id }, err ) => {
+							await archiveOrder( order_id );
+							await fetchOrders();
+							setUnrecoverable( err );
+							setEditingOrder( 0 );
+						} }
+						onSuccess={ async () => {
+							await fetchOrders();
+							setUnrecoverable( false );
+							setEditingOrder( false );
+							setIsManaging( true );
+						} }
+						onError={ async err => {
+							await fetchOrders();
+							setError( err );
+						} }
+						onCancel={ () => ! inFlight && setEditingOrder( false ) }
 					/>
-					{ ! inFlight && order?.order_id && ! order?.line_item_ids?.length && (
-						<Notice
-							isWarning
-							noticeText={ __( "Order exists but it's missing its line items.", 'newspack-ads' ) }
-						/>
-					) }
-					{ ! inFlight &&
-						order?.order_id &&
-						order?.line_item_ids?.length &&
-						totalBatches > ( order?.lica_batch_count || 0 ) && (
-							<Notice
-								isWarning
-								noticeText={ __(
-									'Order and line items exist, but are missing creative associations.',
-									'newspack-ads'
-								) }
-							/>
-						) }
-					{ step && stepName ? (
-						<Fragment>
-							<Notice
-								isWarning
-								noticeText={ __(
-									'This may take up to 15 minutes, please do not close the window.',
-									'newspack-ads'
-								) }
-							/>
-							<ProgressBar completed={ step } total={ totalSteps } label={ stepName } />
-						</Fragment>
-					) : null }
-					<Card buttonsCard noBorder className="justify-end">
-						<Button
-							isSecondary
-							disabled={ inFlight }
-							onClick={ () => {
-								setIsCreating( false );
-							} }
-						>
-							{ __( 'Cancel', 'newspack-ads' ) }
-						</Button>
-						<Button isPrimary disabled={ ! orderName || inFlight } onClick={ create }>
-							{ initialOrder?.order_id
-								? __( 'Fix issues', 'newspack-ads' )
-								: __( 'Create Order', 'newspack-ads' ) }
-						</Button>
-					</Card>
 				</Modal>
 			) }
 		</Fragment>

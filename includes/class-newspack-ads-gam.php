@@ -449,7 +449,7 @@ class Newspack_Ads_GAM {
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$total_result_set_size = 0;
 		$statement_builder     = $statement_builder ?? new StatementBuilder();
-		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
+		$statement_builder->orderBy( 'name ASC' )->limit( $page_size );
 		if ( ! empty( $ids ) ) {
 			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		}
@@ -509,8 +509,6 @@ class Newspack_Ads_GAM {
 					'status'        => $order->getStatus(),
 					'is_archived'   => $order->getIsArchived(),
 					'advertiser_id' => $order->getAdvertiserId(),
-					'agency_id'     => $order->getAgencyId(),
-					'creator_id'    => $order->getCreatorId(),
 				];
 			},
 			null !== $orders ? $orders : self::get_orders()
@@ -589,14 +587,17 @@ class Newspack_Ads_GAM {
 
 	/**
 	 * Get all GAM Line Items in the user's network.
+	 *
+	 * @param StatementBuilder $statement_builder (optional) Statement builder.
 	 * 
 	 * @return LineItem[] Array of Orders.
 	 */
-	private static function get_line_items() {
-		$line_items            = [];
-		$service               = self::get_line_item_service();
-		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
-		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size );
+	private static function get_line_items( StatementBuilder $statement_builder = null ) {
+		$line_items        = [];
+		$service           = self::get_line_item_service();
+		$page_size         = StatementBuilder::SUGGESTED_PAGE_LIMIT;
+		$statement_builder = $statement_builder ?? new StatementBuilder();
+		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
 		$total_result_set_size = 0;
 		do {
 			$page = $service->getLineItemsByStatement( $statement_builder->toStatement() );
@@ -609,6 +610,18 @@ class Newspack_Ads_GAM {
 			$statement_builder->increaseOffsetBy( $page_size );
 		} while ( $statement_builder->getOffset() < $total_result_set_size );
 		return $line_items;
+	}
+
+	/**
+	 * Get all line items given an order ID.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return LineItems[] Array of LineItems.
+	 */
+	public static function get_line_items_by_order_id( $order_id ) {
+		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'orderId = %d', $order_id ) );
+		return self::get_line_items( $statement_builder );
 	}
 
 	/**
@@ -752,7 +765,7 @@ class Newspack_Ads_GAM {
 	 * @param string $name          Order Name.
 	 * @param string $advertiser_id Order Advertiser ID.
 	 *
-	 * @return object|WP_Error Serialised created order or error if it fails.
+	 * @return array|WP_Error Serialised created order or error if it fails.
 	 */
 	public static function create_order( $name, $advertiser_id ) {
 		$order = new Order();
@@ -829,17 +842,21 @@ class Newspack_Ads_GAM {
 	}
 
 	/**
-	 * Create line items.
+	 * Create or update line items.
+	 *
+	 * If the line item config contains the `id` property, it will attempt to
+	 * update. Otherwise it will create.
 	 *
 	 * @param array[] $line_item_configs List of line item configurations.
 	 *
-	 * @return LineItem[] Created line items.
+	 * @return LineItem[] Created and/or updated line items.
 	 *
 	 * @throws \Exception If unsupported configuration or unable to create line items.
 	 */
-	public static function create_line_items( $line_item_configs = [] ) {
-		$network    = self::get_gam_network();
-		$line_items = [];
+	public static function create_or_update_line_items( $line_item_configs = [] ) {
+		$network              = self::get_gam_network();
+		$line_items_to_create = [];
+		$line_items_to_update = [];
 		foreach ( $line_item_configs as $config ) {
 			$config    = wp_parse_args(
 				$config,
@@ -885,6 +902,10 @@ class Newspack_Ads_GAM {
 				}
 				$cost_per_unit = new Money( $config['cost_per_unit']['currency_code'], $config['cost_per_unit']['micro_amount'] );
 				$line_item->setCostPerUnit( $cost_per_unit );
+				if ( isset( $config['cost_per_unit']['micro_amount_value'] ) ) {
+					$value_cost_per_unit = new Money( $config['cost_per_unit']['currency_code'], $config['cost_per_unit']['micro_amount_value'] );
+					$line_item->setValueCostPerUnit( $value_cost_per_unit );
+				}
 			}
 
 			// Targeting options.
@@ -915,10 +936,18 @@ class Newspack_Ads_GAM {
 				// Apply configured targeting to line item.
 				$line_item->setTargeting( $targeting );
 			}
-			$line_items[] = $line_item;
+
+			if ( isset( $config['id'] ) ) {
+				$line_item->setId( $config['id'] );
+				$line_items_to_update[] = $line_item;
+			} else {
+				$line_items_to_create[] = $line_item;
+			}
 		}
-		$service = self::get_line_item_service();
-		return $service->createLineItems( $line_items );
+		$service            = self::get_line_item_service();
+		$created_line_items = ! empty( $line_items_to_create ) ? $service->createLineItems( $line_items_to_create ) : [];
+		$updated_line_items = ! empty( $line_items_to_update ) ? $service->updateLineItems( $line_items_to_update ) : [];
+		return array_merge( $created_line_items, $updated_line_items );
 	}
 
 	/**
