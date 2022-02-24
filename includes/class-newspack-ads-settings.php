@@ -135,7 +135,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @param object $setting The setting object to retrieve the key from.
 	 *
-	 * @return string Option name. 
+	 * @return string Option name.
 	 */
 	private static function get_setting_option_name( $setting ) {
 		$option_name = isset( $setting['key'] ) ? $setting['section'] . '_' . $setting['key'] : $setting['section'];
@@ -168,7 +168,7 @@ class Newspack_Ads_Settings {
 	public static function get_settings_list( $assoc = false ) {
 		$settings_list = array(
 			array(
-				'description' => __( 'Lazy loading', 'newspack-ads' ),
+				'description' => __( 'Lazy Loading', 'newspack-ads' ),
 				'help'        => __( 'Enables pages to load faster, reduces resource consumption and contention, and improves viewability rate.', 'newspack-ads' ),
 				'section'     => 'lazy_load',
 				'key'         => 'active',
@@ -276,7 +276,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @param string $type The type of the setting.
 	 * @param mixed  $value The value to sanitize.
-	 * 
+	 *
 	 * @return mixed The sanitized value.
 	 */
 	private static function sanitize_setting_option( $type, $value ) {
