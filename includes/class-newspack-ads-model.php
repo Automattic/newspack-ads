@@ -613,16 +613,17 @@ class Newspack_Ads_Model {
 		$styles = [];
 
 		// Gather up all of the ad sizes which should be displayed on the same viewports.
-		// As a heuristic, each ad slot can safely display ads 200px narrower or less than the slot's width.
+		// As a heuristic, each ad slot can safely display ads with a 20% difference from slot's width.
 		// e.g. for the following setup: [[900,200], [750,200]],
 		// We can display [[900,200], [750,200]] on viewports >= 900px and [[750,200]] on viewports < 900px.
-		$width_difference_max = apply_filters( 'newspack_ads_multisize_size_difference_max', 200, $ad_unit );
-		$all_ad_sizes         = [];
+		$width_ratio_min = apply_filters( 'newspack_ads_multisize_size_ratio_max', 0.8, $ad_unit );
+		$all_ad_sizes    = [];
 		foreach ( $widths as $ad_width ) {
 			$valid_ad_sizes = [];
 
 			foreach ( $sizes as $size ) {
-				if ( $size[0] <= $ad_width && $ad_width - $width_difference_max <= $size[0] ) {
+				$width_ratio = min( $ad_width, $size[0] ) / max( $ad_width, $size[0] );
+				if ( $size[0] <= $ad_width && $width_ratio_min < $width_ratio ) {
 					$valid_ad_sizes[] = $size;
 				}
 			}
