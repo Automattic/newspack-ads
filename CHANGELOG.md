@@ -1,3 +1,12 @@
+# [1.28.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.27.0...v1.28.0-alpha.1) (2022-02-24)
+
+
+### Features
+
+* capitalise labels ([#318](https://github.com/Automattic/newspack-ads/issues/318)) ([c6d348b](https://github.com/Automattic/newspack-ads/commit/c6d348b13d3bf007de6ad86246b768798a0d427b))
+* **header-bidding:** enable user syncing through iframes for OpenX ([#317](https://github.com/Automattic/newspack-ads/issues/317)) ([a704b55](https://github.com/Automattic/newspack-ads/commit/a704b55da94dd9a69906b38adeafe2b699b1daf0))
+* **header-bidding:** multiple gam orders ([#310](https://github.com/Automattic/newspack-ads/issues/310)) ([8e4f123](https://github.com/Automattic/newspack-ads/commit/8e4f123e0119bb45e4112d82f8b6387925c9228c))
+
 # [1.27.0](https://github.com/Automattic/newspack-ads/compare/v1.26.4...v1.27.0) (2022-02-22)
 
 
