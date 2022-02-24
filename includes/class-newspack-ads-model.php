@@ -675,9 +675,9 @@ class Newspack_Ads_Model {
 
 			// If there is a multisize that's equal to the width and height of the container, remove it from the multisizes.
 			// The container size is included by default, and should not also be included in the multisize.
-			$container_multisize          = $width . 'x' . $height;
-			$container_multisize_location = array_search( $container_multisize, $multisizes );
-			if ( false !== $container_multisize_location ) {
+			$container_multisize           = $width . 'x' . $height;
+			$container_multisize_locations = array_keys( $multisizes, $container_multisize );
+			foreach ( $container_multisize_locations as $container_multisize_location ) {
 				unset( $multisizes[ $container_multisize_location ] );
 			}
 
