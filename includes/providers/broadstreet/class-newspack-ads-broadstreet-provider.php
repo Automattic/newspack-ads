@@ -51,7 +51,8 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 *
 	 * @return array[
 	 *  'name'  => string,
-	 *  'value' => string
+	 *  'value' => string,
+	 *  'sizes' => array[]
 	 * ] The provider available units for placement.
 	 */
 	public function get_units() {
