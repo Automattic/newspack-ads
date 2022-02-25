@@ -55,7 +55,7 @@ class Newspack_Ads_Sidebar_Placements {
 	 * Get the placement key from the sidebar name.
 	 *
 	 * @param int|string $index Index, name, or ID of the dynamic sidebar.
-	 * 
+	 *
 	 * @return string The placement key.
 	 */
 	private static function get_placement_key( $index ) {
@@ -150,11 +150,11 @@ class Newspack_Ads_Sidebar_Placements {
 				} else {
 					$placement_config['hooks'] = [
 						'before' => [
-							'name'      => __( 'Before widget area', 'newspack-ads' ),
+							'name'      => __( 'Before Widget Area', 'newspack-ads' ),
 							'hook_name' => sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] ),
 						],
 						'after'  => [
-							'name'      => __( 'After widget area', 'newspack-ads' ),
+							'name'      => __( 'After Widget Area', 'newspack-ads' ),
 							'hook_name' => sprintf( self::SIDEBAR_AFTER_HOOK_NAME, $sidebar['id'] ),
 						],
 					];
