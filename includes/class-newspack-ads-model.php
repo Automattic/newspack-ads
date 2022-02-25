@@ -446,7 +446,7 @@ class Newspack_Ads_Model {
 	 *
 	 * @return array[] GAM items.
 	 */
-	public static function get_synced_gam_ad_units() {
+	private static function get_synced_gam_ad_units() {
 		$gam_items = self::get_synced_gam_items();
 		if ( $gam_items ) {
 			return $gam_items['ad_units'];

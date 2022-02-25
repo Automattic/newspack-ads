@@ -32,7 +32,7 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	 * ] The provider available units for placement.
 	 */
 	public function get_units() {
-		$ad_units = Newspack_Ads_Model::get_synced_gam_ad_units();
+		$ad_units = Newspack_Ads_Model::get_ad_units();
 		return array_map(
 			function( $ad_unit ) {
 				return [
