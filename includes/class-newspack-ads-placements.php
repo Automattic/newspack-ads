@@ -223,7 +223,7 @@ class Newspack_Ads_Placements {
 		$default_data = [
 			'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
 			'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
-			'provider' => Newspack_Ads_Providers::$default_provider,
+			'provider' => Newspack_Ads_Providers::DEFAULT_PROVIDER,
 		];
 
 		/**
@@ -417,7 +417,7 @@ class Newspack_Ads_Placements {
 		// Updates always enables the placement.
 		$data['enabled'] = true;
 
-		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Newspack_Ads_Providers::$default_provider;
+		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Newspack_Ads_Providers::DEFAULT_PROVIDER;
 
 		// Generate unique ID.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {

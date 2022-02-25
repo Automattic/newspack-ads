@@ -16,18 +16,16 @@ require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-newspack-ads-
 class Newspack_Ads_Providers {
 
 	/**
+	 * Default provider id.
+	 */
+	const DEFAULT_PROVIDER = 'gam';
+
+	/**
 	 * List of registered providers.
 	 *
 	 * @var Newspack_Ads_Provider[] Associative array of registered providers keyed by their ID.
 	 */
 	protected static $providers = [];
-
-	/**
-	 * Default provider name.
-	 *
-	 * @var string
-	 */
-	public static $default_provider = 'gam';
 
 	/**
 	 * Initialize providers.
@@ -148,7 +146,7 @@ class Newspack_Ads_Providers {
 	 * @param array  $placement_data The placement data.
 	 */
 	public static function render_placement_ad_code( $unit_id, $provider_id, $placement_key, $hook_key, $placement_data ) {
-		$provider_id = isset( $provider_id ) && $provider_id ? $provider_id : self::$default_provider;
+		$provider_id = isset( $provider_id ) && $provider_id ? $provider_id : self::DEFAULT_PROVIDER;
 		$provider    = self::get_provider( $provider_id );
 		if ( ! $provider ) {
 			return;
