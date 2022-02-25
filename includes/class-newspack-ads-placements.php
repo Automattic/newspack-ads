@@ -221,8 +221,9 @@ class Newspack_Ads_Placements {
 		 * Default placement data to return if not configured or stored yet.
 		 */
 		$default_data = [
-			'enabled' => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
-			'ad_unit' => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
+			'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
+			'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
+			'provider' => Newspack_Ads_Providers::$default_provider,
 		];
 
 		/**
@@ -236,7 +237,10 @@ class Newspack_Ads_Placements {
 			return json_decode( $deprecated, true );
 		}
 
-		$data = json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? $default_data;
+		$data = wp_parse_args(
+			json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? [],
+			$default_data
+		);
 
 		// Generate unique ID if not yet stored.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] && ! isset( $data['id'] ) ) {
