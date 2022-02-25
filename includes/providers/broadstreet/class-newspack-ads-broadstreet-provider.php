@@ -40,6 +40,9 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 		if ( ! self::is_plugin_active() ) {
 			return false;
 		}
+		if ( ! Broadstreet_Utility::getApiKey() || ! Broadstreet_Utility::getNetworkId() ) {
+			return false;
+		}
 		return true;
 	}
 

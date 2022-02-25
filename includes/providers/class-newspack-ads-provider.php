@@ -46,6 +46,16 @@ abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface 
 	}
 
 	/**
+	 * Whether the provider is enabled and ready to be used. By default, a
+	 * registered provider is active.
+	 *
+	 * @return bool Whether the provider is enabled and ready to be used.
+	 */
+	public function is_active() {
+		return true;
+	}
+
+	/**
 	 * Render the ad code for the given placement.
 	 *
 	 * @param string $placement_key  The placement key.

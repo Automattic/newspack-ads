@@ -23,15 +23,6 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	}
 
 	/**
-	 * Whether the provider is enabled and ready to be used.
-	 *
-	 * @return bool Whether the provider is enabled and ready to be used.
-	 */
-	public function is_active() {
-		return true;
-	}
-
-	/**
 	 * The provider available units for placement.
 	 *
 	 * @return array[
@@ -41,7 +32,7 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	 * ] The provider available units for placement.
 	 */
 	public static function get_units() {
-		$ad_units = Newspack_Ads_Model::get_ad_units();
+		$ad_units = Newspack_Ads_Model::get_synced_gam_ad_units();
 		return array_map(
 			function( $ad_unit ) {
 				return [

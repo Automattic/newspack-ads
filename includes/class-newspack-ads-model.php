@@ -438,7 +438,7 @@ class Newspack_Ads_Model {
 	/**
 	 * Retrieve the synced GAM items.
 	 *
-	 * @return object GAM items.
+	 * @return array[] GAM items.
 	 */
 	private static function get_synced_gam_items() {
 		$network_code     = self::get_active_network_code();
@@ -452,9 +452,9 @@ class Newspack_Ads_Model {
 	/**
 	 * Retrieve the synced GAM items.
 	 *
-	 * @return object GAM items.
+	 * @return array[] GAM items.
 	 */
-	private static function get_synced_gam_ad_units() {
+	public static function get_synced_gam_ad_units() {
 		$gam_items = self::get_synced_gam_items();
 		if ( $gam_items ) {
 			return $gam_items['ad_units'];
