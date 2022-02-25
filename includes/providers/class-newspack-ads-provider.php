@@ -49,6 +49,9 @@ abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface 
 	 * Whether the provider is enabled and ready to be used. By default, a
 	 * registered provider is active.
 	 *
+	 * Be aware that this method is called on an ad render, so it should be fast
+	 * and not do any heavy processing or HTTP requests.
+	 *
 	 * @return bool Whether the provider is enabled and ready to be used.
 	 */
 	public function is_active() {
@@ -58,17 +61,17 @@ abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface 
 	/**
 	 * Render the ad code for the given placement.
 	 *
+	 * @param string $unit_id        The unit ID.
 	 * @param string $placement_key  The placement key.
 	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
-	 * @param string $unit_id        The unit ID.
 	 * @param array  $placement_data The placement data.
 	 */
-	public function render_code( $placement_key, $hook_key, $unit_id, $placement_data ) {
+	public function render_code( $unit_id, $placement_key, $hook_key, $placement_data ) {
 		if ( ! $this->is_active() ) {
 			return;
 		}
 		do_action( 'newspack_ads_provider_before_render_code', self::get_provider_id(), $placement_key, $hook_key, $unit_id, $placement_data );
-		echo $this->get_ad_code( $placement_key, $hook_key, $unit_id, $placement_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $this->get_ad_code( $unit_id, $placement_key, $hook_key, $placement_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		do_action( 'newspack_ads_provider_after_render_code', self::get_provider_id(), $placement_key, $hook_key, $unit_id, $placement_data );
 	}
 }

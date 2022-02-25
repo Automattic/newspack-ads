@@ -54,7 +54,7 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 *  'value' => string
 	 * ] The provider available units for placement.
 	 */
-	public static function get_units() {
+	public function get_units() {
 		if ( ! self::is_plugin_active() ) {
 			return [];
 		}
@@ -81,14 +81,14 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	/**
 	 * The ad code for rendering.
 	 *
-	 * @param string $placement_key The placement key.
-	 * @param string $hook_key      The hook key, if the placement has multiple hooks.
 	 * @param string $unit_id       The unit ID.
+	 * @param string $placement_key  The placement key.
+	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
 	 * @param array  $placement_data The placement data.
 	 *
 	 * @return string $ad_code The ad code for rendering.
 	 */
-	public function get_ad_code( $placement_key, $hook_key, $unit_id, $placement_data ) {
+	public function get_ad_code( $unit_id, $placement_key, $hook_key, $placement_data ) {
 		if ( ! self::is_plugin_active() ) {
 			return '';
 		}

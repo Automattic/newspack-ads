@@ -141,23 +141,19 @@ class Newspack_Ads_Providers {
 	/**
 	 * Render the ad code for the given placement.
 	 *
+	 * @param string $unit_id        The unit ID.
+	 * @param string $provider_id    The provider ID.
 	 * @param string $placement_key  The placement key.
 	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
-	 * @param string $unit_id        The unit ID.
 	 * @param array  $placement_data The placement data.
 	 */
-	public static function render_placement_ad_code( $placement_key, $hook_key, $unit_id, $placement_data ) {
-		$placement_data = wp_parse_args(
-			$placement_data,
-			[
-				'provider' => self::$default_provider,
-			] 
-		);
-		if ( ! isset( self::$providers[ $placement_data['provider'] ] ) ) {
+	public static function render_placement_ad_code( $unit_id, $provider_id, $placement_key, $hook_key, $placement_data ) {
+		$provider_id = isset( $provider_id ) && $provider_id ? $provider_id : self::$default_provider;
+		$provider    = self::get_provider( $provider_id );
+		if ( ! $provider ) {
 			return;
 		}
-		$provider = self::$providers[ $placement_data['provider'] ];
-		$provider->render_code( $placement_key, $hook_key, $unit_id, $placement_data );
+		$provider->render_code( $unit_id, $placement_key, $hook_key, $placement_data );
 	}
 }
 Newspack_Ads_Providers::init();

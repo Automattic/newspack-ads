@@ -597,7 +597,15 @@ class Newspack_Ads_Placements {
 			<?php if ( 'sticky' === $placement_key && false === $is_amp ) : ?>
 				<button class='newspack_sticky_ad__close'></button>
 			<?php endif; ?>
-			<?php Newspack_Ads_Providers::render_placement_ad_code( $placement_key, $hook_key, $placement_data['ad_unit'], $placement_data ); ?>
+			<?php
+			Newspack_Ads_Providers::render_placement_ad_code(
+				$placement_data['ad_unit'],
+				isset( $placement_data['provider'] ) ? $placement_data['provider'] : null,
+				$placement_key,
+				$hook_key,
+				$placement_data
+			);
+			?>
 		</div>
 		<?php
 
