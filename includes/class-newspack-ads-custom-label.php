@@ -29,7 +29,7 @@ class Newspack_Ads_Custom_Label {
 		return array_merge(
 			[
 				[
-					'description' => esc_html__( 'Custom ad label', 'newspack-ads' ),
+					'description' => esc_html__( 'Custom Ad Label', 'newspack-ads' ),
 					'help'        => esc_html__( 'Add a custom text to be displayed right before your rendered ads.' ),
 					'section'     => 'custom_label',
 					'key'         => 'active',

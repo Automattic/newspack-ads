@@ -62,27 +62,17 @@ const webpackConfig = getBaseWebpackConfig(
 	}
 );
 
+/**
+ * Custom babel config for Prebid.js.
+ * https://github.com/prebid/Prebid.js/blob/6.12.0/README.md#usage-as-a-npm-dependency.
+ */
 webpackConfig.module.rules.push( {
 	test: /.js$/,
 	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
 		loader: 'babel-loader',
-		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
-		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
 		options: {
-			presets: [
-				[
-					require.resolve( '@babel/preset-env' ),
-					{
-						useBuiltIns: 'entry',
-						corejs: 3.6,
-					},
-				],
-			],
-			plugins: [
-				require.resolve( './config/pbjsGlobals.js' ),
-				require.resolve( 'babel-plugin-transform-object-assign' ),
-			],
+			...require( 'prebid.js/.babelrc.js' ),
 			configFile: false,
 		},
 	},

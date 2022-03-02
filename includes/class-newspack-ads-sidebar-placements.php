@@ -48,14 +48,13 @@ class Newspack_Ads_Sidebar_Placements {
 		add_action( 'dynamic_sidebar_after', [ __CLASS__, 'create_sidebar_after_action' ], 10, 2 );
 		add_filter( 'is_active_sidebar', [ __CLASS__, 'allow_empty_sidebars' ], 10, 2 );
 		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_sidebar_placements' ], 5, 1 );
-		add_filter( 'newspack_ads_maybe_use_responsive_placement', [ __CLASS__, 'use_responsive_placement' ], 10, 2 );
 	}
 
 	/**
 	 * Get the placement key from the sidebar name.
 	 *
 	 * @param int|string $index Index, name, or ID of the dynamic sidebar.
-	 * 
+	 *
 	 * @return string The placement key.
 	 */
 	private static function get_placement_key( $index ) {
@@ -150,11 +149,11 @@ class Newspack_Ads_Sidebar_Placements {
 				} else {
 					$placement_config['hooks'] = [
 						'before' => [
-							'name'      => __( 'Before widget area', 'newspack-ads' ),
+							'name'      => __( 'Before Widget Area', 'newspack-ads' ),
 							'hook_name' => sprintf( self::SIDEBAR_BEFORE_HOOK_NAME, $sidebar['id'] ),
 						],
 						'after'  => [
-							'name'      => __( 'After widget area', 'newspack-ads' ),
+							'name'      => __( 'After Widget Area', 'newspack-ads' ),
 							'hook_name' => sprintf( self::SIDEBAR_AFTER_HOOK_NAME, $sidebar['id'] ),
 						],
 					];
@@ -165,22 +164,5 @@ class Newspack_Ads_Sidebar_Placements {
 		}
 		return array_merge( $placements, $sidebar_placements );
 	}
-
-	/**
-	 * Use responsive placement for sidebar placements.
-	 *
-	 * @param boolean $responsive Default value of whether to use responsive placement.
-	 * @param string  $placement  ID of the ad placement.
-	 *
-	 * @return boolean Whether to use responsive placement.
-	 */
-	public static function use_responsive_placement( $responsive, $placement ) {
-		$sidebar_placements = array_map( [ __CLASS__, 'get_placement_key' ], array_column( $GLOBALS['wp_registered_sidebars'], 'id' ) );
-		if ( in_array( $placement, $sidebar_placements, true ) ) {
-			return true;
-		}
-		return $responsive;
-	}
-
 }
 Newspack_Ads_Sidebar_Placements::init();

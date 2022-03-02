@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.26.4",
+  "version": "1.27.0",
   "author": "Automattic",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "watch": "newspack-scripts watch",
     "start": "npm ci && npm run watch",
     "clean": "rm -rf dist/",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 0",
     "lint": "npm run lint:scss && npm run lint:js",
     "lint:js": "eslint --ext .js,.jsx src",
     "lint:js:staged": "eslint --ext .js,.jsx",
@@ -48,6 +48,6 @@
   },
   "dependencies": {
     "newspack-components": "^2.0.3",
-    "prebid.js": "^6.4.0"
+    "prebid.js": "^6.12.0"
   }
 }
