@@ -81,7 +81,7 @@ class Newspack_Ads_Custom_Label {
 			",\n",
 			array_map(
 				function( $selector ) {
-					return sprintf( '%s > div::before', esc_html( $selector ) );
+					return sprintf( '%s > *::before', esc_html( $selector ) );
 				},
 				$selectors
 			)
