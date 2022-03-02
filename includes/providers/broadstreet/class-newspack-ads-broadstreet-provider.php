@@ -93,6 +93,9 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 		if ( ! self::is_plugin_active() ) {
 			return '';
 		}
-		return Broadstreet_Utility::getZoneCode( $unit_id );
+		$attrs = [
+			'layout' => 'fixed', // Apply fixed layout for AMP ads.
+		];
+		return Broadstreet_Utility::getZoneCode( $unit_id, $attrs );
 	}
 }
