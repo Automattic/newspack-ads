@@ -57,9 +57,38 @@ class Newspack_Ads_Custom_Label {
 		if ( true !== $enabled || empty( $label_text ) ) {
 			return;
 		}
+
+		/**
+		 * Filters the CSS selectors that contain an ad unit to be labeled.
+		 * The ad should be a direct child of the element so the label does not 
+		 * display in case there's no ad to render.
+		 *
+		 * @param string[] $selectors CSS selectors.
+		 */
+		$selectors = apply_filters(
+			'newspack_ads_custom_label_container_selectors',
+			[
+				'.newspack_global_ad',
+				'.wp-block-newspack-blocks-wp-block-newspack-ads-blocks-ad-unit',
+				'.widget.widget_newspack-ads-widget .textwidget',
+			]
+		);
+
+		if ( empty( $selectors ) ) {
+			return;
+		}
+		$selectors_str = implode(
+			",\n",
+			array_map(
+				function( $selector ) {
+					return sprintf( '%s > *::before', esc_html( $selector ) );
+				},
+				$selectors
+			)
+		);
 		?>
 		<style>
-			.newspack_global_ad > div::before {
+			<?php echo $selectors_str; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> {
 				content: '<?php echo esc_html( $label_text ); ?>';
 				display: block;
 				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
