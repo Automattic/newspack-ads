@@ -70,8 +70,8 @@ abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface 
 		if ( ! $this->is_active() ) {
 			return;
 		}
-		do_action( 'newspack_ads_provider_before_render_code', self::get_provider_id(), $placement_key, $hook_key, $unit_id, $placement_data );
+		do_action( 'newspack_ads_provider_before_render_code', self::get_provider_id(), $unit_id, $placement_key, $hook_key, $placement_data );
 		echo $this->get_ad_code( $unit_id, $placement_key, $hook_key, $placement_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		do_action( 'newspack_ads_provider_after_render_code', self::get_provider_id(), $placement_key, $hook_key, $unit_id, $placement_data );
+		do_action( 'newspack_ads_provider_after_render_code', self::get_provider_id(), $unit_id, $placement_key, $hook_key, $placement_data );
 	}
 }
