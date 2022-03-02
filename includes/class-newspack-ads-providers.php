@@ -7,9 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/broadstreet/class-newspack-ads-broadstreet-provider.php';
-require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-newspack-ads-gam-provider.php';
-
 /**
  * Newspack Ads Providers
  */

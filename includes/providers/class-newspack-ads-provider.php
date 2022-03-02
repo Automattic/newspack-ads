@@ -7,8 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/interface-newspack-ads-provider.php';
-
 /**
  * Provider.
  */

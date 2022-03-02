@@ -7,8 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/class-newspack-ads-provider.php';
-
 /**
  * Broadstreet.
  */
