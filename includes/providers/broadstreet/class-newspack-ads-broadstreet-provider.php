@@ -38,7 +38,10 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 		if ( ! self::is_plugin_active() ) {
 			return false;
 		}
-		if ( ! Broadstreet_Utility::getApiKey() || ! Broadstreet_Utility::getNetworkId() ) {
+		if ( method_exists( 'Broadstreet_Utility', 'getApiKey' ) && ! Broadstreet_Utility::getApiKey() ) {
+			return false;
+		}
+		if ( method_exists( 'Broadstreet_Utility', 'getNetworkId' ) && ! Broadstreet_Utility::getNetworkId() ) {
 			return false;
 		}
 		return true;
@@ -54,7 +57,7 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 * ] The provider available units for placement.
 	 */
 	public function get_units() {
-		if ( ! self::is_plugin_active() ) {
+		if ( ! self::is_plugin_active() || ! method_exists( 'Broadstreet_Utility', 'getZoneCache' ) ) {
 			return [];
 		}
 		$zones = Broadstreet_Utility::getZoneCache();
@@ -88,7 +91,7 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 	 * @return string $ad_code The ad code for rendering.
 	 */
 	public function get_ad_code( $unit_id, $placement_key, $hook_key, $placement_data ) {
-		if ( ! self::is_plugin_active() ) {
+		if ( ! self::is_plugin_active() || ! method_exists( 'Broadstreet_Utility', 'getZoneCode' ) ) {
 			return '';
 		}
 		$attrs = [
