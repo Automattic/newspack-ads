@@ -21,6 +21,18 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	}
 
 	/**
+	 * Whether the provider is enabled and ready to be used.
+	 *
+	 * Temporarily use the same option used for toggling Google Ad Manager on
+	 * the Newspack "Ad Providers" settings page.
+	 *
+	 * @return bool Whether the provider is enabled and ready to be used.
+	 */
+	public function is_active() {
+		return get_option( '_newspack_advertising_service_google_ad_manager', false );
+	}
+
+	/**
 	 * The provider available units for placement.
 	 *
 	 * @return array[

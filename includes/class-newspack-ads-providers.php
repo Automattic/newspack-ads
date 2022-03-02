@@ -134,6 +134,18 @@ class Newspack_Ads_Providers {
 	}
 
 	/**
+	 * Whether a registered provider is active.
+	 *
+	 * @param string $provider_id The provider ID.
+	 *
+	 * @return bool Whether the provider is active.
+	 */
+	public static function is_provider_active( $provider_id ) {
+		$provider = self::get_provider( $provider_id );
+		return $provider && $provider->is_active();
+	}
+
+	/**
 	 * Render the ad code for the given placement.
 	 *
 	 * @param string $unit_id        The unit ID.
