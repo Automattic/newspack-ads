@@ -168,6 +168,9 @@ class Newspack_Ads_Bidding {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
+		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
 		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
@@ -297,6 +300,9 @@ class Newspack_Ads_Bidding {
 	public function prebid_script( $ad_config, $data ) {
 
 		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
 			return;
 		}
 		if ( Newspack_Ads::is_amp() ) {
