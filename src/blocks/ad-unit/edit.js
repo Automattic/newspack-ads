@@ -2,120 +2,84 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Component, Fragment } from '@wordpress/element';
-import {
-	ExternalLink,
-	Placeholder,
-	SelectControl,
-	Spinner,
-	withNotices,
-} from '@wordpress/components';
+import { Fragment, useState, useEffect } from '@wordpress/element';
+import { InspectorControls } from '@wordpress/block-editor';
+import { SVG, PanelBody, Placeholder, Spinner, Notice } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
+import PlacementControl from '../../placements/placement-control';
 
-class Edit extends Component {
-	/**
-	 * Constructor.
-	 */
-	constructor() {
-		super( ...arguments );
-		this.state = {
-			adUnits: null,
-		};
-	}
+function Edit( { attributes, setAttributes } ) {
+	const [ inFlight, setInFlight ] = useState( false );
+	const [ error, setError ] = useState( null );
+	const [ biddersError, setBiddersError ] = useState( null );
+	const [ providers, setProviders ] = useState( [] );
+	const [ bidders, setBidders ] = useState( [] );
 
-	componentDidMount() {
-		apiFetch( { path: '/newspack/v1/wizard/advertising' } ).then( response =>
-			this.setState( { adUnits: response.ad_units, initialUpdate: true } )
-		);
-	}
-
-	componentDidUpdate( prevProps ) {
-		const { attributes, noticeOperations } = this.props;
-		const { activeAd } = attributes;
-		if ( activeAd !== prevProps.attributes.activeAd ) {
-			const { code, width, height } = this.activeAdDataForActiveAd( activeAd );
-			if ( code && ! width && ! height ) {
-				noticeOperations.createErrorNotice( __( 'Invalid ad unit code. No dimensions available' ) );
-			} else {
-				noticeOperations.removeAllNotices();
-			}
+	useEffect( async () => {
+		setInFlight( true );
+		// Fetch providers.
+		try {
+			setProviders( await apiFetch( { path: '/newspack-ads/v1/providers' } ) );
+		} catch ( err ) {
+			setError( err );
 		}
+		// Fetch bidders.
+		try {
+			setBidders( await apiFetch( { path: '/newspack-ads/v1/bidders' } ) );
+		} catch ( err ) {
+			setBiddersError( err );
+		}
+		setInFlight( false );
+	}, [] );
+
+	// Legacy attribute.
+	if ( attributes.activeAd ) {
+		setAttributes( { ad_unit: attributes.activeAd } );
 	}
 
-	adUnitsForSelect = adUnits => {
-		return [
-			{
-				label: __( 'Select an ad unit' ),
-				value: null,
-			},
-			...Object.values( adUnits ).map( adUnit => {
-				return {
-					label: adUnit.name,
-					value: adUnit.id,
-				};
-			} ),
-		];
-	};
+	const provider = providers.find( p => p.id === attributes.provider );
+	const unit = provider?.units?.find( u => u.value === attributes.ad_unit );
+	const sizes = unit?.sizes || [];
+	const containerHeight = Math.max( ...sizes.map( s => s[ 1 ] ), 100 );
 
-	activeAdDataForActiveAd = activeAd => {
-		const { adUnits } = this.state;
-		const data =
-			adUnits && adUnits.find( adUnit => parseInt( adUnit.id ) === parseInt( activeAd ) );
-		return this.dimensionsFromAd( data );
-	};
-
-	dimensionsFromAd = adData => {
-		const { sizes } = adData || {};
-		const primarySize = sizes && sizes.length ? sizes[ 0 ] : [ 320, 240 ];
-		const [ width, height ] = primarySize;
-		return {
-			width,
-			height,
-		};
-	};
-
-	render() {
-		/**
-		 * Constants
-		 */
-		const { attributes, setAttributes, noticeUI } = this.props;
-		const { activeAd } = attributes;
-		const { adUnits } = this.state;
-		const { width = 100, height = 75 } = this.activeAdDataForActiveAd( activeAd );
-		const constrainedWidth = Math.max( 100, width );
-		const ratioStyle = { padding: `0 0 ${ Math.min( 500, ( height * 100 ) / width ) }%` };
-		return (
-			<Fragment>
-				{ noticeUI }
-				<div className="wp-block-newspack-ads-blocks-ad-unit">
-					<div className="newspack-ads-ad-unit">
-						<Placeholder style={ { width: `${ constrainedWidth }px` } }>
-							<div className="newspack-ads-ad-unit__ratio" style={ ratioStyle } />
-							{ ! adUnits && <Spinner /> }
-							{ adUnits && !! adUnits.length && (
-								<SelectControl
-									label={ __( 'Ad Unit' ) }
-									value={ activeAd }
-									options={ this.adUnitsForSelect( adUnits ) }
-									onChange={ _activeAd => setAttributes( { activeAd: _activeAd } ) }
-								/>
-							) }
-							{ adUnits && ! adUnits.length && (
-								<div className="components-base-control">
-									<div className="components-base-control__field">
-										{ __( 'No ad units have been created yet.' ) }
-										<ExternalLink href="/wp-admin/admin.php?page=newspack-google-ad-manager-wizard#/">
-											{ __( 'You can create ad units in the Ads wizard' ) }
-										</ExternalLink>
-									</div>
-								</div>
-							) }
-						</Placeholder>
-					</div>
+	return (
+		<Fragment>
+			<InspectorControls>
+				<PanelBody title={ __( 'Ad settings', 'newspack-newsletters' ) }>
+					{ inFlight ? (
+						<Spinner />
+					) : (
+						<PlacementControl
+							providers={ providers }
+							bidders={ bidders }
+							value={ attributes }
+							onChange={ value => setAttributes( value ) }
+						/>
+					) }
+				</PanelBody>
+			</InspectorControls>
+			<Placeholder label={ __( 'Ad', 'newspack-ads' ) }>
+				{ error && <Notice isError noticeText={ error } isDismissible={ false } /> }
+				{ provider === 'gam' && biddersError && (
+					<Notice isWarning noticeText={ biddersError } isDismissible={ false } />
+				) }
+				<div className="newspack-ads-ad-block-placeholder" style={ { height: containerHeight } }>
+					{ sizes.map( ( size, index ) => (
+						<div
+							key={ attributes.ad_unit + index }
+							style={ { width: size[ 0 ], height: size[ 1 ] } }
+						>
+							<SVG>
+								<line x1="0" y1="100%" x2="100%" y2="0" />
+								<line x1="0" y1="0" x2="100%" y2="100%" />
+							</SVG>
+						</div>
+					) ) }
+					{ inFlight && <Spinner /> }
 				</div>
-			</Fragment>
-		);
-	}
+			</Placeholder>
+		</Fragment>
+	);
 }
 
-export default withNotices( Edit );
+export default Edit;

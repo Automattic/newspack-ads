@@ -46,8 +46,20 @@ export const settings = {
 		</Fragment>
 	),
 	attributes: {
+		// Legacy attribute.
 		activeAd: {
 			type: 'string',
+		},
+		provider: {
+			type: 'string',
+			default: 'gam',
+		},
+		ad_unit: {
+			type: 'string',
+		},
+		bidder_ids: {
+			type: 'array',
+			default: [],
 		},
 	},
 	supports: {
