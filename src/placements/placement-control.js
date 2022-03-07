@@ -18,7 +18,7 @@ import { __, sprintf } from '@wordpress/i18n';
 const getProvidersForSelect = providers => {
 	return [
 		{
-			label: __( 'Select a provider', 'newspack' ),
+			label: __( 'Select a provider', 'newspack-ads' ),
 			value: '',
 		},
 		...providers.map( unit => {
@@ -42,7 +42,7 @@ const getProviderUnitsForSelect = provider => {
 	}
 	return [
 		{
-			label: __( 'Select an Ad Unit', 'newspack' ),
+			label: __( 'Select an Ad Unit', 'newspack-ads' ),
 			value: '',
 		},
 		...provider.units.map( unit => {
@@ -75,7 +75,7 @@ const PlacementControl = ( {
 	bidders = {},
 	value = {},
 	disabled = false,
-	onChange,
+	onChange = () => {},
 	...props
 } ) => {
 	const [ biddersErrors, setBiddersErrors ] = useState( {} );
@@ -107,7 +107,7 @@ const PlacementControl = ( {
 		return (
 			<Notice
 				isWarning
-				noticeText={ __( 'There is no provider available.', 'newspack' ) }
+				noticeText={ __( 'There is no provider available.', 'newspack-ads' ) }
 				isDismissible={ false }
 			/>
 		);
@@ -126,12 +126,12 @@ const PlacementControl = ( {
 				label={ label }
 				value={ value.ad_unit }
 				options={ getProviderUnitsForSelect( placementProvider ) }
-				onChange={ data => {
+				onChange={ data =>
 					onChange( {
 						...value,
 						ad_unit: data,
-					} );
-				} }
+					} )
+				}
 				disabled={ disabled }
 				{ ...props }
 			/>
@@ -139,22 +139,22 @@ const PlacementControl = ( {
 				Object.keys( bidders ).map( bidderKey => {
 					const bidder = bidders[ bidderKey ];
 					// Translators: Bidder name.
-					const bidderLabel = sprintf( __( '%s Placement ID', 'newspack' ), bidder.name );
+					const bidderLabel = sprintf( __( '%s Placement ID', 'newspack-ads' ), bidder.name );
 					return (
 						<TextControl
 							key={ bidderKey }
 							value={ value.bidders_ids ? value.bidders_ids[ bidderKey ] : null }
 							label={ bidderLabel }
 							disabled={ biddersErrors[ bidderKey ] || disabled }
-							onChange={ data => {
+							onChange={ data =>
 								onChange( {
 									...value,
 									bidders_ids: {
 										...value.bidders_ids,
 										[ bidderKey ]: data,
 									},
-								} );
-							} }
+								} )
+							}
 							{ ...props }
 						/>
 					);

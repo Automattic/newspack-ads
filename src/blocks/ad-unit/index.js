@@ -57,9 +57,9 @@ export const settings = {
 		ad_unit: {
 			type: 'string',
 		},
-		bidder_ids: {
-			type: 'array',
-			default: [],
+		bidders_ids: {
+			type: 'object',
+			default: {},
 		},
 	},
 	supports: {
