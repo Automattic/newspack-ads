@@ -140,7 +140,11 @@ class Newspack_Ads_Blocks {
 		$hook_name = sprintf( 'newspack_ads_block_%1$s_%2$s_render', get_the_ID(), $data['ad_unit'] );
 		ob_start();
 		do_action( $hook_name );
-		return sprintf( '<div class="%1$s" style="text-align:%2$s">%3$s</div>', $classes, $align, ob_get_clean() );
+		$content = ob_get_clean();
+		if ( empty( $content ) ) {
+			return '';
+		}
+		return sprintf( '<div class="%1$s" style="text-align:%2$s">%3$s</div>', $classes, $align, $content );
 	}
 
 	/**
