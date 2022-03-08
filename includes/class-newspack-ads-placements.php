@@ -17,6 +17,7 @@ class Newspack_Ads_Placements {
 	 * 'placement_id' => array[
 	 *   'name'            => string,
 	 *   'description'     => string,
+	 *   'show_ui'         => bool,
 	 *   'default_enabled' => string,
 	 *   'default_ad_unit' => string,
 	 *   'hook_name'       => string,
@@ -150,7 +151,15 @@ class Newspack_Ads_Placements {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_get_placements() {
-		return \rest_ensure_response( self::get_placements() );
+		$placements = self::get_placements();
+		// Filter out dynamic placements.
+		$placements = array_filter(
+			$placements,
+			function( $placement ) {
+				return ! empty( $placement['name'] ) && true === $placement['show_ui'];
+			} 
+		);
+		return \rest_ensure_response( array_values( $placements ) );
 	}
 
 	/**
@@ -293,6 +302,7 @@ class Newspack_Ads_Placements {
 	 * A placement is an array with the following keys:
 	 * - name: The name of the placement.
 	 * - description: A description of the placement.
+	 * - show_ui: Whether this placement can be edited through the wizard. Default is true.
 	 * - default_enabled: Whether this placement should be enabled by default.
 	 * - default_ad_unit: A default ad unit name to be used for this placement.
 	 * - hook_name: The name of the WordPress action hook to inject an ad unit into.
@@ -325,6 +335,7 @@ class Newspack_Ads_Placements {
 				[
 					'name'            => '',
 					'description'     => '',
+					'show_ui'         => true,
 					'default_enabled' => false,
 					'hook_name'       => '',
 					'supports'        => [],
