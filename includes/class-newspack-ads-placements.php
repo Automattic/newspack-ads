@@ -621,7 +621,7 @@ class Newspack_Ads_Placements {
 
 		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
 
-		if ( $hook_key && isset( $placement['data']['hooks'] ) ) {
+		if ( $hook_key && isset( $placement['data']['hooks'], $placement['data']['hooks'][ $hook_key ] ) ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
 		} else {
 			$placement_data = $placement['data'];
