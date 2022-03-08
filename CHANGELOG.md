@@ -1,3 +1,10 @@
+# [1.28.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.28.0-alpha.1...v1.28.0-alpha.2) (2022-03-08)
+
+
+### Bug Fixes
+
+* **header-bidding:** ensure sizes for creative placeholders ([#325](https://github.com/Automattic/newspack-ads/issues/325)) ([fc7adc9](https://github.com/Automattic/newspack-ads/commit/fc7adc9ca77b2494aedc1e23d6ee0c6db703de39))
+
 # [1.28.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.27.0...v1.28.0-alpha.1) (2022-02-24)
 
 
