@@ -878,7 +878,7 @@ class Newspack_Ads_GAM {
 			$line_item->setPrimaryGoal( new Goal( $config['primary_goal']['goal_type'] ) );
 
 			// Creative placeholders (or expected creatives).
-			if ( isset( $config['creative_placeholders'] ) ) {
+			if ( isset( $config['creative_placeholders'] ) && ! empty( $config['creative_placeholders'] ) ) {
 				$creative_placeholders = array_map(
 					function ( $size ) {
 						return new CreativePlaceholder( new Size( $size[0], $size[1] ) );
