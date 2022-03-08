@@ -11,13 +11,6 @@
 class Newspack_Ads_Blocks {
 
 	/**
-	 * Amount of ad unit blocks on the page.
-	 *
-	 * @var int
-	 */
-	protected static $page_block_count = 0;
-
-	/**
 	 * Initialize blocks
 	 *
 	 * @return void
@@ -130,10 +123,7 @@ class Newspack_Ads_Blocks {
 				'hook_name' => $hook_name,
 				'data'      => $data,
 			];
-			$registered       = Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
-			if ( true === $registered ) {
-				self::$page_block_count++;
-			}
+			Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
 		}
 	}
 
