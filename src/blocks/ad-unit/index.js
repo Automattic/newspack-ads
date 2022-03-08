@@ -50,6 +50,9 @@ export const settings = {
 		activeAd: {
 			type: 'string',
 		},
+		id: {
+			type: 'string',
+		},
 		provider: {
 			type: 'string',
 			default: 'gam',

@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { v4 as uuid } from 'uuid';
+
+/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
@@ -53,7 +58,12 @@ function Edit( { attributes, setAttributes } ) {
 							providers={ providers }
 							bidders={ bidders }
 							value={ attributes }
-							onChange={ value => setAttributes( value ) }
+							onChange={ value =>
+								setAttributes( {
+									...value,
+									id: uuid(),
+								} )
+							}
 						/>
 					) }
 				</PanelBody>

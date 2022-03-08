@@ -40,26 +40,53 @@ class Newspack_Ads_Blocks {
 			'newspack-ads/ad-unit',
 			[
 				'attributes'      => [
-					// Legacy attribute.
-					'activeAd'   => [
+					'id'          => [
 						'type' => 'string',
 					],
-					'provider'   => [
+					'provider'    => [
 						'type'    => 'string',
 						'default' => 'gam',
 					],
-					'ad_unit'    => [
+					'ad_unit'     => [
 						'type' => 'string',
 					],
-					'bidder_ids' => [
-						'type'    => 'array',
+					'bidders_ids' => [
+						'type'    => 'object',
 						'default' => [],
+					],
+					// Legacy attribute.
+					'activeAd'    => [
+						'type' => 'string',
 					],
 				],
 				'render_callback' => [ __CLASS__, 'render_block' ],
 				'supports'        => [],
 			]
 		);
+
+		/**
+		 * Register widget blocks placements.
+		 */
+		$widget_blocks = get_option( 'widget_block' );
+		foreach ( array_values( $widget_blocks ) as $widget_block ) {
+			if ( has_blocks( $widget_block['content'] ) ) {
+				self::register_blocks_placements( parse_blocks( $widget_block['content'] ) );
+			}       
+		}
+	}
+
+	/**
+	 * Generate a block ID in case the block doesn't have the ID attribute.
+	 *
+	 * @param array[] $attrs Block attributes.
+	 *
+	 * @return string Block ID.
+	 */
+	private static function get_block_id( $attrs ) {
+		if ( isset( $attrs['id'] ) && ! empty( $attrs['id'] ) ) {
+			return $attrs['id'];
+		}
+		return sprintf( '%1$s_%2$s', get_the_ID(), $attrs['ad_unit'] );
 	}
 
 	/**
@@ -70,6 +97,7 @@ class Newspack_Ads_Blocks {
 	 * @return array[] Placement data.
 	 */
 	private static function get_block_placement_data( $attrs ) {
+		$attrs['id'] = self::get_block_id( $attrs );
 		return wp_parse_args(
 			$attrs,
 			[
@@ -83,21 +111,20 @@ class Newspack_Ads_Blocks {
 	/**
 	 * Register blocks placements.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param array[] $blocks  Array of parsed blocks configuration.
+	 * @param array[] $blocks Array of parsed blocks configuration.
 	 *
 	 * @return void
 	 */
-	private static function register_blocks_placements( $post_id, $blocks ) {
+	private static function register_blocks_placements( $blocks ) {
 		foreach ( $blocks as $block ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
-				self::register_blocks_placements( $post_id, $block['innerBlocks'] );
+				self::register_blocks_placements( $block['innerBlocks'] );
 			}
 			if ( 'newspack-ads/ad-unit' !== $block['blockName'] ) {
 				continue;
 			}
 			$data             = self::get_block_placement_data( $block['attrs'] );
-			$placement_id     = sprintf( 'block_%1$s_%2$s', $post_id, $data['ad_unit'] );
+			$placement_id     = sprintf( 'block_%s', $data['id'] );
 			$hook_name        = sprintf( 'newspack_ads_%s_render', $placement_id );
 			$placement_config = [
 				'hook_name' => $hook_name,
@@ -119,7 +146,7 @@ class Newspack_Ads_Blocks {
 	 */
 	public static function register_post_blocks_placements( $post ) {
 		if ( has_blocks( $post->post_content ) ) {
-			self::register_blocks_placements( $post->ID, parse_blocks( $post->post_content ) );
+			self::register_blocks_placements( parse_blocks( $post->post_content ) );
 		}
 	}
 
@@ -137,7 +164,7 @@ class Newspack_Ads_Blocks {
 			$align = 'center';
 		}
 		$data      = self::get_block_placement_data( $attrs );
-		$hook_name = sprintf( 'newspack_ads_block_%1$s_%2$s_render', get_the_ID(), $data['ad_unit'] );
+		$hook_name = sprintf( 'newspack_ads_block_%s_render', $data['id'] );
 		ob_start();
 		do_action( $hook_name );
 		$content = ob_get_clean();
