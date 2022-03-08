@@ -285,6 +285,9 @@ class Newspack_Ads_Bidding {
 			),
 			SORT_REGULAR
 		);
+		if ( empty( $bidders_sizes ) ) {
+			return self::ACCEPTED_AD_SIZES;
+		}
 		return $bidders_sizes;
 	}
 
