@@ -46,7 +46,30 @@ class Newspack_Ads_Bidder_OpenX {
 				],
 			]
 		);
+		add_filter( 'newspack_ads_prebid_config', [ __CLASS__, 'add_user_sync_iframe' ] );
 		add_filter( 'newspack_ads_openx_ad_unit_bid', [ __CLASS__, 'set_openx_ad_unit_bid' ], 10, 4 );
+	}
+
+	/**
+	 * Enable user syncing through iframes.
+	 *
+	 * OpenX strongly recommends enabling user syncing through iframes. This
+	 * functionality improves DSP user match rates and increases the OpenX bid
+	 * rate and bid price.
+	 *
+	 * @link https://docs.prebid.org/dev-docs/bidders/openx.html
+	 *
+	 * @param array $config Prebid.js config.
+	 *
+	 * @return array Prebid.js config.
+	 */
+	public static function add_user_sync_iframe( $config ) {
+		$bidder_config = newspack_get_ads_bidder( 'openx' );
+		if ( ! $bidder_config || ! isset( $bidder_config['data']['openx_platform'] ) || empty( $bidder_config['data']['openx_platform'] ) ) {
+			return $config;
+		}
+		$config['userSync']['iframeEnabled'] = true;
+		return $config;
 	}
 
 	/**
