@@ -62,7 +62,7 @@ class Newspack_Ads_Blocks {
 		 */
 		$widget_blocks = get_option( 'widget_block' );
 		foreach ( array_values( $widget_blocks ) as $widget_block ) {
-			if ( has_blocks( $widget_block['content'] ) ) {
+			if ( isset( $widget_block['content'] ) && has_blocks( $widget_block['content'] ) ) {
 				self::register_blocks_placements( parse_blocks( $widget_block['content'] ) );
 			}       
 		}
@@ -71,15 +71,15 @@ class Newspack_Ads_Blocks {
 	/**
 	 * Generate a block ID in case the block doesn't have the ID attribute.
 	 *
-	 * @param array[] $attrs Block attributes.
+	 * @param array[] $data Block placement data.
 	 *
 	 * @return string Block ID.
 	 */
-	private static function get_block_id( $attrs ) {
-		if ( isset( $attrs['id'] ) && ! empty( $attrs['id'] ) ) {
-			return $attrs['id'];
+	private static function get_block_id( $data ) {
+		if ( isset( $data['id'] ) && ! empty( $data['id'] ) ) {
+			return $data['id'];
 		}
-		return sprintf( '%1$s_%2$s', get_the_ID(), $attrs['ad_unit'] );
+		return sprintf( '%1$s_%2$s', get_the_ID(), $data['ad_unit'] );
 	}
 
 	/**
@@ -90,8 +90,7 @@ class Newspack_Ads_Blocks {
 	 * @return array[] Placement data.
 	 */
 	private static function get_block_placement_data( $attrs ) {
-		$attrs['id'] = self::get_block_id( $attrs );
-		return wp_parse_args(
+		$data       = wp_parse_args(
 			$attrs,
 			[
 				'enabled'  => true,
@@ -99,6 +98,8 @@ class Newspack_Ads_Blocks {
 				'ad_unit'  => isset( $attrs['activeAd'] ) ? $attrs['activeAd'] : '',
 			]
 		);
+		$data['id'] = self::get_block_id( $data );
+		return $data;
 	}
 
 	/**
