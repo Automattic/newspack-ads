@@ -47,7 +47,7 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 			function( $ad_unit ) {
 				return [
 					'name'  => $ad_unit['name'],
-					'value' => $ad_unit['id'],
+					'value' => (string) $ad_unit['id'],
 					'sizes' => $ad_unit['sizes'],
 				];
 			},

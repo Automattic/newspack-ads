@@ -65,7 +65,7 @@ final class Newspack_Ads_Broadstreet_Provider extends Newspack_Ads_Provider {
 			function( $zone ) {
 				$unit = [
 					'name'  => $zone->name,
-					'value' => $zone->id,
+					'value' => (string) $zone->id,
 					'sizes' => [],
 				];
 				if ( isset( $zone->width ) && isset( $zone->height ) ) {
