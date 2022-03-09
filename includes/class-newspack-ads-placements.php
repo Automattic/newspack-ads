@@ -36,7 +36,6 @@ class Newspack_Ads_Placements {
 	public static function init() {
 		self::register_default_placements();
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
-		add_action( 'wp_head', [ __CLASS__, 'setup_placements_hooks' ] );
 	}
 
 	/**
@@ -197,33 +196,6 @@ class Newspack_Ads_Placements {
 			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_placements() );
-	}
-
-	/**
-	 * Setup hooks for placements that have `hook_name` configured.
-	 */
-	public static function setup_placements_hooks() {
-		$placements = self::get_placements();
-		foreach ( $placements as $placement_key => $placement ) {
-			if ( isset( $placement['hook_name'] ) ) {
-				add_action(
-					$placement['hook_name'],
-					function () use ( $placement_key ) {
-						self::inject_placement_ad( $placement_key );
-					}
-				);
-			}
-			if ( isset( $placement['hooks'] ) && count( $placement['hooks'] ) ) {
-				foreach ( $placement['hooks'] as $hook_key => $hook ) {
-					add_action(
-						$hook['hook_name'],
-						function () use ( $placement_key, $hook_key ) {
-							self::inject_placement_ad( $placement_key, $hook_key );
-						}
-					);
-				}
-			}
-		}
 	}
 
 	/**
@@ -397,15 +369,33 @@ class Newspack_Ads_Placements {
 			return new WP_Error( 'newspack_ads_invalid_placement', __( 'Invalid placement.', 'newspack-ads' ) );
 		}
 		if ( isset( self::$placements[ $id ] ) ) {
-			return new WP_Error( 'newspack_ads_duplicate_placement', __( 'Placement ID already registered', 'newspack-ads' ) );
+			return new WP_Error( 'newspack_ads_placement_exists', __( 'Placement already exists.', 'newspack-ads' ) );
 		}
-		$config                  = wp_parse_args(
-			$config,
-			[
-				'default_enabled' => true,
-			]
-		);
 		self::$placements[ $id ] = $config;
+
+		/**
+		 * Setup hooks for the placement.
+		 */
+		if ( isset( $config['hook_name'] ) && ! has_action( $config['hook_name'] ) ) {
+			add_action(
+				$config['hook_name'],
+				function () use ( $id ) {
+					self::inject_placement_ad( $id );
+				}
+			);
+		}
+		if ( isset( $config['hooks'] ) && ! empty( $config['hooks'] ) ) {
+			foreach ( $config['hooks'] as $hook_key => $hook ) {
+				if ( ! has_action( $hook['hook_name'] ) ) {
+					add_action(
+						$hook['hook_name'],
+						function () use ( $id, $hook_key ) {
+							self::inject_placement_ad( $id, $hook_key );
+						}
+					);
+				}
+			}
+		}
 		return true;
 	}
 
