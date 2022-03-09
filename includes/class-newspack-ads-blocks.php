@@ -17,7 +17,6 @@ class Newspack_Ads_Blocks {
 	 */
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_block' ] );
-		add_action( 'the_post', [ __CLASS__, 'register_post_blocks_placements' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ] );
 		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
@@ -56,16 +55,6 @@ class Newspack_Ads_Blocks {
 				'supports'        => [],
 			]
 		);
-
-		/**
-		 * Register widget blocks placements.
-		 */
-		$widget_blocks = get_option( 'widget_block' );
-		foreach ( array_values( $widget_blocks ) as $widget_block ) {
-			if ( isset( $widget_block['content'] ) && has_blocks( $widget_block['content'] ) ) {
-				self::register_blocks_placements( parse_blocks( $widget_block['content'] ) );
-			}       
-		}
 	}
 
 	/**
@@ -103,42 +92,25 @@ class Newspack_Ads_Blocks {
 	}
 
 	/**
-	 * Register blocks placements.
+	 * Register a placement given block attributes.
 	 *
-	 * @param array[] $blocks Array of parsed blocks configuration.
-	 *
-	 * @return void
-	 */
-	private static function register_blocks_placements( $blocks ) {
-		foreach ( $blocks as $block ) {
-			if ( ! empty( $block['innerBlocks'] ) ) {
-				self::register_blocks_placements( $block['innerBlocks'] );
-			}
-			if ( 'newspack-ads/ad-unit' !== $block['blockName'] ) {
-				continue;
-			}
-			$data             = self::get_block_placement_data( $block['attrs'] );
-			$placement_id     = sprintf( 'block_%s', $data['id'] );
-			$hook_name        = sprintf( 'newspack_ads_%s_render', $placement_id );
-			$placement_config = [
-				'hook_name' => $hook_name,
-				'data'      => $data,
-			];
-			Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
-		}
-	}
-
-	/**
-	 * Register post blocks placements.
-	 *
-	 * @param WP_Post $post Post object.
+	 * @param array[] $attrs Block attributes.
 	 *
 	 * @return void
 	 */
-	public static function register_post_blocks_placements( $post ) {
-		if ( has_blocks( $post->post_content ) ) {
-			self::register_blocks_placements( parse_blocks( $post->post_content ) );
+	private static function register_block_placement( $attrs ) {
+		$data = self::get_block_placement_data( $attrs );
+		if ( ! $data['ad_unit'] ) {
+			return;
 		}
+		$placement_id     = sprintf( 'block_%s', $data['id'] );
+		$hook_name        = sprintf( 'newspack_ads_%s_render', $placement_id );
+		$placement_config = [
+			'show_ui'   => false, // This is a dynamic placement and shouldn't be editable through the Ads wizard.
+			'hook_name' => $hook_name,
+			'data'      => $data,
+		];
+		Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
 	}
 
 	/**
@@ -149,6 +121,7 @@ class Newspack_Ads_Blocks {
 	 * @return string Block HTML.
 	 */
 	public static function render_block( $attrs ) {
+		self::register_block_placement( $attrs );
 		$classes = self::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attrs );
 		$align   = 'inherit';
 		if ( strpos( $classes, 'aligncenter' ) == true ) {
