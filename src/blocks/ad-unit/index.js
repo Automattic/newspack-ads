@@ -1,8 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { ExternalLink, Path, SVG } from '@wordpress/components';
-import { Fragment } from '@wordpress/element';
+import { Path, SVG } from '@wordpress/components';
 import { getCategories } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 
@@ -37,14 +36,7 @@ export const settings = {
 	},
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
 	keywords: [ __( 'ad' ), __( 'advert' ), __( 'ads' ) ],
-	description: (
-		<Fragment>
-			<p>{ __( 'A block for displaying ad inventory.', 'newspack' ) }</p>
-			<ExternalLink href="/wp-admin/admin.php?page=newspack-advertising-wizard#/google_ad_manager">
-				{ __( 'Manage ad units', 'newspack' ) }
-			</ExternalLink>
-		</Fragment>
-	),
+	description: __( 'Render an ad unit from your inventory.', 'newspack-ads' ),
 	attributes: {
 		// Legacy attribute.
 		activeAd: {
