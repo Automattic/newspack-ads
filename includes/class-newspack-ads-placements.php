@@ -359,19 +359,19 @@ class Newspack_Ads_Placements {
 	/**
 	 * Register a new ad placement.
 	 *
-	 * @param string $id     The placement ID.
+	 * @param string $key    The placement key.
 	 * @param array  $config The placement config.
 	 *
 	 * @return bool|WP_Error True if placement was registered or error otherwise.
 	 */
-	public static function register_placement( $id, $config = [] ) {
-		if ( empty( $id ) || empty( $config ) ) {
+	public static function register_placement( $key, $config = [] ) {
+		if ( empty( $key ) || empty( $config ) ) {
 			return new WP_Error( 'newspack_ads_invalid_placement', __( 'Invalid placement.', 'newspack-ads' ) );
 		}
-		if ( isset( self::$placements[ $id ] ) ) {
+		if ( isset( self::$placements[ $key ] ) ) {
 			return new WP_Error( 'newspack_ads_placement_exists', __( 'Placement already exists.', 'newspack-ads' ) );
 		}
-		self::$placements[ $id ] = $config;
+		self::$placements[ $key ] = $config;
 
 		/**
 		 * Setup hooks for the placement.
@@ -379,8 +379,8 @@ class Newspack_Ads_Placements {
 		if ( isset( $config['hook_name'] ) && ! has_action( $config['hook_name'] ) ) {
 			add_action(
 				$config['hook_name'],
-				function () use ( $id ) {
-					self::inject_placement_ad( $id );
+				function () use ( $key ) {
+					self::inject_placement_ad( $key );
 				}
 			);
 		}
@@ -389,8 +389,8 @@ class Newspack_Ads_Placements {
 				if ( ! has_action( $hook['hook_name'] ) ) {
 					add_action(
 						$hook['hook_name'],
-						function () use ( $id, $hook_key ) {
-							self::inject_placement_ad( $id, $hook_key );
+						function () use ( $key, $hook_key ) {
+							self::inject_placement_ad( $key, $hook_key );
 						}
 					);
 				}
