@@ -159,7 +159,7 @@ class Newspack_Ads_Placements {
 				return ! empty( $placement['name'] ) && true === $placement['show_ui'];
 			} 
 		);
-		return \rest_ensure_response( array_values( $placements ) );
+		return \rest_ensure_response( $placements );
 	}
 
 	/**
