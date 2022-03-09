@@ -6,17 +6,40 @@
 	justify-content: center;
 	position: relative;
 	width: 100%;
-	> div {
+	svg.newspack-ads-ad-block-mock {
+		pointer-events: none;
 		position: absolute;
-		box-shadow: 0 0 0 1px $gray-900;
-		> svg {
-			display: block;
-			width: 100%;
-			height: 100%;
-			line {
-				stroke: $gray-700;
-				stroke-width: 1px;
-			}
+		display: block;
+		box-shadow: 0 0 0 1px $gray-600;
+		g {
+			stroke: $gray-100;
+			stroke-width: 1px;
 		}
+		rect {
+			stroke: $gray-400;
+			stroke-width: 1px;
+			fill: transparent;
+		}
+		line {
+			stroke: $gray-100;
+			stroke-width: 1px;
+		}
+		text {
+			text-transform: uppercase;
+			box-shadow: 0 0 0 1px $gray-400;
+			padding: 0.5em;
+			background-color: $gray-100;
+		}
+	}
+	.newspack-ads-ad-block-ad-label {
+		pointer-events: none;
+		position: absolute;
+		font-size: 10px;
+		line-height: 1;
+		box-shadow: 0 0 0 1px $gray-100;
+		color: $gray-600;
+		padding: 3px;
+		border-radius: 3px;
+		background-color: #fff;
 	}
 }
