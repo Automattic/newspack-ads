@@ -96,7 +96,7 @@ class Newspack_Ads_Blocks {
 	 *
 	 * @param array[] $attrs Block attributes.
 	 *
-	 * @return void
+	 * @return array[]|WP_Error Placement config or error if placement was not registered.
 	 */
 	private static function register_block_placement( $attrs ) {
 		$data = self::get_block_placement_data( $attrs );
@@ -110,7 +110,21 @@ class Newspack_Ads_Blocks {
 			'hook_name' => $hook_name,
 			'data'      => $data,
 		];
-		Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
+		$registered       = Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
+		if ( \is_wp_error( $registered ) ) {
+			return $registered;
+		}
+		if ( ! $registered ) {
+			return new WP_Error(
+				'newspack_ads_block_placement_not_registered',
+				sprintf(
+					/* translators: %s: Placement ID */
+					__( 'Ad placement %s could not be registered.', 'newspack' ),
+					$placement_id
+				)
+			);
+		}
+		return $placement_config;
 	}
 
 	/**
@@ -121,16 +135,17 @@ class Newspack_Ads_Blocks {
 	 * @return string Block HTML.
 	 */
 	public static function render_block( $attrs ) {
-		self::register_block_placement( $attrs );
+		$placement_config = self::register_block_placement( $attrs );
+		if ( \is_wp_error( $placement_config ) ) {
+			return '';
+		}
 		$classes = self::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attrs );
 		$align   = 'inherit';
 		if ( strpos( $classes, 'aligncenter' ) == true ) {
 			$align = 'center';
 		}
-		$data      = self::get_block_placement_data( $attrs );
-		$hook_name = sprintf( 'newspack_ads_block_%s_render', $data['id'] );
 		ob_start();
-		do_action( $hook_name );
+		do_action( $placement_config['hook_name'] );
 		$content = ob_get_clean();
 		if ( empty( $content ) ) {
 			return '';
