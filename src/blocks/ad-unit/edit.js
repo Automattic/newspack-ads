@@ -38,7 +38,7 @@ function Edit( { attributes, setAttributes } ) {
 	}, [] );
 
 	// Legacy attribute.
-	if ( attributes.activeAd ) {
+	if ( attributes.activeAd && ! attributes.ad_unit ) {
 		setAttributes( { ad_unit: attributes.activeAd } );
 	}
 
