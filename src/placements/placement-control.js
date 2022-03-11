@@ -163,7 +163,7 @@ const PlacementControl = ( {
 				Object.keys( biddersErrors ).map( bidderKey => {
 					if ( biddersErrors[ bidderKey ] ) {
 						return (
-							<Notice key={ bidderKey } isWarning isDismissible={ false }>
+							<Notice key={ bidderKey } status="warning" isDismissible={ false }>
 								{ biddersErrors[ bidderKey ] }
 							</Notice>
 						);
