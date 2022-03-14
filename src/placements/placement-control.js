@@ -76,7 +76,6 @@ const PlacementControl = ( {
 	value = {},
 	disabled = false,
 	onChange = () => {},
-	...props
 } ) => {
 	const [ biddersErrors, setBiddersErrors ] = useState( {} );
 
@@ -115,13 +114,15 @@ const PlacementControl = ( {
 
 	return (
 		<Fragment>
-			<SelectControl
-				label={ __( 'Provider', 'newspack' ) }
-				value={ placementProvider?.id }
-				options={ getProvidersForSelect( providers ) }
-				onChange={ provider => onChange( { ...value, provider } ) }
-				disabled={ disabled }
-			/>
+			{ providers.length > 1 && (
+				<SelectControl
+					label={ __( 'Provider', 'newspack' ) }
+					value={ placementProvider?.id }
+					options={ getProvidersForSelect( providers ) }
+					onChange={ provider => onChange( { ...value, provider } ) }
+					disabled={ disabled }
+				/>
+			) }
 			<SelectControl
 				label={ label }
 				value={ value.ad_unit }
@@ -133,7 +134,6 @@ const PlacementControl = ( {
 					} )
 				}
 				disabled={ disabled }
-				{ ...props }
 			/>
 			{ placementProvider?.id === 'gam' &&
 				Object.keys( bidders ).map( bidderKey => {
@@ -155,7 +155,6 @@ const PlacementControl = ( {
 									},
 								} )
 							}
-							{ ...props }
 						/>
 					);
 				} ) }

@@ -7,41 +7,48 @@
 		justify-content: center;
 		position: relative;
 		width: 100%;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu,
+			Cantarell, 'Helvetica Neue', sans-serif;
 		svg.newspack-ads-ad-block-mock {
 			pointer-events: none;
 			position: absolute;
 			display: block;
-			box-shadow: 0 0 0 1px $gray-600;
-			g {
-				stroke: $gray-100;
-				stroke-width: 1px;
-			}
 			rect {
-				stroke: $gray-400;
+				fill: $white;
+				stroke: $gray-600;
 				stroke-width: 1px;
-				fill: transparent;
 			}
 			line {
-				stroke: $gray-100;
+				stroke: $gray-600;
 				stroke-width: 1px;
-			}
-			text {
-				text-transform: uppercase;
-				box-shadow: 0 0 0 1px $gray-400;
-				padding: 0.5em;
-				background-color: $gray-100;
 			}
 		}
 		.newspack-ads-ad-block-ad-label {
+			text-align: center;
 			pointer-events: none;
 			position: absolute;
 			font-size: 10px;
-			line-height: 1;
-			box-shadow: 0 0 0 1px $gray-100;
+			border: 1px dashed $gray-600;
+			// box-shadow: 0 0 0 1px $gray-100;
 			color: $gray-600;
-			padding: 3px;
-			border-radius: 3px;
+			padding: 8px;
 			background-color: #fff;
+		}
+	}
+	.newspack-ads-ad-block-edit {
+		margin: 0 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: end;
+		.newspack-ads-ad-block-edit-fields {
+			display: grid;
+			grid-template-columns: repeat( 2, minmax( max-content, 300px ) );
+			gap: 16px;
+			justify-content: center;
+			align-items: baseline;
+			&.one-column {
+				grid-template-columns: repeat( 1, minmax( max-content, 300px ) );
+			}
 		}
 	}
 }
