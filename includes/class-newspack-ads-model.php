@@ -617,7 +617,7 @@ class Newspack_Ads_Model {
 		foreach ( $widths as $ad_width ) {
 			foreach ( $sizes as $size ) {
 				$diff = min( $ad_width, $size[0] ) / max( $ad_width, $size[0] );
-				if ( $size[0] <= $ad_width && ( 1 - $width_diff_ratio ) < $diff ) {
+				if ( $size[0] <= $ad_width && ( 1 - $width_diff_ratio ) <= $diff ) {
 					$size_map[ $ad_width ][] = $size;
 				}
 			}
