@@ -33,7 +33,7 @@ function Edit( { attributes, setAttributes } ) {
 	const [ isEditing, setIsEditing ] = useState( false );
 	const [ biddersError, setBiddersError ] = useState( null );
 	const [ providers, setProviders ] = useState( [] );
-	const [ bidders, setBidders ] = useState( [] );
+	const [ bidders, setBidders ] = useState( {} );
 	const blockProps = useBlockProps( {
 		className: 'newspack-ads-ad-block',
 	} );
@@ -119,7 +119,7 @@ function Edit( { attributes, setAttributes } ) {
 								<div
 									className={ classNames( {
 										'newspack-ads-ad-block-edit-fields': true,
-										'one-column': providers.length < 2 && ! bidders.length,
+										'one-column': providers.length < 2 && ! Object.keys( bidders ).length,
 									} ) }
 								>
 									<PlacementControl

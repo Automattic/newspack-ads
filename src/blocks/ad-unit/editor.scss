@@ -48,12 +48,12 @@
 		align-items: end;
 		.newspack-ads-ad-block-edit-fields {
 			display: grid;
-			grid-template-columns: repeat( 2, minmax( max-content, 300px ) );
+			grid-template-columns: repeat( 2, 250px );
 			gap: 16px;
 			justify-content: center;
-			align-items: baseline;
+			align-items: end;
 			&.one-column {
-				grid-template-columns: repeat( 1, minmax( max-content, 300px ) );
+				grid-template-columns: repeat( 1, 250px );
 			}
 		}
 	}
