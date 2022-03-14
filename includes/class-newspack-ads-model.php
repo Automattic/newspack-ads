@@ -595,6 +595,39 @@ class Newspack_Ads_Model {
 	}
 
 	/**
+	 * Get size map for responsive ads.
+	 * 
+	 * Gather up all of the ad sizes which should be displayed on the same
+	 * viewports. As a heuristic, each ad slot can safely display ads with a 30%
+	 * difference from slot's width. e.g. for the following setup: [[900,200],
+	 * [750,200]], we can display [[900,200], [750,200]] on viewports >= 900px
+	 * and [[750,200]] on viewports < 900px.
+	 *
+	 * @param array[] $sizes            Array of sizes.
+	 * @param float   $width_diff_ratio Minimum width ratio difference for sizes to share same viewport.
+	 *
+	 * @return array[] Size map keyed by the viewport width.
+	 */
+	public static function get_responsive_size_map( $sizes, $width_diff_ratio = 0.3 ) {
+
+		array_multisort( $sizes );
+		$widths = array_unique( array_column( $sizes, 0 ) );
+
+		$size_map = [];
+		foreach ( $widths as $ad_width ) {
+			foreach ( $sizes as $size ) {
+				$diff = min( $ad_width, $size[0] ) / max( $ad_width, $size[0] );
+				if ( $size[0] <= $ad_width && ( 1 - $width_diff_ratio ) < $diff ) {
+					$size_map[ $ad_width ][] = $size;
+				}
+			}
+		}
+		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', $size_map );
+
+		return $size_map;
+	}
+
+	/**
 	 * Generate responsive AMP ads for a series of ad sizes.
 	 *
 	 * @param array  $ad_unit The ad unit to generate code for.
@@ -606,65 +639,16 @@ class Newspack_Ads_Model {
 		$sizes        = $ad_unit['sizes'];
 		$targeting    = self::get_ad_targeting( $ad_unit );
 
-		array_multisort( $sizes );
-		$widths = array_unique( array_column( $sizes, 0 ) );
-
 		$markup = [];
 		$styles = [];
 
-		// Gather up all of the ad sizes which should be displayed on the same viewports.
-		// As a heuristic, each ad slot can safely display ads with a 30% difference from slot's width.
-		// e.g. for the following setup: [[900,200], [750,200]],
-		// We can display [[900,200], [750,200]] on viewports >= 900px and [[750,200]] on viewports < 900px.
-		$width_ratio_min = apply_filters( 'newspack_ads_multisize_size_ratio_max', 0.7, $ad_unit );
-		$all_ad_sizes    = [];
-		foreach ( $widths as $ad_width ) {
-			$valid_ad_sizes = [];
+		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', self::get_responsive_size_map( $sizes ), $ad_unit );
 
-			foreach ( $sizes as $size ) {
-				$width_ratio = min( $ad_width, $size[0] ) / max( $ad_width, $size[0] );
-				if ( $size[0] <= $ad_width && $width_ratio_min < $width_ratio ) {
-					$valid_ad_sizes[] = $size;
-				}
-			}
-
-			$all_ad_sizes[] = $valid_ad_sizes;
-		}
-		$all_ad_sizes = apply_filters( 'newspack_ads_multisize_ad_sizes', $all_ad_sizes, $ad_unit );
-
-		// Generate an array of media query data, with a likely min and max width for each size.
-		$media_queries = [];
-		foreach ( $all_ad_sizes as $index => $ad_size ) {
-			$width = absint( max( array_column( $ad_size, 0 ) ) );
-
-			// If there are ad sizes larger than the current size, the max_width is 1 less than the next ad's size.
-			// If it's the largest ad size, there is no max width.
-			$max_width = null;
-			if ( count( $all_ad_sizes ) > $index + 1 ) {
-				$max_width = absint( max( array_column( $all_ad_sizes[ $index + 1 ], 0 ) ) ) - 1;
-			}
-
-			$media_queries[] = [
-				'width'     => $width,
-				'height'    => absint( max( array_column( $ad_size, 1 ) ) ),
-				'min_width' => $width,
-				'max_width' => $max_width,
-			];
-		}
-
-		// Allow themes to filter the media query data based on the size, placement, and context of the ad.
-		$media_queries = apply_filters(
-			'newspack_ads_media_queries',
-			$media_queries,
-			$ad_unit['placement'],
-			$ad_unit['context']
-		);
-
-		// Build the amp-ad units.
-		foreach ( $all_ad_sizes as $index => $ad_sizes ) {
+		// Build the amp-ad units according to size map.
+		foreach ( $size_map as $viewport_width => $ad_sizes ) {
 
 			// The size of the ad container should be equal to the largest width and height among all the sizes available.
-			$width  = absint( max( array_column( $ad_sizes, 0 ) ) );
+			$width  = $viewport_width;
 			$height = absint( max( array_column( $ad_sizes, 1 ) ) );
 
 			$multisizes = array_map(
@@ -712,13 +696,14 @@ class Newspack_Ads_Model {
 			);
 
 			// Generate styles for hiding/showing ads at different viewports out of the media queries.
-			$media_query          = $media_queries[ $index ];
-			$media_query_elements = [];
-			if ( $media_query['min_width'] ) {
-				$media_query_elements[] = sprintf( '(min-width:%dpx)', $media_query['min_width'] );
-			}
-			if ( $media_query['max_width'] ) {
-				$media_query_elements[] = sprintf( '(max-width:%dpx)', $media_query['max_width'] );
+			$media_query_elements   = [];
+			$media_query_elements[] = sprintf( '(min-width:%dpx)', $viewport_width );
+			$index                  = array_search( $viewport_width, array_keys( $size_map ) );
+			// If there are ad sizes larger than the current size, the max_width is 1 less than the next ad's size.
+			// If it's the largest ad size, there is no max width.
+			if ( count( $size_map ) > $index + 1 ) {
+				$max_width              = absint( array_keys( $size_map )[ $index + 1 ] ) - 1;
+				$media_query_elements[] = sprintf( '(max-width:%dpx)', $max_width );
 			}
 			$styles[] = sprintf(
 				'#%s{ display: none; }',
@@ -736,38 +721,6 @@ class Newspack_Ads_Model {
 			'<style>%s</style>%s',
 			implode( ' ', $styles ),
 			implode( ' ', $markup )
-		);
-	}
-
-	/**
-	 * Picks the smallest size from an array of width/height pairs.
-	 *
-	 * @param array $sizes An array of dimension pairs.
-	 * @return array The pair with the narrowest width.
-	 */
-	public static function smallest_ad_size( $sizes ) {
-		return array_reduce(
-			$sizes,
-			function( $carry, $item ) {
-				return $item[0] < $carry[0] ? $item : $carry;
-			},
-			[ PHP_INT_MAX, PHP_INT_MAX ]
-		);
-	}
-
-	/**
-	 * Picks the largest size from an array of width/height pairs.
-	 *
-	 * @param array $sizes An array of dimension pairs.
-	 * @return array The pair with the widest width.
-	 */
-	public static function largest_ad_size( $sizes ) {
-		return array_reduce(
-			$sizes,
-			function( $carry, $item ) {
-				return $item[0] > $carry[0] ? $item : $carry;
-			},
-			[ 0, 0 ]
 		);
 	}
 
