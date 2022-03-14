@@ -9,7 +9,7 @@ import classNames from 'classnames';
  */
 import { __ } from '@wordpress/i18n';
 import { Fragment, useState, useEffect } from '@wordpress/element';
-import { BlockControls } from '@wordpress/block-editor';
+import { BlockControls, useBlockProps } from '@wordpress/block-editor';
 import {
 	SVG,
 	ToolbarGroup,
@@ -34,6 +34,9 @@ function Edit( { attributes, setAttributes } ) {
 	const [ biddersError, setBiddersError ] = useState( null );
 	const [ providers, setProviders ] = useState( [] );
 	const [ bidders, setBidders ] = useState( [] );
+	const blockProps = useBlockProps( {
+		className: 'newspack-ads-ad-block',
+	} );
 
 	const provider = providers.find( p => p.id.toString() === attributes.provider );
 	const unit = provider?.units?.find( u => u.value.toString() === attributes.ad_unit );
@@ -64,7 +67,7 @@ function Edit( { attributes, setAttributes } ) {
 	}, [] );
 
 	return (
-		<Fragment>
+		<div { ...blockProps }>
 			{ ! isEditing && unit ? (
 				<Fragment>
 					{ ! inFlight && (
@@ -82,7 +85,10 @@ function Edit( { attributes, setAttributes } ) {
 					{ provider === 'gam' && biddersError && (
 						<Notice isWarning noticeText={ biddersError } isDismissible={ false } />
 					) }
-					<div className="newspack-ads-ad-block-placeholder" style={ { height: containerHeight } }>
+					<div
+						className="newspack-ads-ad-block-placeholder"
+						style={ { width: containerWidth, height: containerHeight } }
+					>
 						{ sizes?.length > 0 && (
 							<Fragment>
 								<SVG
@@ -139,7 +145,7 @@ function Edit( { attributes, setAttributes } ) {
 					</div>
 				</Placeholder>
 			) }
-		</Fragment>
+		</div>
 	);
 }
 

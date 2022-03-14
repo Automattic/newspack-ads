@@ -189,6 +189,10 @@ class Newspack_Ads_Blocks {
 		if ( isset( $attributes['className'] ) ) {
 			array_push( $classes, $attributes['className'] );
 		}
+		if ( isset( $attributes['backgroundColor'] ) ) {
+			array_push( $classes, 'has-background' );
+			array_push( $classes, sprintf( 'has-%s-background-color', $attributes['backgroundColor'] ) );
+		}
 		return implode( ' ', $classes );
 	}
 

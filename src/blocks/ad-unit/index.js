@@ -60,6 +60,10 @@ export const settings = {
 	supports: {
 		html: false,
 		align: [ 'left', 'center', 'right', 'wide', 'full' ],
+		color: {
+			text: false,
+			background: true,
+		},
 	},
 	edit,
 	save: () => null, // to use view.php
