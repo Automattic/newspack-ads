@@ -622,8 +622,6 @@ class Newspack_Ads_Model {
 				}
 			}
 		}
-		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', $size_map );
-
 		return $size_map;
 	}
 
