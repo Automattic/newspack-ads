@@ -168,6 +168,9 @@ class Newspack_Ads_Bidding {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
+		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
 		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
@@ -302,6 +305,9 @@ class Newspack_Ads_Bidding {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
+		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
 		if ( Newspack_Ads::is_amp() ) {
 			return;
 		}
@@ -334,7 +340,7 @@ class Newspack_Ads_Bidding {
 
 				foreach ( $bidders as $bidder_id => $bidder ) {
 
-					if ( isset( $ad_data['bidders'][ $bidder_id ] ) ) {
+					if ( isset( $ad_data['bidders'][ $bidder_id ] ) && ! empty( $ad_data['bidders'][ $bidder_id ] ) ) {
 
 						$bidder_placement_id = $ad_data['bidders'][ $bidder_id ];
 
