@@ -20,7 +20,7 @@ import {
 	Button,
 } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
-import { pencil } from '@wordpress/icons';
+import { pencil, pullquote } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -110,7 +110,7 @@ function Edit( { attributes, setAttributes } ) {
 					</div>
 				</Fragment>
 			) : (
-				<Placeholder label={ __( 'Ad Unit', 'newspack-ads' ) }>
+				<Placeholder label={ __( 'Ad Unit', 'newspack-ads' ) } icon={ pullquote }>
 					<div className="newspack-ads-ad-block-edit">
 						{ inFlight ? (
 							<Spinner />
