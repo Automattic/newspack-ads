@@ -55,7 +55,7 @@
 			align-items: baseline;
 			column-gap: 1em;
 			display: grid;
-			grid-template-columns: repeat( 2, minmax( max-content, 50% ) );
+			grid-template-columns: repeat( 2, 1fr );
 			row-gap: calc( 1em - 8px );
 			&.one-column {
 				grid-template-columns: repeat( 1, minmax( max-content, 50% ) );

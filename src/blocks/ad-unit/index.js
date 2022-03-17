@@ -32,10 +32,6 @@ export const settings = {
 	],
 	description: __( 'Render an ad unit from your inventory.', 'newspack-ads' ),
 	attributes: {
-		// Legacy attribute.
-		activeAd: {
-			type: 'string',
-		},
 		id: {
 			type: 'string',
 		},
@@ -49,6 +45,10 @@ export const settings = {
 		bidders_ids: {
 			type: 'object',
 			default: {},
+		},
+		// Legacy attribute.
+		activeAd: {
+			type: 'string',
 		},
 	},
 	supports: {
