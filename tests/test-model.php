@@ -185,4 +185,38 @@ class ModelTest extends WP_UnitTestCase {
 		$sizes = 'notanarray';
 		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
 	}
+
+	/**
+	 * Test size map rules.
+	 */
+	public function test_responsive_size_map() {
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'100' => [ [ 100, 100 ] ],
+			],
+			Newspack_Ads_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ] ] )
+		);
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'60'  => [ [ 60, 60 ] ],
+				'90'  => [ [ 90, 90 ] ],
+				'100' => [ [ 90, 90 ], [ 100, 100 ] ],
+			],
+			Newspack_Ads_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ] )
+		);
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'60'  => [ [ 60, 60 ] ],
+				'90'  => [ [ 60, 60 ], [ 90, 90 ] ],
+				'100' => [ [ 60, 60 ], [ 90, 90 ], [ 100, 100 ] ],
+			],
+			Newspack_Ads_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ], 0.5 )
+		);
+	}
 }

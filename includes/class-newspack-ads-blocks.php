@@ -166,16 +166,18 @@ class Newspack_Ads_Blocks {
 						return $size[0] < 600;
 					}
 				);
+				$sizes = array_values( $sizes );
 			}
 
 			$prepared_unit_data[ $container_id ] = [
 				'unique_id' => $unique_id,
 				'name'      => esc_attr( $ad_unit['name'] ),
 				'code'      => esc_attr( $ad_unit['code'] ),
-				'sizes'     => array_values( $sizes ),
+				'sizes'     => $sizes,
 				'fluid'     => (bool) $ad_unit['fluid'],
 				'targeting' => $ad_targeting,
 				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
+				'size_map'  => Newspack_Ads_Model::get_responsive_size_map( $sizes ),
 			];
 		}
 
@@ -257,53 +259,21 @@ class Newspack_Ads_Blocks {
 					// Build and set the responsive mapping.
 					// @see https://developers.google.com/doubleclick-gpt/guides/ad-sizes#responsive_ads
 					var mapping = googletag.sizeMapping();
-
-					var mobile_cutoff = 500; // As a rule of thumb, let's say mobile ads are <500px wide and desktop ads are >=500px wide.
-
-					var smallest_ad_width = Math.min.apply( Math, Object.keys( unique_widths ).map( Number ) );
-					var largest_ad_width  = Math.max.apply( Math, Object.keys( unique_widths ).map( Number ) );
-
 					// Default base is to not show ads.
 					var baseSizes = [];
 					// If the ad unit is fluid, base includes fluid.
 					if( ad_unit['fluid'] ) {
 						baseSizes = baseSizes.concat( 'fluid' );
 					}
-
-					// If the smallest width is mobile size and the largest width is desktop size,
-					// we want to use some logic to prevent displaying mobile ads on desktop.
-					if ( smallest_ad_width < mobile_cutoff && largest_ad_width >= mobile_cutoff ) {
-						for ( width in unique_widths ) {
-							// On viewports < 500px wide, include all ads smaller than the viewport.
-							if ( parseInt( width ) < mobile_cutoff ) {
-								mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( unique_widths[ width ] ) );
-
-								// On viewports >= 500px wide, only include ads with widths >= 500px.
-							} else {
-								var desktopAds = [];
-								for ( array_index in unique_widths[ width ] ) {
-									ad_size = unique_widths[ width ][ array_index ];
-									if ( ad_size[0] >= mobile_cutoff ) {
-										desktopAds.push( ad_size );
-									}
-								}
-								mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( desktopAds ) );
-							}
-						}
-
-						// If the sizes don't contain both mobile and desktop ad sizes,
-						// we can just display any ad that is smaller than the viewport.
-					} else {
-						for ( width in unique_widths ) {
-							mapping.addSize( [ parseInt( width ), 0 ], baseSizes.concat( unique_widths[ width ] ) );
-						}
+					// Iterate through size map.
+					for ( viewportWidth in ad_unit['size_map'] ) {
+						var mappedSizes = ad_unit['size_map'][ viewportWidth ];
+						mapping.addSize( [ parseInt( viewportWidth ), 0 ], baseSizes.concat( mappedSizes ) );
 					}
-
 					// Sticky ads should only be shown on mobile (screen width <=600px).
 					if ( ad_unit['sticky'] ) {
 						mapping.addSize( [600, 0], baseSizes );
 					}
-
 					// On viewports smaller than the smallest ad size, don't show any ads.
 					mapping.addSize( [0, 0], baseSizes );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
