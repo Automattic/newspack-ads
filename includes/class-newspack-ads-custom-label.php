@@ -69,7 +69,6 @@ class Newspack_Ads_Custom_Label {
 			'newspack_ads_custom_label_container_selectors',
 			[
 				'.newspack_global_ad',
-				'.wp-block-newspack-blocks-wp-block-newspack-ads-blocks-ad-unit',
 				'.widget.widget_newspack-ads-widget .textwidget',
 			]
 		);
