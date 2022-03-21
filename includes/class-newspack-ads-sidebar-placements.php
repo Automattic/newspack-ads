@@ -44,10 +44,10 @@ class Newspack_Ads_Sidebar_Placements {
 	 * Initialize settings.
 	 */
 	public static function init() {
+		add_action( 'init', [ __CLASS__, 'register_placements' ] );
 		add_action( 'dynamic_sidebar_before', [ __CLASS__, 'create_sidebar_before_action' ], 10, 2 );
 		add_action( 'dynamic_sidebar_after', [ __CLASS__, 'create_sidebar_after_action' ], 10, 2 );
 		add_filter( 'is_active_sidebar', [ __CLASS__, 'allow_empty_sidebars' ], 10, 2 );
-		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_sidebar_placements' ], 5, 1 );
 	}
 
 	/**
@@ -103,14 +103,9 @@ class Newspack_Ads_Sidebar_Placements {
 
 	/**
 	 * Register sidebars as ad placements.
-	 *
-	 * @param array $placements List of placements.
-	 *
-	 * @return array Updated list of placements.
 	 */
-	public static function add_sidebar_placements( $placements ) {
-		$sidebars           = $GLOBALS['wp_registered_sidebars'];
-		$sidebar_placements = [];
+	public static function register_placements() {
+		$sidebars = $GLOBALS['wp_registered_sidebars'];
 
 		$disallowed_sidebars  = apply_filters( 'newspack_ads_disallowed_sidebar_placements', self::DISALLOWED_SIDEBARS );
 		$single_unit_sidebars = apply_filters( 'newspack_ads_single_unit_sidebar_placements', self::SINGLE_UNIT_SIDEBARS );
@@ -158,11 +153,9 @@ class Newspack_Ads_Sidebar_Placements {
 						],
 					];
 				}
-
-				$sidebar_placements[ $placement_key ] = $placement_config;
+				Newspack_Ads_Placements::register_placement( $placement_key, $placement_config );
 			}
 		}
-		return array_merge( $placements, $sidebar_placements );
 	}
 }
 Newspack_Ads_Sidebar_Placements::init();

@@ -16,49 +16,160 @@ class Newspack_Ads_Blocks {
 	 * @return void
 	 */
 	public static function init() {
-		require_once NEWSPACK_ADS_ABSPATH . 'src/blocks/ad-unit/view.php';
-		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
-		add_action( 'wp_head', array( __CLASS__, 'insert_gpt_header_script' ) );
-		add_action( 'wp_footer', array( __CLASS__, 'insert_gpt_footer_script' ) );
+		add_action( 'init', [ __CLASS__, 'register_block' ] );
+		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ] );
+		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
+	}
+
+	/**
+	 * Register block
+	 *
+	 * @return void
+	 */
+	public static function register_block() {
+		register_block_type(
+			'newspack-ads/ad-unit',
+			[
+				'attributes'      => [
+					'id'          => [
+						'type' => 'string',
+					],
+					'provider'    => [
+						'type'    => 'string',
+						'default' => 'gam',
+					],
+					'ad_unit'     => [
+						'type' => 'string',
+					],
+					'bidders_ids' => [
+						'type'    => 'object',
+						'default' => [],
+					],
+					// Legacy attribute.
+					'activeAd'    => [
+						'type' => 'string',
+					],
+				],
+				'render_callback' => [ __CLASS__, 'render_block' ],
+				'supports'        => [],
+			]
+		);
+	}
+
+	/**
+	 * Generate a block ID in case the block doesn't have the ID attribute.
+	 *
+	 * @param array[] $data Block placement data.
+	 *
+	 * @return string Block ID.
+	 */
+	private static function get_block_id( $data ) {
+		if ( isset( $data['id'] ) && ! empty( $data['id'] ) ) {
+			return $data['id'];
+		}
+		return sprintf( '%1$s_%2$s', get_the_ID(), $data['ad_unit'] );
+	}
+
+	/**
+	 * Get block placement data.
+	 *
+	 * @param array[] $attrs Block attributes.
+	 *
+	 * @return array[] Placement data.
+	 */
+	private static function get_block_placement_data( $attrs ) {
+		$data       = wp_parse_args(
+			$attrs,
+			[
+				'enabled'  => true,
+				'provider' => 'gam',
+				'ad_unit'  => isset( $attrs['activeAd'] ) ? $attrs['activeAd'] : '',
+			]
+		);
+		$data['id'] = self::get_block_id( $data );
+		return $data;
+	}
+
+	/**
+	 * Register a placement given block attributes.
+	 *
+	 * @param array[] $attrs Block attributes.
+	 *
+	 * @return array[]|WP_Error Placement config or error if placement was not registered.
+	 */
+	private static function register_block_placement( $attrs ) {
+		$data = self::get_block_placement_data( $attrs );
+		if ( ! $data['ad_unit'] ) {
+			return;
+		}
+		$placement_id     = sprintf( 'block_%s', $data['id'] );
+		$hook_name        = sprintf( 'newspack_ads_%s_render', $placement_id );
+		$placement_config = [
+			'show_ui'   => false, // This is a dynamic placement and shouldn't be editable through the Ads wizard.
+			'hook_name' => $hook_name,
+			'data'      => $data,
+		];
+		$registered       = Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
+		if ( \is_wp_error( $registered ) ) {
+			return $registered;
+		}
+		if ( ! $registered ) {
+			return new WP_Error(
+				'newspack_ads_block_placement_not_registered',
+				sprintf(
+					/* translators: %s: Placement ID */
+					__( 'Ad placement %s could not be registered.', 'newspack' ),
+					$placement_id
+				)
+			);
+		}
+		return $placement_config;
+	}
+
+	/**
+	 * Render block.
+	 * 
+	 * @param array[] $attrs Block attributes.
+	 *
+	 * @return string Block HTML.
+	 */
+	public static function render_block( $attrs ) {
+		$placement_config = self::register_block_placement( $attrs );
+		if ( \is_wp_error( $placement_config ) ) {
+			return '';
+		}
+		$classes = self::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attrs );
+		$align   = 'inherit';
+		if ( strpos( $classes, 'aligncenter' ) == true ) {
+			$align = 'center';
+		}
+		ob_start();
+		do_action( $placement_config['hook_name'] );
+		$content = ob_get_clean();
+		if ( empty( $content ) ) {
+			return '';
+		}
+		return sprintf( '<div class="%1$s" style="text-align:%2$s">%3$s</div>', $classes, $align, $content );
 	}
 
 	/**
 	 * Enqueue block scripts and styles for editor.
 	 */
 	public static function enqueue_block_editor_assets() {
-		$editor_script = Newspack_Ads::plugin_url( 'dist/editor.js' );
-		$editor_style  = Newspack_Ads::plugin_url( 'dist/editor.css' );
-		$dependencies  = self::dependencies_from_path( NEWSPACK_ADS_ABSPATH . 'dist/editor.deps.json' );
 		wp_enqueue_script(
 			'newspack-ads-editor',
-			$editor_script,
-			$dependencies,
+			Newspack_Ads::plugin_url( 'dist/editor.js' ),
+			[],
 			NEWSPACK_ADS_VERSION,
 			true
 		);
 		wp_enqueue_style(
 			'newspack-ads-editor',
-			$editor_style,
-			array(),
+			Newspack_Ads::plugin_url( 'dist/editor.css' ),
+			[],
 			NEWSPACK_ADS_VERSION
 		);
-	}
-
-	/**
-	 * Parse generated .deps.json file and return array of dependencies to be enqueued.
-	 *
-	 * @param string $path Path to the generated dependencies file.
-	 *
-	 * @return array Array of dependencides.
-	 */
-	public static function dependencies_from_path( $path ) {
-		// TODO: use this better approach: https://github.com/Automattic/newspack-blocks/blob/master/class-newspack-blocks.php#L27-L44.
-		$dependencies = file_exists( $path )
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
-			? json_decode( file_get_contents( $path ) )
-			: array();
-		$dependencies[] = 'wp-polyfill';
-		return $dependencies;
 	}
 
 	/**
@@ -78,39 +189,11 @@ class Newspack_Ads_Blocks {
 		if ( isset( $attributes['className'] ) ) {
 			array_push( $classes, $attributes['className'] );
 		}
+		if ( isset( $attributes['backgroundColor'] ) ) {
+			array_push( $classes, 'has-background' );
+			array_push( $classes, sprintf( 'has-%s-background-color', $attributes['backgroundColor'] ) );
+		}
 		return implode( ' ', $classes );
-	}
-
-	/**
-	 * Enqueue view scripts and styles for a single block.
-	 *
-	 * @param string $type The block's type.
-	 */
-	public static function enqueue_view_assets( $type ) {
-		$style_path  = Newspack_Ads::plugin_url( 'dist/{$type}/view' . ( is_rtl() ? '.rtl' : '' ) . '.css' );
-		$script_path = Newspack_Ads::plugin_url( 'dist/{$type}/view.js' );
-		if ( file_exists( NEWSPACK_ADS_ABSPATH . $style_path ) ) {
-			wp_enqueue_style(
-				"newspack-blocks-{$type}",
-				plugins_url( $style_path, __FILE__ ),
-				array(),
-				NEWSPACK_ADS_VERSION
-			);
-		}
-		if ( file_exists( NEWSPACK_ADS_ABSPATH . $script_path ) ) {
-			$dependencies = self::dependencies_from_path( Newspack_Ads::plugin_url( 'dist/{$type}/view.deps.json' ) );
-			wp_enqueue_script(
-				"newspack-blocks-{$type}",
-				plugins_url( $script_path, __FILE__ ),
-				$dependencies,
-				array(),
-				NEWSPACK_ADS_VERSION
-			);
-		}
-
-		wp_register_style( "newspack-blocks-{$type}", false ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-		wp_add_inline_style( "newspack-blocks-{$type}", '.wp-block-newspack-blocks-wp-block-newspack-ads-blocks-ad-unit.aligncenter > div { margin-left: auto; margin-right: auto; }' );
-		wp_enqueue_style( "newspack-blocks-{$type}" );
 	}
 
 	/**

@@ -38,8 +38,8 @@ class Newspack_Ads_SCAIP {
 		add_filter( 'newspack_ads_setting_option_name', array( __CLASS__, 'map_option_name' ), 10, 2 );
 
 		// Placements hooks.
+		add_action( 'init', array( __CLASS__, 'register_placements' ) );
 		add_action( 'scaip_shortcode', [ __CLASS__, 'create_placement_action' ] );
-		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_placements' ] );
 
 		// Deprecate sidebar.
 		if ( ! self::is_legacy_widgets() ) {
@@ -142,30 +142,28 @@ class Newspack_Ads_SCAIP {
 	}
 
 	/**
-	 * Add SCAIP placements to the list of placements.
-	 *
-	 * @param array $placements List of placements.
-	 *
-	 * @return array Updated list of placements.
+	 * Register SCAIP placements.
 	 */
-	public static function add_placements( $placements ) {
+	public static function register_placements() {
 
 		if ( ! defined( 'SCAIP_PLUGIN_FILE' ) || self::is_legacy_widgets() ) {
-			return $placements;
+			return;
 		}
 
 		$amount = get_option( self::OPTIONS_MAP['repetitions'], self::DEFAULT_REPETITIONS );
 		for ( $i = 1; $i <= $amount; $i++ ) {
-			$placements[ self::PLACEMENT_PREFIX . $i ] = array(
-				// translators: %s is the number of the placement.
-				'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
-				// translators: %s is the number of the placement.
-				'description'     => sprintf( __( 'Choose an ad unit to display in position #%s within your article content.', 'newspack-ads' ), $i ),
-				'default_enabled' => true,
-				'hook_name'       => sprintf( self::HOOK_NAME, $i ),
+			Newspack_Ads_Placements::register_placement(
+				self::PLACEMENT_PREFIX . $i,
+				[
+					// translators: %s is the number of the placement.
+					'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
+					// translators: %s is the number of the placement.
+					'description'     => sprintf( __( 'Choose an ad unit to display in position #%s within your article content.', 'newspack-ads' ), $i ),
+					'default_enabled' => true,
+					'hook_name'       => sprintf( self::HOOK_NAME, $i ),
+				]
 			);
 		}
-		return $placements;
 	}
 
 	/**
