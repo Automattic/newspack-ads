@@ -740,7 +740,7 @@ class Newspack_Ads_Model {
 
 			$template_slug = get_page_template_slug();
 			if ( ! empty( $template_slug ) ) {
-				$targeting['template'] = sanitize_title( $template_slug );
+				$targeting['template'] = sanitize_title( basename( $template_slug, '.php' ) );
 			}
 
 			// Add the category slugs to targeting.
