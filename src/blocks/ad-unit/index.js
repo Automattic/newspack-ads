@@ -60,5 +60,5 @@ export const settings = {
 		},
 	},
 	edit,
-	save: () => null, // to use view.php
+	save: () => null, // to use Newspack_Ads_Blocks::render_block()
 };
