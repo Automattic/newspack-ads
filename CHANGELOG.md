@@ -1,3 +1,18 @@
+# [1.29.0](https://github.com/Automattic/newspack-ads/compare/v1.28.0...v1.29.0) (2022-03-22)
+
+
+### Bug Fixes
+
+* empty bidder unit id ([#328](https://github.com/Automattic/newspack-ads/issues/328)) ([ecc2715](https://github.com/Automattic/newspack-ads/commit/ecc27155ca0273d009b01280e1fcbef520f89b6b))
+* **header-bidding:** ensure sizes for creative placeholders ([#325](https://github.com/Automattic/newspack-ads/issues/325)) ([c85f5b4](https://github.com/Automattic/newspack-ads/commit/c85f5b4b74ef6d81e5d0657abfdefaa2555a2c96))
+* use ad unit size count for determining responsive amp ads strategy ([#319](https://github.com/Automattic/newspack-ads/issues/319)) ([8578719](https://github.com/Automattic/newspack-ads/commit/8578719349f46543cffa46d25c82c4acef04f918))
+
+
+### Features
+
+* Ads providers and Broadstreet integration ([#313](https://github.com/Automattic/newspack-ads/issues/313)) ([f491b17](https://github.com/Automattic/newspack-ads/commit/f491b1727e93bccd32f2e81a0502138621c594ab))
+* apply custom label to ad unit block and widget ([#307](https://github.com/Automattic/newspack-ads/issues/307)) ([5a62a52](https://github.com/Automattic/newspack-ads/commit/5a62a5228ffc78a8a74eb0904cae32f0582bde5d))
+
 # [1.29.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.28.0...v1.29.0-alpha.1) (2022-03-15)
 
 
