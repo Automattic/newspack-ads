@@ -470,7 +470,7 @@ final class Bidding_GAM {
 		}
 		$key_names = [
 			'hb_pb'     => [],
-			'hb_bidder' => array_keys( newspack_get_ads_bidders() ),
+			'hb_bidder' => array_keys( \newspack_get_ads_bidders() ),
 		];
 		try {
 			$targeting_keys = [];
@@ -635,7 +635,7 @@ final class Bidding_GAM {
 	 * @param int   $order_id The GAM Order ID.
 	 * @param array $data     The data to update with.
 	 *
-	 * @return bool|\WP_Error Whether the config was updated or \WP_Error if order does not exist. 
+	 * @return bool|\WP_Error Whether the config was updated or WP_Error if order does not exist. 
 	 */
 	private static function update_order_local_config( $order_id, $data ) {
 		if ( ! self::get_order_local_config( $order_id ) ) {
@@ -979,7 +979,7 @@ final class Bidding_GAM {
 				'targeting'               => [
 					'custom_targeting' => $custom_targeting,
 				],
-				'creative_placeholders'   => newspack_get_ads_bidder_sizes(),
+				'creative_placeholders'   => \newspack_get_ads_bidder_sizes(),
 			];
 			if ( isset( $order_config['revenue_share'] ) && 0 < absint( $order_config['revenue_share'] ) ) {
 				$config['cost_per_unit']['micro_amount_value'] = $price_micro - ( $price_micro * absint( $order_config['revenue_share'] ) / 100 );
@@ -1080,7 +1080,7 @@ final class Bidding_GAM {
 				return wp_parse_args(
 					$lica_config,
 					[
-						'sizes' => newspack_get_ads_bidder_sizes(), // Override the Creative.Size value with the line item creative placeholders.
+						'sizes' => \newspack_get_ads_bidder_sizes(), // Override the Creative.Size value with the line item creative placeholders.
 					]
 				);
 			},
