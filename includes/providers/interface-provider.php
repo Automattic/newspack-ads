@@ -5,10 +5,12 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
 /**
  * Provider Interface.
  */
-interface Newspack_Ads_Provider_Interface {
+interface Provider_Interface {
 	/**
 	 * The provider ID.
 	 *

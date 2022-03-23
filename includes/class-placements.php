@@ -5,10 +5,16 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers;
+
 /**
  * Newspack Ads Placements
  */
-class Newspack_Ads_Placements {
+final class Placements {
 
 	/**
 	 * Configured placements.
@@ -44,22 +50,22 @@ class Newspack_Ads_Placements {
 	public static function register_api_endpoints() {
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_placements' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 				'args'                => [
 					'placement'    => [
 						'sanitize_callback' => 'sanitize_title',
@@ -84,12 +90,12 @@ class Newspack_Ads_Placements {
 		);
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ __CLASS__, 'api_disable_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 				'args'                => [
 					'placement' => [
 						'sanitize_callback' => 'sanitize_title',
@@ -206,7 +212,7 @@ class Newspack_Ads_Placements {
 	 * @return string Option name. 
 	 */
 	private static function get_option_name( $placement_key ) {
-		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
+		return Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
 	}
 
 	/**
@@ -226,7 +232,7 @@ class Newspack_Ads_Placements {
 			[
 				'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
 				'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
-				'provider' => Newspack_Ads_Providers::DEFAULT_PROVIDER,
+				'provider' => Providers::DEFAULT_PROVIDER,
 			]
 		);
 
@@ -293,7 +299,7 @@ class Newspack_Ads_Placements {
 		foreach ( $placements as $placement_key => $placement ) {
 
 			// Force disable `stick_to_top` on AMP.
-			if ( isset( $placement['supports'] ) && Newspack_Ads::is_amp() ) {
+			if ( isset( $placement['supports'] ) && Core::is_amp() ) {
 				$feature_index = array_search( 'stick_to_top', $placement['supports'] );
 				if ( false !== $feature_index ) {
 					unset( $placement['supports'][ $feature_index ] );
@@ -362,14 +368,14 @@ class Newspack_Ads_Placements {
 	 * @param string $key    The placement key.
 	 * @param array  $config The placement config.
 	 *
-	 * @return bool|WP_Error True if placement was registered or error otherwise.
+	 * @return bool|\WP_Error True if placement was registered or error otherwise.
 	 */
 	public static function register_placement( $key, $config = [] ) {
 		if ( empty( $key ) || empty( $config ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement', __( 'Invalid placement.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_placement', __( 'Invalid placement.', 'newspack-ads' ) );
 		}
 		if ( isset( self::$placements[ $key ] ) ) {
-			return new WP_Error( 'newspack_ads_placement_exists', __( 'Placement already exists.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_placement_exists', __( 'Placement already exists.', 'newspack-ads' ) );
 		}
 		self::$placements[ $key ] = $config;
 
@@ -470,13 +476,13 @@ class Newspack_Ads_Placements {
 	public static function update_placement( $placement_key, $data ) {
 		$placements = self::get_placements();
 		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
 		}
 
 		// Updates always enables the placement.
 		$data['enabled'] = true;
 
-		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Newspack_Ads_Providers::DEFAULT_PROVIDER;
+		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Providers::DEFAULT_PROVIDER;
 
 		// Generate unique ID.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {
@@ -508,7 +514,7 @@ class Newspack_Ads_Placements {
 	public static function disable_placement( $placement_key ) {
 		$placements = self::get_placements();
 		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
 		}
 		$placement_data = self::get_placement_data( $placement_key, $placements[ $placement_key ] );
 		return update_option(
@@ -621,7 +627,7 @@ class Newspack_Ads_Placements {
 			return;
 		}
 		
-		$is_amp        = Newspack_Ads::is_amp();
+		$is_amp        = Core::is_amp();
 		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
@@ -655,7 +661,7 @@ class Newspack_Ads_Placements {
 				<button class='newspack_sticky_ad__close'></button>
 			<?php endif; ?>
 			<?php
-			Newspack_Ads_Providers::render_placement_ad_code(
+			Providers::render_placement_ad_code(
 				$placement_data['ad_unit'],
 				isset( $placement_data['provider'] ) ? $placement_data['provider'] : null,
 				$placement_key,
@@ -669,4 +675,4 @@ class Newspack_Ads_Placements {
 		do_action( 'newspack_ads_after_placement_ad', $placement_key, $hook_key, $placement_data );
 	}
 }
-Newspack_Ads_Placements::init();
+Placements::init();

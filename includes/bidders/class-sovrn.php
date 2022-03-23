@@ -14,12 +14,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Bidding;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Bidder Sovrn Class.
  */
-class Newspack_Ads_Bidder_Sovrn {
+final class Sovrn {
 
 	/**
 	 * Register bidder and its hooks.
@@ -31,7 +33,7 @@ class Newspack_Ads_Bidder_Sovrn {
 			return;
 		}
 
-		newspack_register_ads_bidder(
+		\newspack_register_ads_bidder(
 			'sovrn',
 			[ 'name' => 'Sovrn' ]
 		);
@@ -57,4 +59,4 @@ class Newspack_Ads_Bidder_Sovrn {
 		];
 	}
 }
-Newspack_Ads_Bidder_Sovrn::init();
+Sovrn::init();

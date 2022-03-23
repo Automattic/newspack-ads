@@ -5,6 +5,8 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
@@ -52,7 +54,7 @@ require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 /**
  * Newspack Ads GAM Management
  */
-class Newspack_Ads_GAM {
+final class GAM_API {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
 	const GAM_APP_NAME_FOR_LOGS = 'Newspack';
 

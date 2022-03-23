@@ -14,12 +14,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Bidding;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Bidder PubMatic Class.
  */
-class Newspack_Ads_Bidder_PubMatic {
+final class PubMatic {
 
 	/**
 	 * Register bidder and its hooks.
@@ -31,7 +33,7 @@ class Newspack_Ads_Bidder_PubMatic {
 			return;
 		}
 
-		newspack_register_ads_bidder(
+		\newspack_register_ads_bidder(
 			'pubmatic',
 			[
 				'name'       => 'PubMatic',
@@ -72,4 +74,4 @@ class Newspack_Ads_Bidder_PubMatic {
 		];
 	}
 }
-Newspack_Ads_Bidder_pubmatic::init();
+PubMatic::init();

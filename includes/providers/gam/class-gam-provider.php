@@ -5,12 +5,18 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Providers\Provider;
+use Newspack_Ads\Core;
+use Newspack_Ads\Model;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Google Ad Manager.
  */
-final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
+final class GAM_Provider extends Provider {
 
 	/**
 	 * Constructor.
@@ -42,7 +48,7 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	 * ] The provider available units for placement.
 	 */
 	public function get_units() {
-		$ad_units = Newspack_Ads_Model::get_ad_units();
+		$ad_units = Model::get_ad_units();
 		return array_map(
 			function( $ad_unit ) {
 				return [
@@ -66,17 +72,17 @@ final class Newspack_Ads_GAM_Provider extends Newspack_Ads_Provider {
 	 * @return string $ad_code The ad code for rendering.
 	 */
 	public function get_ad_code( $unit_id, $placement_key = '', $hook_key = '', $placement_data = [] ) {
-		$ad_unit = Newspack_Ads_Model::get_ad_unit_for_display(
+		$ad_unit = Model::get_ad_unit_for_display(
 			$unit_id,
 			array(
 				'unique_id' => $placement_data['id'],
 				'placement' => $placement_key,
 			)
 		);
-		if ( is_wp_error( $ad_unit ) ) {
+		if ( \is_wp_error( $ad_unit ) ) {
 			return '';
 		}
-		$is_amp = Newspack_Ads::is_amp();
+		$is_amp = Core::is_amp();
 		$code   = $is_amp ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
 		if ( empty( $code ) ) {
 			return '';

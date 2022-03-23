@@ -5,12 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Settings Class.
  */
-class Newspack_Ads_Settings {
+final class Settings {
 
 	const API_NAMESPACE      = 'newspack-ads/v1';
 	const API_CAPABILITY     = 'manage_options';
@@ -62,7 +64,7 @@ class Newspack_Ads_Settings {
 	/**
 	 * Check capabilities for using API.
 	 *
-	 * @return bool|WP_Error True or error object.
+	 * @return bool|\WP_Error True or error object.
 	 */
 	public static function api_permissions_check() {
 		if ( ! current_user_can( self::API_CAPABILITY ) ) {
@@ -306,7 +308,7 @@ class Newspack_Ads_Settings {
 	private static function update_setting( $section, $key, $value ) {
 		$config = self::get_setting_config( $section, $key );
 		if ( ! $config ) {
-			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
 		if ( isset( $config['options'] ) && is_array( $config['options'] ) ) {
 			$accepted_values = array_map(
@@ -318,7 +320,7 @@ class Newspack_Ads_Settings {
 			if ( isset( $config['multiple'] ) && true === $config['multiple'] ) {
 				if ( ! is_array( $value ) ) {
 					// translators: %s is the description of the option.
-					return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
+					return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
 				}
 				$value = array_map(
 					function ( $option ) use ( $accepted_values ) {
@@ -329,7 +331,7 @@ class Newspack_Ads_Settings {
 				$value = array_filter( $value );
 			} elseif ( ! in_array( $value, $accepted_values, true ) ) {
 				// translators: %s is the description of the option.
-				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
+				return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
 		do_action( 'newspack_ads_before_update_setting', $section, $key, $value );
@@ -412,4 +414,4 @@ class Newspack_Ads_Settings {
 		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
 	}
 }
-Newspack_Ads_Settings::init();
+Settings::init();

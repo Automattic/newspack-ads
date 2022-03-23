@@ -5,10 +5,18 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers;
+use Newspack_Ads\Placements;
+use Newspack_Ads\Model;
+
 /**
  * Newspack Ads Blocks Management
  */
-class Newspack_Ads_Blocks {
+final class Blocks {
 
 	/**
 	 * Initialize blocks
@@ -110,12 +118,12 @@ class Newspack_Ads_Blocks {
 			'hook_name' => $hook_name,
 			'data'      => $data,
 		];
-		$registered       = Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
+		$registered       = Placements::register_placement( $placement_id, $placement_config );
 		if ( \is_wp_error( $registered ) ) {
 			return $registered;
 		}
 		if ( ! $registered ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_ads_block_placement_not_registered',
 				sprintf(
 					/* translators: %s: Placement ID */
@@ -159,14 +167,14 @@ class Newspack_Ads_Blocks {
 	public static function enqueue_block_editor_assets() {
 		wp_enqueue_script(
 			'newspack-ads-editor',
-			Newspack_Ads::plugin_url( 'dist/editor.js' ),
+			Core::plugin_url( 'dist/editor.js' ),
 			[],
 			NEWSPACK_ADS_VERSION,
 			true
 		);
 		wp_enqueue_style(
 			'newspack-ads-editor',
-			Newspack_Ads::plugin_url( 'dist/editor.css' ),
+			Core::plugin_url( 'dist/editor.css' ),
 			[],
 			NEWSPACK_ADS_VERSION
 		);
@@ -203,10 +211,10 @@ class Newspack_Ads_Blocks {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
-		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
 			return;
 		}
-		if ( Newspack_Ads::is_amp() ) {
+		if ( Core::is_amp() ) {
 			return;
 		}
 		?>
@@ -221,18 +229,18 @@ class Newspack_Ads_Blocks {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
-		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
 			return;
 		}
-		if ( Newspack_Ads::is_amp() ) {
+		if ( Core::is_amp() ) {
 			return;
 		}
 
-		$network_code = Newspack_Ads_Model::get_active_network_code();
+		$network_code = Model::get_active_network_code();
 
 		$prepared_unit_data = [];
-		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
-			$ad_targeting = Newspack_Ads_Model::get_ad_targeting( $ad_unit );
+		foreach ( Model::$ad_ids as $unique_id => $ad_unit ) {
+			$ad_targeting = Model::get_ad_targeting( $ad_unit );
 
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
 			$sizes        = $ad_unit['sizes'];
@@ -242,7 +250,7 @@ class Newspack_Ads_Blocks {
 			}
 
 			// Remove all ad sizes greater than 600px wide for sticky ads.
-			if ( Newspack_Ads_Model::is_sticky( $ad_unit ) ) {
+			if ( Model::is_sticky( $ad_unit ) ) {
 				$sizes = array_filter(
 					$sizes,
 					function( $size ) {
@@ -259,8 +267,8 @@ class Newspack_Ads_Blocks {
 				'sizes'     => $sizes,
 				'fluid'     => (bool) $ad_unit['fluid'],
 				'targeting' => $ad_targeting,
-				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
-				'size_map'  => Newspack_Ads_Model::get_responsive_size_map( $sizes ),
+				'sticky'    => Model::is_sticky( $ad_unit ),
+				'size_map'  => Model::get_responsive_size_map( $sizes ),
 			];
 		}
 
@@ -293,7 +301,7 @@ class Newspack_Ads_Blocks {
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
-				var lazy_load        = <?php echo wp_json_encode( Newspack_Ads_Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
+				var lazy_load        = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
 				var defined_ad_units = {};
 
 				for ( var container_id in all_ad_units ) {
@@ -403,4 +411,4 @@ class Newspack_Ads_Blocks {
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
 	}
 }
-Newspack_Ads_Blocks::init();
+Blocks::init();
