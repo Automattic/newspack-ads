@@ -166,8 +166,8 @@ final class GAM_Model {
 		$prepared_ad_unit['placement'] = $placement;
 		$prepared_ad_unit['context']   = $context;
 
-		$prepared_ad_unit['ad_code']     = self::get_code_for_ad_unit( $prepared_ad_unit, $unique_id );
-		$prepared_ad_unit['amp_ad_code'] = self::get_amp_code_for_ad_unit( $prepared_ad_unit, $unique_id );
+		$prepared_ad_unit['ad_code']     = self::get_ad_unit_code( $prepared_ad_unit, $unique_id );
+		$prepared_ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $prepared_ad_unit, $unique_id );
 		return $prepared_ad_unit;
 	}
 
@@ -483,7 +483,7 @@ final class GAM_Model {
 	 * @param array  $ad_unit   The ad unit to generate code for.
 	 * @param string $unique_id The unique ID for this ad displayment.
 	 */
-	public static function get_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
+	public static function get_ad_unit_code( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
@@ -519,7 +519,7 @@ final class GAM_Model {
 	 * @param array  $ad_unit   The ad unit to generate AMP code for.
 	 * @param string $unique_id Optional pre-defined unique ID for this ad displayment.
 	 */
-	public static function get_amp_code_for_ad_unit( $ad_unit, $unique_id = '' ) {
+	public static function get_ad_unit_amp_code( $ad_unit, $unique_id = '' ) {
 		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
@@ -540,8 +540,11 @@ final class GAM_Model {
 			);
 		}
 
-		if ( 1 < count( $sizes ) && false === $ad_unit['fluid'] ) {
-			return self::get_responsive_amp_code_for_ad_unit( $ad_unit, $unique_id );
+		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', self::get_responsive_size_map( $sizes ), $ad_unit );
+
+		// Do not use responsive strategy if the size map only results in one viewport or the ad unit is fluid.
+		if ( 1 < count( $size_map ) && false === $ad_unit['fluid'] ) {
+			return self::get_ad_unit_responsive_amp_code( $unique_id, $ad_unit, $size_map );
 		}
 
 		$attrs      = [];
@@ -632,10 +635,11 @@ final class GAM_Model {
 	/**
 	 * Generate responsive AMP ads for a series of ad sizes.
 	 *
-	 * @param array  $ad_unit The ad unit to generate code for.
 	 * @param string $unique_id Unique ID for this ad unit instance.
+	 * @param array  $ad_unit   The ad unit to generate code for.
+	 * @param array  $size_map  The size map.
 	 */
-	public static function get_responsive_amp_code_for_ad_unit( $ad_unit, $unique_id ) {
+	public static function get_ad_unit_responsive_amp_code( $unique_id, $ad_unit, $size_map ) {
 		$network_code = self::get_active_network_code();
 		$code         = $ad_unit['code'];
 		$sizes        = $ad_unit['sizes'];
@@ -643,8 +647,6 @@ final class GAM_Model {
 
 		$markup = [];
 		$styles = [];
-
-		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', self::get_responsive_size_map( $sizes ), $ad_unit );
 
 		// Build the amp-ad units according to size map.
 		foreach ( $size_map as $viewport_width => $ad_sizes ) {
