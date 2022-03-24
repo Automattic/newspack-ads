@@ -5,10 +5,12 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Providers\Provider;
+
 /**
  * Main Class.
  */
-class Newspack_Ads_Test_Provider extends Newspack_Ads_Provider {
+class Newspack_Ads_Test_Provider extends Provider {
 
 	/**
 	 * Constructor.

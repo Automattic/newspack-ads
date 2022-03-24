@@ -5,10 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Settings;
+
 /**
  * Newspack Ads Custom Ad Label Class.
  */
-class Newspack_Ads_Custom_Label {
+final class Custom_Label {
 
 	/**
 	 * Initialize settings.
@@ -52,8 +56,8 @@ class Newspack_Ads_Custom_Label {
 	 * Render custom label.
 	 */
 	public static function render_label() {
-		$enabled    = Newspack_Ads_Settings::get_setting( 'custom_label', 'active' );
-		$label_text = Newspack_Ads_Settings::get_setting( 'custom_label', 'label_text' );
+		$enabled    = Settings::get_setting( 'custom_label', 'active' );
+		$label_text = Settings::get_setting( 'custom_label', 'label_text' );
 		if ( true !== $enabled || empty( $label_text ) ) {
 			return;
 		}
@@ -102,4 +106,4 @@ class Newspack_Ads_Custom_Label {
 	}
 
 }
-Newspack_Ads_Custom_Label::init();
+Custom_Label::init();

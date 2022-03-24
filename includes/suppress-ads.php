@@ -5,6 +5,9 @@
  * @package Newspack
  */
 
+use Newspack_Ads\Core;
+use Newspack_Ads\Providers\GAM_Model;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -28,7 +31,7 @@ add_action( 'init', 'newspack_ads_register_suppress_ad_meta' );
  */
 function newspack_ads_enqueue_suppress_ad_assets() {
 	if ( 'post' === get_current_screen()->post_type || 'page' === get_current_screen()->post_type ) {
-		wp_enqueue_script( 'newspack-ads-suppress-ads', Newspack_Ads::plugin_url( 'dist/suppress-ads.js' ), [], NEWSPACK_ADS_VERSION, true );
+		wp_enqueue_script( 'newspack-ads-suppress-ads', Core::plugin_url( 'dist/suppress-ads.js' ), [], NEWSPACK_ADS_VERSION, true );
 	}
 }
 add_action( 'enqueue_block_editor_assets', 'newspack_ads_enqueue_suppress_ad_assets' );
@@ -56,7 +59,7 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		}
 	}
 
-	$global_suppression_config = Newspack_Ads_Model::get_suppression_config();
+	$global_suppression_config = GAM_Model::get_suppression_config();
 	if ( true === $global_suppression_config['tag_archive_pages'] ) {
 		if ( is_tag() ) {
 			$should_show = false;

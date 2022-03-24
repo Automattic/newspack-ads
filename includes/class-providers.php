@@ -5,12 +5,20 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Settings;
+
+use Newspack_Ads\Providers\Provider;
+use Newspack_Ads\Providers\GAM_Provider;
+use Newspack_Ads\Providers\Broadstreet_Provider;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Providers
  */
-class Newspack_Ads_Providers {
+final class Providers {
 
 	/**
 	 * Default provider id.
@@ -20,7 +28,7 @@ class Newspack_Ads_Providers {
 	/**
 	 * List of registered providers.
 	 *
-	 * @var Newspack_Ads_Provider[] Associative array of registered providers keyed by their ID.
+	 * @var Provider[] Associative array of registered providers keyed by their ID.
 	 */
 	protected static $providers = [];
 
@@ -28,8 +36,8 @@ class Newspack_Ads_Providers {
 	 * Initialize providers.
 	 */
 	public static function init() {
-		self::register_provider( new Newspack_Ads_GAM_Provider() );
-		self::register_provider( new Newspack_Ads_Broadstreet_Provider() );
+		self::register_provider( new GAM_Provider() );
+		self::register_provider( new Broadstreet_Provider() );
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
 
@@ -38,12 +46,12 @@ class Newspack_Ads_Providers {
 	 */
 	public static function register_api_endpoints() {
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/providers',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_providers' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
 	}
@@ -67,13 +75,13 @@ class Newspack_Ads_Providers {
 	/**
 	 * Register a new provider.
 	 *
-	 * @param Newspack_Ads_Provider $provider The provider to register.
+	 * @param Provider $provider The provider to register.
 	 *
-	 * @return Newspack_Ads_Provider|WP_Error The registered provider or error.
+	 * @return Provider|WP_Error The registered provider or error.
 	 */
-	public static function register_provider( Newspack_Ads_Provider $provider ) {
-		if ( ! is_subclass_of( $provider, 'Newspack_Ads_Provider' ) ) {
-			return new WP_Error( 'newspack_ads_invalid_provider', __( 'Invalid provider.', 'newspack-ads' ) );
+	public static function register_provider( Provider $provider ) {
+		if ( ! is_subclass_of( $provider, 'Newspack_Ads\Providers\Provider' ) ) {
+			return new \WP_Error( 'newspack_ads_invalid_provider', __( 'Invalid provider.', 'newspack-ads' ) );
 		}
 		self::$providers[ $provider->get_provider_id() ] = $provider;
 		return $provider;
@@ -95,7 +103,7 @@ class Newspack_Ads_Providers {
 	 *
 	 * @return array Associative array with provider data.
 	 */
-	public static function get_serialised_provider( Newspack_Ads_Provider $provider ) {
+	public static function get_serialised_provider( Provider $provider ) {
 		return [
 			'id'     => $provider->get_provider_id(),
 			'name'   => $provider->get_provider_name(),
@@ -163,4 +171,4 @@ class Newspack_Ads_Providers {
 		$provider->render_code( $unit_id, $placement_key, $hook_key, $placement_data );
 	}
 }
-Newspack_Ads_Providers::init();
+Providers::init();
