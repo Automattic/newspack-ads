@@ -33,7 +33,7 @@ final class Medianet {
 			return;
 		}
 
-		\newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			'medianet',
 			[
 				'name'       => 'Media.net',

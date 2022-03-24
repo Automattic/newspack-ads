@@ -33,7 +33,7 @@ final class OpenX {
 			return;
 		}
 
-		\newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			'openx',
 			[
 				'name'       => 'OpenX',

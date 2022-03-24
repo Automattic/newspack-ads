@@ -31,7 +31,7 @@ class BiddingTest extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		// Register the bidder.
-		newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			self::$bidder_id,
 			array(
 				'name'       => 'Sample Bidder',

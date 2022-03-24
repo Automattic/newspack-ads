@@ -33,7 +33,7 @@ final class PubMatic {
 			return;
 		}
 
-		\newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			'pubmatic',
 			[
 				'name'       => 'PubMatic',
