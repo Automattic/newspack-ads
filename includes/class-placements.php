@@ -183,7 +183,7 @@ final class Placements {
 			'stick_to_top' => $request['stick_to_top'],
 		];
 		$result = self::update_placement( $request['placement'], $data );
-		if ( is_wp_error( $result ) ) {
+		if ( \is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_placements() );
@@ -198,7 +198,7 @@ final class Placements {
 	 */
 	public static function api_disable_placement( $request ) {
 		$result = self::disable_placement( $request['placement'] );
-		if ( is_wp_error( $result ) ) {
+		if ( \is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_placements() );

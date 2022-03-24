@@ -55,7 +55,7 @@ final class Widget extends \WP_Widget {
 			) 
 		);
 
-		if ( is_wp_error( $ad_unit ) ) {
+		if ( \is_wp_error( $ad_unit ) ) {
 			return;
 		}
 		if ( ! Core::is_amp() && isset( $instance['stick_to_top'] ) ) {

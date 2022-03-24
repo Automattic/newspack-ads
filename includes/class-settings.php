@@ -361,7 +361,7 @@ final class Settings {
 	public static function update_section( $section, $data ) {
 		foreach ( $data as $key => $value ) {
 			$updated = self::update_setting( $section, $key, $value );
-			if ( is_wp_error( $updated ) ) {
+			if ( \is_wp_error( $updated ) ) {
 				return $updated;
 			}
 		}

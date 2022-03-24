@@ -121,7 +121,7 @@ final class GAM_API {
 		if ( in_array( 'CommonError.CONCURRENT_MODIFICATION', $errors ) ) {
 			$error_message = __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' );
 		}
-		return new WP_Error(
+		return new \WP_Error(
 			'newspack_ads_gam_error',
 			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
 			array(
@@ -709,7 +709,7 @@ final class GAM_API {
 				$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
 				" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
 			}
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_ads_gam_get_ad_units',
 				$error_message,
 				array(
@@ -1431,11 +1431,11 @@ final class GAM_API {
 		try {
 			self::get_service_account_credentials( $credentials_config );
 		} catch ( \Exception $e ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
+			return new \WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
 		}
 		$update_result = update_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME, $credentials_config );
 		if ( ! $update_result ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
 		}
 		return Model::get_gam_connection_status();
 	}
@@ -1449,7 +1449,7 @@ final class GAM_API {
 		$deleted_credentials_result  = delete_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
 		$deleted_network_code_result = delete_option( Model::OPTION_NAME_GAM_NETWORK_CODE );
 		if ( ! $deleted_credentials_result || ! $deleted_network_code_result ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
 		}
 		return Model::get_gam_connection_status();
 	}
