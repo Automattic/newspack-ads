@@ -9,6 +9,8 @@
 
 namespace Newspack_Ads\Integrations;
 
+use Newspack_Ads\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -29,29 +31,29 @@ class Ads_Refresh_Control {
 	 * Initialize SCAIP Hooks.
 	 */
 	public static function init() {
-		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+		\add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
 
 	/**
 	 * Register API Endpoints.
 	 */
 	public static function register_api_endpoints() {
-		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+		\register_rest_route(
+			Settings::API_NAMESPACE,
 			'/ad-refresh-control',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_settings' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
-		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+		\register_rest_route(
+			Settings::API_NAMESPACE,
 			'/ad-refresh-control',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_settings' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 				'args'                => [
 					'active'                => [
 						'sanitize_callback' => 'rest_sanitize_boolean',
@@ -88,7 +90,7 @@ class Ads_Refresh_Control {
 	 * @return array[] Associative array of plugin settings.
 	 */
 	public static function get_settings() {
-		$settings = get_option( self::SETTINGS_KEY, self::DEFAULT_VALUES );
+		$settings = \get_option( self::SETTINGS_KEY, self::DEFAULT_VALUES );
 		foreach ( $settings as $key => $value ) {
 			if ( is_array( $value ) ) {
 				$settings[ $key ] = implode( ',', $value );
@@ -121,7 +123,7 @@ class Ads_Refresh_Control {
 				]
 			);
 		}
-		return rest_ensure_response( self::get_settings() );
+		return \rest_ensure_response( self::get_settings() );
 	}
 
 		/**
@@ -149,16 +151,16 @@ class Ads_Refresh_Control {
 				]
 			);
 		}
-		$settings = wp_parse_args(
+		$settings = \wp_parse_args(
 			$request->get_json_params(),
 			self::get_settings()
 		);
 		if ( isset( $settings['active'] ) ) {
-			$settings['disable_refresh'] = ! rest_sanitize_boolean( $settings['active'] );
+			$settings['disable_refresh'] = ! \rest_sanitize_boolean( $settings['active'] );
 			unset( $settings['active'] );
 		}
-		update_option( self::SETTINGS_KEY, AdRefreshControl\Settings\sanitize_settings( $settings ) );
-		return rest_ensure_response( $settings );
+		\update_option( self::SETTINGS_KEY, \AdRefreshControl\Settings\sanitize_settings( $settings ) );
+		return \rest_ensure_response( $settings );
 	}
 }
 Ads_Refresh_Control::init();
