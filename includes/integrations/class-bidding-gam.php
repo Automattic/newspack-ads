@@ -329,7 +329,7 @@ final class Bidding_GAM {
 
 		\wp_enqueue_script(
 			'newspack-ads-bidding-gam',
-			plugins_url( '../dist/header-bidding-gam.js', __FILE__ ),
+			plugins_url( '../../dist/header-bidding-gam.js', __FILE__ ),
 			[ 'wp-components', 'wp-api-fetch' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/header-bidding-gam.js' ),
 			true 
