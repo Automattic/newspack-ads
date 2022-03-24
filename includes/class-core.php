@@ -17,7 +17,7 @@ final class Core {
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var \Newspack_Ads\Core
+	 * @var Newspack_Ads\Core
 	 */
 	protected static $instance = null;
 
@@ -25,7 +25,7 @@ final class Core {
 	 * Main Newspack Ads Instance.
 	 * Ensures only one instance of Newspack Ads is loaded or can be loaded.
 	 *
-	 * @return Newspack Ads - Main instance.
+	 * @return Newspack_Ads\Core Newspack Ads - Main instance.
 	 */
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
