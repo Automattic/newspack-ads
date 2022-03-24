@@ -7,12 +7,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Integrations;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads "Ad Refresh Control" Plugin Settings Class.
  */
-class Newspack_Ads_Refresh_Control {
+class Ads_Refresh_Control {
 
 	const SETTINGS_KEY = 'avc_settings';
 
@@ -159,4 +161,4 @@ class Newspack_Ads_Refresh_Control {
 		return rest_ensure_response( $settings );
 	}
 }
-Newspack_Ads_Refresh_Control::init();
+Ads_Refresh_Control::init();
