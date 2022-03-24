@@ -5,6 +5,9 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Providers;
+use Newspack_Ads\Providers\Provider;
+
 /**
  * Test ads providers functionality.
  */
@@ -24,14 +27,14 @@ class ProvidersTest extends WP_UnitTestCase {
 		include_once dirname( __FILE__ ) . '/class-newspack-ads-test-provider.php';
 		// Register the test provider.
 		self::$provider = new Newspack_Ads_Test_Provider();
-		Newspack_Ads_Providers::register_provider( self::$provider );
+		Providers::register_provider( self::$provider );
 	}
 
 	/**
 	 * Test serialised provider.
 	 */
 	public function test_serialised_provider() {
-		$serialised_provider = Newspack_Ads_Providers::get_serialised_provider( self::$provider );
+		$serialised_provider = Providers::get_serialised_provider( self::$provider );
 		self::assertEquals(
 			$serialised_provider,
 			[
@@ -46,9 +49,9 @@ class ProvidersTest extends WP_UnitTestCase {
 	 * Test getting a registered provider.
 	 */
 	public function test_get_provider() {
-		$provider = Newspack_Ads_Providers::get_provider( self::$provider->get_provider_id() );
+		$provider = Providers::get_provider( self::$provider->get_provider_id() );
 		self::assertTrue(
-			$provider instanceof Newspack_Ads_Provider
+			$provider instanceof Provider
 		);
 		self::assertEquals(
 			$provider->get_provider_id(),
@@ -61,7 +64,7 @@ class ProvidersTest extends WP_UnitTestCase {
 	 */
 	public function test_render_placement() {
 		ob_start();
-		Newspack_Ads_Providers::render_placement_ad_code(
+		Providers::render_placement_ad_code(
 			'test_ad_unit',
 			self::$provider->get_provider_id(),
 			'test_placement_id',

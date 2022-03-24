@@ -5,6 +5,8 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Settings;
+
 /**
  * Test ads settings functionality.
  */
@@ -92,7 +94,7 @@ class SettingsTest extends WP_UnitTestCase {
 	 */
 	public function test_get_public_settings() {
 		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
-		$settings = Newspack_Ads_Settings::get_settings( 'test_section', true );
+		$settings = Settings::get_settings( 'test_section', true );
 		self::assertFalse(
 			isset( $settings['private_field'] ),
 			'Private settings should not be returned'
@@ -109,8 +111,8 @@ class SettingsTest extends WP_UnitTestCase {
 			'number_field'  => '200',
 			'private_field' => true,
 		];
-		Newspack_Ads_Settings::update_section( 'test_section', $values );
-		$settings = Newspack_Ads_Settings::get_settings( 'test_section' );
+		Settings::update_section( 'test_section', $values );
+		$settings = Settings::get_settings( 'test_section' );
 		self::assertSame(
 			$settings['active'],
 			true,
@@ -138,7 +140,7 @@ class SettingsTest extends WP_UnitTestCase {
 		$values = [
 			'select_field' => 'not_an_option',
 		];
-		$result = Newspack_Ads_Settings::update_section( 'test_section', $values );
+		$result = Settings::update_section( 'test_section', $values );
 		self::assertTrue(
 			is_wp_error( $result ),
 			'Should not update a value outside of existing options.'
@@ -148,8 +150,8 @@ class SettingsTest extends WP_UnitTestCase {
 		$values   = [
 			'select_field' => 'option2',
 		];
-		$result   = Newspack_Ads_Settings::update_section( 'test_section', $values );
-		$settings = Newspack_Ads_Settings::get_settings( 'test_section' );
+		$result   = Settings::update_section( 'test_section', $values );
+		$settings = Settings::get_settings( 'test_section' );
 		self::assertSame(
 			$settings['select_field'],
 			'option2',
@@ -162,7 +164,7 @@ class SettingsTest extends WP_UnitTestCase {
 	 */
 	public function test_setting_default_type() {
 		add_filter( 'newspack_ads_settings_list', [ __CLASS__, 'set_settings_list' ] );
-		$config = Newspack_Ads_Settings::get_setting_config( 'test_section', 'typeless_field' );
+		$config = Settings::get_setting_config( 'test_section', 'typeless_field' );
 		self::assertTrue(
 			isset( $config['type'] ),
 			'Should have a default type'

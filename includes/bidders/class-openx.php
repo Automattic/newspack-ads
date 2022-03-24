@@ -14,12 +14,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Bidding;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Bidder OpenX Class.
  */
-class Newspack_Ads_Bidder_OpenX {
+final class OpenX {
 
 	/**
 	 * Register bidder and its hooks.
@@ -31,7 +33,7 @@ class Newspack_Ads_Bidder_OpenX {
 			return;
 		}
 
-		newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			'openx',
 			[
 				'name'       => 'OpenX',
@@ -64,7 +66,7 @@ class Newspack_Ads_Bidder_OpenX {
 	 * @return array Prebid.js config.
 	 */
 	public static function add_user_sync_iframe( $config ) {
-		$bidder_config = newspack_get_ads_bidder( 'openx' );
+		$bidder_config = \Newspack_Ads\get_bidder( 'openx' );
 		if ( ! $bidder_config || ! isset( $bidder_config['data']['openx_platform'] ) || empty( $bidder_config['data']['openx_platform'] ) ) {
 			return $config;
 		}
@@ -95,4 +97,4 @@ class Newspack_Ads_Bidder_OpenX {
 		];
 	}
 }
-Newspack_Ads_Bidder_OpenX::init();
+OpenX::init();

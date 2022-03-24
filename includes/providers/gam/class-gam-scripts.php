@@ -1,212 +1,45 @@
 <?php
 /**
- * Newspack Ads Block Management
+ * Newspack Ads Google Ad Manager Provider Scripts.
  *
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers;
+use Newspack_Ads\Providers\GAM_Model;
+
+defined( 'ABSPATH' ) || exit;
+
 /**
- * Newspack Ads Blocks Management
+ * Google Ad Manager Scripts.
  */
-class Newspack_Ads_Blocks {
+final class GAM_Scripts {
 
 	/**
-	 * Initialize blocks
+	 * Initialize scripts
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'init', [ __CLASS__, 'register_block' ] );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ] );
 		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
-	}
-
-	/**
-	 * Register block
-	 *
-	 * @return void
-	 */
-	public static function register_block() {
-		register_block_type(
-			'newspack-ads/ad-unit',
-			[
-				'attributes'      => [
-					'id'          => [
-						'type' => 'string',
-					],
-					'provider'    => [
-						'type'    => 'string',
-						'default' => 'gam',
-					],
-					'ad_unit'     => [
-						'type' => 'string',
-					],
-					'bidders_ids' => [
-						'type'    => 'object',
-						'default' => [],
-					],
-					// Legacy attribute.
-					'activeAd'    => [
-						'type' => 'string',
-					],
-				],
-				'render_callback' => [ __CLASS__, 'render_block' ],
-				'supports'        => [],
-			]
-		);
-	}
-
-	/**
-	 * Generate a block ID in case the block doesn't have the ID attribute.
-	 *
-	 * @param array[] $data Block placement data.
-	 *
-	 * @return string Block ID.
-	 */
-	private static function get_block_id( $data ) {
-		if ( isset( $data['id'] ) && ! empty( $data['id'] ) ) {
-			return $data['id'];
-		}
-		return sprintf( '%1$s_%2$s', get_the_ID(), $data['ad_unit'] );
-	}
-
-	/**
-	 * Get block placement data.
-	 *
-	 * @param array[] $attrs Block attributes.
-	 *
-	 * @return array[] Placement data.
-	 */
-	private static function get_block_placement_data( $attrs ) {
-		$data       = wp_parse_args(
-			$attrs,
-			[
-				'enabled'  => true,
-				'provider' => 'gam',
-				'ad_unit'  => isset( $attrs['activeAd'] ) ? $attrs['activeAd'] : '',
-			]
-		);
-		$data['id'] = self::get_block_id( $data );
-		return $data;
-	}
-
-	/**
-	 * Register a placement given block attributes.
-	 *
-	 * @param array[] $attrs Block attributes.
-	 *
-	 * @return array[]|WP_Error Placement config or error if placement was not registered.
-	 */
-	private static function register_block_placement( $attrs ) {
-		$data = self::get_block_placement_data( $attrs );
-		if ( ! $data['ad_unit'] ) {
-			return;
-		}
-		$placement_id     = sprintf( 'block_%s', $data['id'] );
-		$hook_name        = sprintf( 'newspack_ads_%s_render', $placement_id );
-		$placement_config = [
-			'show_ui'   => false, // This is a dynamic placement and shouldn't be editable through the Ads wizard.
-			'hook_name' => $hook_name,
-			'data'      => $data,
-		];
-		$registered       = Newspack_Ads_Placements::register_placement( $placement_id, $placement_config );
-		if ( \is_wp_error( $registered ) ) {
-			return $registered;
-		}
-		if ( ! $registered ) {
-			return new WP_Error(
-				'newspack_ads_block_placement_not_registered',
-				sprintf(
-					/* translators: %s: Placement ID */
-					__( 'Ad placement %s could not be registered.', 'newspack' ),
-					$placement_id
-				)
-			);
-		}
-		return $placement_config;
-	}
-
-	/**
-	 * Render block.
-	 * 
-	 * @param array[] $attrs Block attributes.
-	 *
-	 * @return string Block HTML.
-	 */
-	public static function render_block( $attrs ) {
-		$placement_config = self::register_block_placement( $attrs );
-		if ( \is_wp_error( $placement_config ) ) {
-			return '';
-		}
-		$classes = self::block_classes( 'wp-block-newspack-ads-blocks-ad-unit', $attrs );
-		$align   = 'inherit';
-		if ( strpos( $classes, 'aligncenter' ) == true ) {
-			$align = 'center';
-		}
-		ob_start();
-		do_action( $placement_config['hook_name'] );
-		$content = ob_get_clean();
-		if ( empty( $content ) ) {
-			return '';
-		}
-		return sprintf( '<div class="%1$s" style="text-align:%2$s">%3$s</div>', $classes, $align, $content );
-	}
-
-	/**
-	 * Enqueue block scripts and styles for editor.
-	 */
-	public static function enqueue_block_editor_assets() {
-		wp_enqueue_script(
-			'newspack-ads-editor',
-			Newspack_Ads::plugin_url( 'dist/editor.js' ),
-			[],
-			NEWSPACK_ADS_VERSION,
-			true
-		);
-		wp_enqueue_style(
-			'newspack-ads-editor',
-			Newspack_Ads::plugin_url( 'dist/editor.css' ),
-			[],
-			NEWSPACK_ADS_VERSION
-		);
-	}
-
-	/**
-	 * Utility to assemble the class for a server-side rendered bloc
-	 *
-	 * @param string $type The block type.
-	 * @param array  $attributes Block attributes.
-	 *
-	 * @return string Class list separated by spaces.
-	 */
-	public static function block_classes( $type, $attributes = array() ) {
-		$align   = isset( $attributes['align'] ) ? $attributes['align'] : 'none';
-		$classes = array(
-			"wp-block-newspack-blocks-{$type}",
-			"align{$align}",
-		);
-		if ( isset( $attributes['className'] ) ) {
-			array_push( $classes, $attributes['className'] );
-		}
-		if ( isset( $attributes['backgroundColor'] ) ) {
-			array_push( $classes, 'has-background' );
-			array_push( $classes, sprintf( 'has-%s-background-color', $attributes['backgroundColor'] ) );
-		}
-		return implode( ' ', $classes );
 	}
 
 	/**
 	 * Google Publisher Tag header script.
 	 */
 	public static function insert_gpt_header_script() {
-		if ( ! newspack_ads_should_show_ads() ) {
+		if ( ! \newspack_ads_should_show_ads() ) {
 			return;
 		}
-		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
 			return;
 		}
-		if ( Newspack_Ads::is_amp() ) {
+		if ( Core::is_amp() ) {
 			return;
 		}
 		?>
@@ -218,21 +51,21 @@ class Newspack_Ads_Blocks {
 	 * Google Publisher Tag configuration script.
 	 */
 	public static function insert_gpt_footer_script() {
-		if ( ! newspack_ads_should_show_ads() ) {
+		if ( ! \newspack_ads_should_show_ads() ) {
 			return;
 		}
-		if ( ! Newspack_Ads_Providers::is_provider_active( 'gam' ) ) {
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
 			return;
 		}
-		if ( Newspack_Ads::is_amp() ) {
+		if ( Core::is_amp() ) {
 			return;
 		}
 
-		$network_code = Newspack_Ads_Model::get_active_network_code();
+		$network_code = GAM_Model::get_active_network_code();
 
 		$prepared_unit_data = [];
-		foreach ( Newspack_Ads_Model::$ad_ids as $unique_id => $ad_unit ) {
-			$ad_targeting = Newspack_Ads_Model::get_ad_targeting( $ad_unit );
+		foreach ( GAM_Model::$ad_ids as $unique_id => $ad_unit ) {
+			$ad_targeting = GAM_Model::get_ad_targeting( $ad_unit );
 
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
 			$sizes        = $ad_unit['sizes'];
@@ -242,7 +75,7 @@ class Newspack_Ads_Blocks {
 			}
 
 			// Remove all ad sizes greater than 600px wide for sticky ads.
-			if ( Newspack_Ads_Model::is_sticky( $ad_unit ) ) {
+			if ( GAM_Model::is_sticky( $ad_unit ) ) {
 				$sizes = array_filter(
 					$sizes,
 					function( $size ) {
@@ -259,8 +92,8 @@ class Newspack_Ads_Blocks {
 				'sizes'     => $sizes,
 				'fluid'     => (bool) $ad_unit['fluid'],
 				'targeting' => $ad_targeting,
-				'sticky'    => Newspack_Ads_Model::is_sticky( $ad_unit ),
-				'size_map'  => Newspack_Ads_Model::get_responsive_size_map( $sizes ),
+				'sticky'    => GAM_Model::is_sticky( $ad_unit ),
+				'size_map'  => GAM_Model::get_responsive_size_map( $sizes ),
 			];
 		}
 
@@ -293,7 +126,7 @@ class Newspack_Ads_Blocks {
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
-				var lazy_load        = <?php echo wp_json_encode( Newspack_Ads_Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
+				var lazy_load        = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
 				var defined_ad_units = {};
 
 				for ( var container_id in all_ad_units ) {
@@ -403,4 +236,4 @@ class Newspack_Ads_Blocks {
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
 	}
 }
-Newspack_Ads_Blocks::init();
+GAM_Scripts::init();

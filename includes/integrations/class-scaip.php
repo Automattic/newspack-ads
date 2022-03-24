@@ -5,12 +5,17 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Integrations;
+
+use Newspack_Ads\Placements;
+use Newspack_Ads\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads SCAIP Class.
  */
-class Newspack_Ads_SCAIP {
+final class SCAIP {
 
 	// Map of SCAIP option names.
 	const OPTIONS_MAP = array(
@@ -114,7 +119,7 @@ class Newspack_Ads_SCAIP {
 	 * @return bool Whether legacy widgets are active.
 	 */
 	private static function is_legacy_widgets() {
-		return (bool) get_option( Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets', true );
+		return (bool) get_option( Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets', true );
 	}
 
 	/**
@@ -152,7 +157,7 @@ class Newspack_Ads_SCAIP {
 
 		$amount = get_option( self::OPTIONS_MAP['repetitions'], self::DEFAULT_REPETITIONS );
 		for ( $i = 1; $i <= $amount; $i++ ) {
-			Newspack_Ads_Placements::register_placement(
+			Placements::register_placement(
 				self::PLACEMENT_PREFIX . $i,
 				[
 					// translators: %s is the number of the placement.
@@ -205,4 +210,4 @@ class Newspack_Ads_SCAIP {
 		return $placement_data;
 	}
 }
-Newspack_Ads_SCAIP::init();
+SCAIP::init();

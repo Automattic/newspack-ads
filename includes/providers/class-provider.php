@@ -5,12 +5,16 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Providers\Provider_Interface;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Provider.
  */
-abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface {
+abstract class Provider implements Provider_Interface {
 	/**
 	 * The provider ID.
 	 *

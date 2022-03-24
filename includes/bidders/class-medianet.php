@@ -14,12 +14,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Bidding;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Bidder Media.net Class.
  */
-class Newspack_Ads_Bidder_Medianet {
+final class Medianet {
 
 	/**
 	 * Register bidder and its hooks.
@@ -31,7 +33,7 @@ class Newspack_Ads_Bidder_Medianet {
 			return;
 		}
 
-		newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			'medianet',
 			[
 				'name'       => 'Media.net',
@@ -58,7 +60,7 @@ class Newspack_Ads_Bidder_Medianet {
 	 * @return array
 	 */
 	public static function add_realtime_data_config( $config ) {
-		$bidder_config = newspack_get_ads_bidder( 'medianet' );
+		$bidder_config = \Newspack_Ads\get_bidder( 'medianet' );
 		if ( ! $bidder_config || ! isset( $bidder_config['data']['medianet_cid'] ) || empty( $bidder_config['data']['medianet_cid'] ) ) {
 			return $config;
 		}
@@ -94,4 +96,4 @@ class Newspack_Ads_Bidder_Medianet {
 		];
 	}
 }
-Newspack_Ads_Bidder_Medianet::init();
+Medianet::init();
