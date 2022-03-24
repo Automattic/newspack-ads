@@ -332,28 +332,24 @@ final class Placements {
 				'name'            => __( 'Global: Above Header', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display above the header.', 'newspack-ads' ),
 				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_above_header',
 				'hook_name'       => 'before_header',
 			),
 			'global_below_header' => array(
 				'name'            => __( 'Global: Below Header', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display below the header.', 'newspack-ads' ),
 				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_below_header',
 				'hook_name'       => 'after_header',
 			),
 			'global_above_footer' => array(
 				'name'            => __( 'Global: Above Footer', 'newspack-ads' ),
 				'description'     => __( 'Choose an ad unit to display above the footer.', 'newspack-ads' ),
 				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_above_footer',
 				'hook_name'       => 'before_footer',
 			),
 			'sticky'              => array(
 				'name'            => __( 'Mobile Sticky Footer', 'newspack-ads' ),
 				'description'     => __( 'Choose a sticky ad unit to display at the bottom of the viewport on mobile devices (recommended sizes are 320x50, 300x50)', 'newspack-ads' ),
 				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_sticky',
 				'hook_name'       => 'before_footer',
 			),
 		);
