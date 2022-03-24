@@ -73,9 +73,11 @@ final class Core {
 	private function includes() {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/interface-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/class-provider.php';
-		require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-api.php';
-		require_once NEWSPACK_ADS_ABSPATH . '/includes/providers/broadstreet/class-broadstreet-provider.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-model.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-provider.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-scripts.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/broadstreet/class-broadstreet-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-settings.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-custom-label.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-providers.php';
@@ -89,7 +91,6 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-sidebar-placements.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/integrations/class-scaip.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-blocks.php';
-		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-model.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-widget.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/suppress-ads.php';
 	}

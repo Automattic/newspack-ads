@@ -7,7 +7,7 @@
 
 namespace Newspack_Ads\Providers;
 
-use Newspack_Ads\Model;
+use Newspack_Ads\Providers\GAM_Model;
 
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
@@ -1437,7 +1437,7 @@ final class GAM_API {
 		if ( ! $update_result ) {
 			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
 		}
-		return Model::get_gam_connection_status();
+		return GAM_Model::get_gam_connection_status();
 	}
 
 	/**
@@ -1447,10 +1447,10 @@ final class GAM_API {
 	 */
 	public static function remove_gam_credentials() {
 		$deleted_credentials_result  = delete_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
-		$deleted_network_code_result = delete_option( Model::OPTION_NAME_GAM_NETWORK_CODE );
+		$deleted_network_code_result = delete_option( GAM_Model::OPTION_NAME_GAM_NETWORK_CODE );
 		if ( ! $deleted_credentials_result || ! $deleted_network_code_result ) {
 			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
 		}
-		return Model::get_gam_connection_status();
+		return GAM_Model::get_gam_connection_status();
 	}
 }

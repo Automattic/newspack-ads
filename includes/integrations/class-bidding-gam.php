@@ -9,7 +9,7 @@ namespace Newspack_Ads\Integrations;
 
 use Newspack_Ads\Bidding;
 use Newspack_Ads\Settings;
-use Newspack_Ads\Model;
+use Newspack_Ads\Providers\GAM_Model;
 use Newspack_Ads\Providers\GAM_API;
 
 defined( 'ABSPATH' ) || exit;
@@ -338,7 +338,7 @@ final class Bidding_GAM {
 			'newspack-ads-bidding-gam',
 			'newspack_ads_bidding_gam',
 			[
-				'network_code'    => Model::get_active_network_code(),
+				'network_code'    => GAM_Model::get_active_network_code(),
 				'lica_batch_size' => self::LICA_BATCH_SIZE,
 			]
 		);

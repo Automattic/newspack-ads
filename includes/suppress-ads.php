@@ -6,7 +6,7 @@
  */
 
 use Newspack_Ads\Core;
-use Newspack_Ads\Model;
+use Newspack_Ads\Providers\GAM_Model;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -59,7 +59,7 @@ function newspack_ads_should_show_ads( $post_id = null ) {
 		}
 	}
 
-	$global_suppression_config = Model::get_suppression_config();
+	$global_suppression_config = GAM_Model::get_suppression_config();
 	if ( true === $global_suppression_config['tag_archive_pages'] ) {
 		if ( is_tag() ) {
 			$should_show = false;

@@ -7,9 +7,9 @@
 
 namespace Newspack_Ads\Providers;
 
-use Newspack_Ads\Providers\Provider;
 use Newspack_Ads\Core;
-use Newspack_Ads\Model;
+use Newspack_Ads\Providers\Provider;
+use Newspack_Ads\Providers\GAM_Model;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -48,7 +48,7 @@ final class GAM_Provider extends Provider {
 	 * ] The provider available units for placement.
 	 */
 	public function get_units() {
-		$ad_units = Model::get_ad_units();
+		$ad_units = GAM_Model::get_ad_units();
 		return array_map(
 			function( $ad_unit ) {
 				return [
@@ -72,7 +72,7 @@ final class GAM_Provider extends Provider {
 	 * @return string $ad_code The ad code for rendering.
 	 */
 	public function get_ad_code( $unit_id, $placement_key = '', $hook_key = '', $placement_data = [] ) {
-		$ad_unit = Model::get_ad_unit_for_display(
+		$ad_unit = GAM_Model::get_ad_unit_for_display(
 			$unit_id,
 			array(
 				'unique_id' => $placement_data['id'],

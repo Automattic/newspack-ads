@@ -1,18 +1,18 @@
 <?php
 /**
- * Newspack Ads Custom Post  Type
+ * Newspack Ads Google Ad Manager Provider Model.
  *
  * @package Newspack
  */
 
-namespace Newspack_Ads;
+namespace Newspack_Ads\Providers;
 
 use Newspack_Ads\Providers\GAM_API;
 
 /**
- * Newspack Ads Blocks Management
+ * Newspack Ads GAM Model Class.
  */
-final class Model {
+final class GAM_Model {
 	const SIZES = 'sizes';
 	const CODE  = 'code';
 	const FLUID = 'fluid';
@@ -847,4 +847,4 @@ final class Model {
 		update_option( self::OPTION_NAME_GLOBAL_AD_SUPPRESSION, $config );
 	}
 }
-Model::init();
+GAM_Model::init();

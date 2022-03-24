@@ -9,7 +9,7 @@ namespace Newspack_Ads;
 
 use Newspack_Ads\Core;
 use Newspack_Ads\Providers;
-use Newspack_Ads\Model;
+use Newspack_Ads\Providers\GAM_Model;
 
 /**
  * Newspack Ads Blocks Management
@@ -47,7 +47,7 @@ final class Widget extends \WP_Widget {
 		}
 
 		$selected_ad_unit = $instance['selected_ad_unit'];
-		$ad_unit          = Model::get_ad_unit_for_display(
+		$ad_unit          = GAM_Model::get_ad_unit_for_display(
 			$selected_ad_unit,
 			array(
 				'placement' => 'newspack_ads_widget',
@@ -94,7 +94,7 @@ final class Widget extends \WP_Widget {
 			$stick_to_top = false;
 		}
 
-		$ad_units = Model::get_ad_units();
+		$ad_units = GAM_Model::get_ad_units();
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'selected_ad_unit' ) ); ?>">
