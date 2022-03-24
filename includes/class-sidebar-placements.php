@@ -5,10 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Placements;
+
 /**
  * Newspack Ads Sidebar Placements
  */
-class Newspack_Ads_Sidebar_Placements {
+final class Sidebar_Placements {
 
 	// Hook names to be used for ad placement.
 	const SIDEBAR_BEFORE_HOOK_NAME = 'newspack_ads_sidebar_before_placement_%s';
@@ -84,7 +88,7 @@ class Newspack_Ads_Sidebar_Placements {
 	 */
 	public static function allow_empty_sidebars( $is_active_sidebar, $index ) {
 		if ( ! $is_active_sidebar && in_array( $index, self::ALLOWED_EMPTY_SIDEBARS, true ) ) {
-			$is_active_sidebar = Newspack_Ads_Placements::can_display_ad_unit( self::get_placement_key( $index ) );
+			$is_active_sidebar = Placements::can_display_ad_unit( self::get_placement_key( $index ) );
 		}
 		return $is_active_sidebar;
 	}
@@ -153,9 +157,9 @@ class Newspack_Ads_Sidebar_Placements {
 						],
 					];
 				}
-				Newspack_Ads_Placements::register_placement( $placement_key, $placement_config );
+				Placements::register_placement( $placement_key, $placement_config );
 			}
 		}
 	}
 }
-Newspack_Ads_Sidebar_Placements::init();
+Sidebar_Placements::init();

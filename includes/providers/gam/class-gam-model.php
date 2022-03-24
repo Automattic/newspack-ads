@@ -1,14 +1,18 @@
 <?php
 /**
- * Newspack Ads Custom Post  Type
+ * Newspack Ads Google Ad Manager Provider Model.
  *
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Providers\GAM_API;
+
 /**
- * Newspack Ads Blocks Management
+ * Newspack Ads GAM Model Class.
  */
-class Newspack_Ads_Model {
+final class GAM_Model {
 	const SIZES = 'sizes';
 	const CODE  = 'code';
 	const FLUID = 'fluid';
@@ -51,7 +55,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_ad_post_type' ) );
-		Newspack_Ads_GAM::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
+		GAM_API::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
 	}
 
 	/**
@@ -73,14 +77,14 @@ class Newspack_Ads_Model {
 	/**
 	 * Initial GAM setup.
 	 *
-	 * @return object|WP_Error Setup results or error if setup fails.
+	 * @return object|\WP_Error Setup results or error if setup fails.
 	 */
 	public static function setup_gam() {
 		$setup_results = array();
 		try {
-			$setup_results['created_targeting_keys'] = Newspack_Ads_GAM::update_custom_targeting_keys();
-		} catch ( Exception $e ) {
-			return new WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
+			$setup_results['created_targeting_keys'] = GAM_API::update_custom_targeting_keys();
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
 		}
 		return $setup_results;
 	}
@@ -101,7 +105,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function get_ad_unit_for_display( $id, $config = array() ) {
 		if ( 0 === (int) $id ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_no_adspot_found',
 				\esc_html__( 'No such ad spot.', 'newspack' ),
 				array(
@@ -150,7 +154,7 @@ class Newspack_Ads_Model {
 
 		// Ad unit not found neither as the CPT nor in options table.
 		if ( ! isset( $prepared_ad_unit['id'] ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_no_adspot_found',
 				\esc_html__( 'No such ad spot.', 'newspack' ),
 				array(
@@ -206,7 +210,7 @@ class Newspack_Ads_Model {
 		}
 		$ad_units = self::get_legacy_ad_units();
 		if ( self::is_gam_connected() ) {
-			$gam_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+			$gam_ad_units = GAM_API::get_serialised_gam_ad_units();
 			if ( \is_wp_error( $gam_ad_units ) ) {
 				return $gam_ad_units;
 			}
@@ -227,7 +231,7 @@ class Newspack_Ads_Model {
 	 */
 	public static function add_ad_unit( $ad_unit ) {
 		if ( self::is_gam_connected() ) {
-			$result = Newspack_Ads_GAM::create_ad_unit( $ad_unit );
+			$result = GAM_API::create_ad_unit( $ad_unit );
 			self::sync_gam_settings();
 		} else {
 			$result = self::legacy_add_ad_unit( $ad_unit );
@@ -253,7 +257,7 @@ class Newspack_Ads_Model {
 			)
 		);
 		if ( \is_wp_error( $ad_unit_post ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_ad_unit_exists',
 				\esc_html__( 'An ad unit with that name already exists', 'newspack' ),
 				array(
@@ -284,7 +288,7 @@ class Newspack_Ads_Model {
 	private static function legacy_update_ad_unit( $ad_unit ) {
 		$ad_unit_post = \get_post( $ad_unit['id'] );
 		if ( ! is_a( $ad_unit_post, 'WP_Post' ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_ad_unit_not_exists',
 				\esc_html__( "Can't update an ad unit that doesn't already exist", 'newspack' ),
 				array(
@@ -322,7 +326,7 @@ class Newspack_Ads_Model {
 		if ( isset( $ad_unit['is_legacy'] ) && true === $ad_unit['is_legacy'] ) {
 			$result = self::legacy_update_ad_unit( $ad_unit );
 		} else {
-			$result = Newspack_Ads_GAM::update_ad_unit( $ad_unit );
+			$result = GAM_API::update_ad_unit( $ad_unit );
 			self::sync_gam_settings();
 		}
 		return $result;
@@ -341,7 +345,7 @@ class Newspack_Ads_Model {
 				return true;
 			}
 		} else {
-			$result = Newspack_Ads_GAM::change_ad_unit_status( $id, 'ARCHIVE' );
+			$result = GAM_API::change_ad_unit_status( $id, 'ARCHIVE' );
 			self::sync_gam_settings();
 			return $result;
 		}
@@ -373,13 +377,13 @@ class Newspack_Ads_Model {
 	 */
 	public static function sync_gam_settings( $serialised_ad_units = null, $settings = null ) {
 		if ( null === $serialised_ad_units ) {
-			$serialised_ad_units = Newspack_Ads_GAM::get_serialised_gam_ad_units();
+			$serialised_ad_units = GAM_API::get_serialised_gam_ad_units();
 		}
 		if ( null === $settings ) {
 			try {
-				$settings = Newspack_Ads_GAM::get_gam_settings();
+				$settings = GAM_API::get_gam_settings();
 			} catch ( \Exception $e ) {
-				return new WP_Error(
+				return new \WP_Error(
 					'newspack_ads_failed_gam_sync',
 					__( 'Unable to synchronize with GAM', 'newspack-ads' )
 				);
@@ -782,7 +786,7 @@ class Newspack_Ads_Model {
 	 * @return boolean True if GAM is connected.
 	 */
 	public static function is_gam_connected() {
-		$status = Newspack_Ads_GAM::connection_status();
+		$status = GAM_API::connection_status();
 		return $status['connected'];
 	}
 
@@ -792,7 +796,7 @@ class Newspack_Ads_Model {
 	 * @return object Object with status information.
 	 */
 	public static function get_gam_connection_status() {
-		$status = Newspack_Ads_GAM::connection_status();
+		$status = GAM_API::connection_status();
 		if ( isset( $status['network_code'] ) ) {
 			update_option( self::OPTION_NAME_GAM_NETWORK_CODE, $status['network_code'] );
 		} else {
@@ -811,8 +815,8 @@ class Newspack_Ads_Model {
 	 */
 	public static function get_gam_available_networks() {
 		try {
-			$networks = Newspack_Ads_GAM::get_serialized_gam_networks();
-		} catch ( Exception $e ) {
+			$networks = GAM_API::get_serialized_gam_networks();
+		} catch ( \Exception $e ) {
 			$networks = [];
 		}
 		return $networks;
@@ -843,4 +847,4 @@ class Newspack_Ads_Model {
 		update_option( self::OPTION_NAME_GLOBAL_AD_SUPPRESSION, $config );
 	}
 }
-Newspack_Ads_Model::init();
+GAM_Model::init();

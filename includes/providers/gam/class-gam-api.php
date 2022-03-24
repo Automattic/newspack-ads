@@ -5,6 +5,10 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Providers\GAM_Model;
+
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
@@ -52,7 +56,7 @@ require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 /**
  * Newspack Ads GAM Management
  */
-class Newspack_Ads_GAM {
+final class GAM_API {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
 	const GAM_APP_NAME_FOR_LOGS = 'Newspack';
 
@@ -117,7 +121,7 @@ class Newspack_Ads_GAM {
 		if ( in_array( 'CommonError.CONCURRENT_MODIFICATION', $errors ) ) {
 			$error_message = __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' );
 		}
-		return new WP_Error(
+		return new \WP_Error(
 			'newspack_ads_gam_error',
 			$error_message ?? __( 'An unexpected error occurred', 'newspack-ads' ),
 			array(
@@ -705,7 +709,7 @@ class Newspack_Ads_GAM {
 				$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
 				" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
 			}
-			return new WP_Error(
+			return new \WP_Error(
 				'newspack_ads_gam_get_ad_units',
 				$error_message,
 				array(
@@ -1427,13 +1431,13 @@ class Newspack_Ads_GAM {
 		try {
 			self::get_service_account_credentials( $credentials_config );
 		} catch ( \Exception $e ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
+			return new \WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
 		}
 		$update_result = update_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME, $credentials_config );
 		if ( ! $update_result ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
 		}
-		return Newspack_Ads_Model::get_gam_connection_status();
+		return GAM_Model::get_gam_connection_status();
 	}
 
 	/**
@@ -1443,10 +1447,10 @@ class Newspack_Ads_GAM {
 	 */
 	public static function remove_gam_credentials() {
 		$deleted_credentials_result  = delete_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
-		$deleted_network_code_result = delete_option( Newspack_Ads_Model::OPTION_NAME_GAM_NETWORK_CODE );
+		$deleted_network_code_result = delete_option( GAM_Model::OPTION_NAME_GAM_NETWORK_CODE );
 		if ( ! $deleted_credentials_result || ! $deleted_network_code_result ) {
-			return new WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
 		}
-		return Newspack_Ads_Model::get_gam_connection_status();
+		return GAM_Model::get_gam_connection_status();
 	}
 }
