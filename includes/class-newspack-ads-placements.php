@@ -376,7 +376,7 @@ class Newspack_Ads_Placements {
 		/**
 		 * Setup hooks for the placement.
 		 */
-		if ( isset( $config['hook_name'] ) && ! has_action( $config['hook_name'] ) ) {
+		if ( isset( $config['hook_name'] ) ) {
 			add_action(
 				$config['hook_name'],
 				function () use ( $key ) {
