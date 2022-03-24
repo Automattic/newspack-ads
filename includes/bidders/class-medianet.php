@@ -60,7 +60,7 @@ final class Medianet {
 	 * @return array
 	 */
 	public static function add_realtime_data_config( $config ) {
-		$bidder_config = \newspack_get_ads_bidder( 'medianet' );
+		$bidder_config = \Newspack_Ads\get_bidder( 'medianet' );
 		if ( ! $bidder_config || ! isset( $bidder_config['data']['medianet_cid'] ) || empty( $bidder_config['data']['medianet_cid'] ) ) {
 			return $config;
 		}

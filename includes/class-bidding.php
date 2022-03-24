@@ -719,4 +719,49 @@ final class Bidding {
 	}
 }
 
+/**
+ * Get available bidders.
+ *
+ * @return string[] Associative array containing a bidder key and name.
+ */
+function get_bidders() {
+	return $GLOBALS['newspack_ads_bidding']->get_bidders();
+}
+
+/**
+ * Get bidder config by its ID.
+ *
+ * @param string $bidder_id Bidder ID.
+ *
+ * @return array|false Bidder config or false if not found.
+ */
+function get_bidder( $bidder_id ) {
+	return $GLOBALS['newspack_ads_bidding']->get_bidder( $bidder_id );
+}
+
+/**
+ * Get a list of all sizes being used by all active bidders.
+ *
+ * @return array[] List of sizes.
+ */
+function get_bidders_sizes() {
+	return $GLOBALS['newspack_ads_bidding']->get_all_sizes();
+}
+
+/**
+ * Register a new bidder.
+ *
+ * @param string $bidder_id Unique bidder ID.
+ * @param array  $config    {
+ *   Optional configuration for the bidder.
+ *   @type string  $name       Name of the bidder.
+ *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
+ *   @type string  $active_key Optional setting key that determines if the bidder is active.
+ *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
+ * }
+ */
+function register_bidder( $bidder_id, $config = array() ) {
+	$GLOBALS['newspack_ads_bidding']->register_bidder( $bidder_id, $config );
+}
+
 $GLOBALS['newspack_ads_bidding'] = Bidding::instance();

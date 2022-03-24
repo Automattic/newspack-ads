@@ -80,7 +80,6 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-custom-label.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-providers.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-bidding.php';
-		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidding-functions.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-medianet.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-openx.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/bidders/class-pubmatic.php';

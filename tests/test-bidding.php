@@ -81,12 +81,12 @@ class BiddingTest extends WP_UnitTestCase {
 	 */
 	public function test_available_bidder() {
 		self::assertFalse(
-			newspack_get_ads_bidder( self::$bidder_id ),
+			\Newspack_Ads\get_bidder( self::$bidder_id ),
 			'Sample bidder should not be available.'
 		);
 		self::set_bidder_active();
 		self::assertTrue(
-			is_array( newspack_get_ads_bidder( self::$bidder_id ) ),
+			is_array( \Newspack_Ads\get_bidder( self::$bidder_id ) ),
 			'Sample bidder should be available.'
 		);
 	}

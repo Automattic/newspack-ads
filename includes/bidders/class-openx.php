@@ -66,7 +66,7 @@ final class OpenX {
 	 * @return array Prebid.js config.
 	 */
 	public static function add_user_sync_iframe( $config ) {
-		$bidder_config = \newspack_get_ads_bidder( 'openx' );
+		$bidder_config = \Newspack_Ads\get_bidder( 'openx' );
 		if ( ! $bidder_config || ! isset( $bidder_config['data']['openx_platform'] ) || empty( $bidder_config['data']['openx_platform'] ) ) {
 			return $config;
 		}
