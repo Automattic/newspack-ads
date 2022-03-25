@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Newspack Ads "Ad Refresh Control" Plugin Settings Class.
  */
-class Ads_Refresh_Control {
+class Ad_Refresh_Control {
 
 	const SETTINGS_KEY = 'avc_settings';
 
@@ -135,7 +135,7 @@ class Ads_Refresh_Control {
 	public static function api_get_settings() {
 		if ( ! self::is_active() ) {
 			return new \WP_Error(
-				'newspack_ads_refresh_control_not_active',
+				'newspack_ad_refresh_control_not_active',
 				__( 'The "Ad Refresh Control" plugin is not active.', 'newspack' ),
 				[
 					'status' => 404,
@@ -154,7 +154,7 @@ class Ads_Refresh_Control {
 	public static function api_update_settings( $request ) {
 		if ( ! self::is_active() ) {
 			return new \WP_Error(
-				'newspack_ads_refresh_control_not_active',
+				'newspack_ad_refresh_control_not_active',
 				__( 'The "Ad Refresh Control" plugin is not active.', 'newspack' ),
 				[
 					'status' => 404,
@@ -163,7 +163,7 @@ class Ads_Refresh_Control {
 		}
 		if ( ! function_exists( 'AdRefreshControl\Settings\sanitize_settings' ) ) {
 			return new \WP_Error(
-				'newspack_ads_refresh_control_missing_function',
+				'newspack_ad_refresh_control_missing_function',
 				__( 'The "Ad Refresh Control" plugin is missing the sanitize_settings function.', 'newspack' ),
 				[
 					'status' => 500,
@@ -182,4 +182,4 @@ class Ads_Refresh_Control {
 		return \rest_ensure_response( $settings );
 	}
 }
-Ads_Refresh_Control::init();
+Ad_Refresh_Control::init();
