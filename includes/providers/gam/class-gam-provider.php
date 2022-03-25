@@ -88,7 +88,24 @@ final class GAM_Provider extends Provider {
 			return '';
 		}
 		if ( 'sticky' === $placement_key && true === $is_amp ) {
-			$code = '<amp-sticky-ad class="newspack_amp_sticky_ad" layout="nodisplay">' . $code . '</amp-sticky-ad>';
+			$sticky_attrs = [
+				'class'  => 'newspack_amp_sticky_ad',
+				'layout' => 'nodisplay',
+			];
+			$code         = sprintf(
+				'<amp-sticky-ad %s>%s</amp-sticky-ad>',
+				implode(
+					' ',
+					array_map(
+						function( $key, $value ) {
+							return sprintf( "%s='%s'", $key, $value );
+						},
+						array_keys( $sticky_attrs ),
+						array_values( $sticky_attrs )
+					)
+				),
+				$code
+			);
 		}
 		return $code;
 	}
