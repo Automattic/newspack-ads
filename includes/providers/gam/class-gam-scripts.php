@@ -98,7 +98,14 @@ final class GAM_Scripts {
 		}
 
 		// Gather common targeting data and remove from ad unit targeting.
-		$common_targeting = array_intersect( ...array_values( array_column( $prepared_unit_data, 'targeting' ) ) );
+		$common_targeting = array_uintersect_assoc(
+			...array_values( array_column( $prepared_unit_data, 'targeting' ) ),
+			...[
+				function( $a, $b ) {
+						return $a === $b ? 0 : 1;
+				},
+			]
+		);
 		foreach ( $prepared_unit_data as $container_id => $ad_unit ) {
 			$prepared_unit_data[ $container_id ]['targeting'] = array_diff_key( $ad_unit['targeting'], $common_targeting );
 		}
