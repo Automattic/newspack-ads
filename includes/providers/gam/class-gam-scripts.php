@@ -97,6 +97,12 @@ final class GAM_Scripts {
 			];
 		}
 
+		// Gather common targeting data and remove from ad unit targeting.
+		$common_targeting = array_intersect( ...array_values( array_column( $prepared_unit_data, 'targeting' ) ) );
+		foreach ( $prepared_unit_data as $container_id => $ad_unit ) {
+			$prepared_unit_data[ $container_id ]['targeting'] = array_diff_key( $ad_unit['targeting'], $common_targeting );
+		}
+
 		$ad_config = [
 			'network_code'         => esc_attr( $network_code ),
 			'disable_initial_load' => (bool) apply_filters( 'newspack_ads_disable_gtag_initial_load', false ),
@@ -127,6 +133,7 @@ final class GAM_Scripts {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
 				var lazy_load        = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
+				var common_targeting = <?php echo wp_json_encode( $common_targeting ); ?>;
 				var defined_ad_units = {};
 
 				for ( var container_id in all_ad_units ) {
@@ -150,6 +157,9 @@ final class GAM_Scripts {
 						container_id
 					).addService( googletag.pubads() );
 
+					for ( var target_key in common_targeting ) {
+						defined_ad_units[ container_id ].setTargeting( target_key, common_targeting[ target_key ] );
+					}
 					for ( var target_key in ad_unit['targeting'] ) {
 						defined_ad_units[ container_id ].setTargeting( target_key, ad_unit['targeting'][ target_key ] );
 					}
