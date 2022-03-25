@@ -132,7 +132,9 @@ final class GAM_Scripts {
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
 
+					<?php
 					// Only set up ad units that are present on the page.
+					?>
 					if ( ! document.querySelector( '#' + container_id ) ) {
 						continue;
 					}
@@ -152,45 +154,40 @@ final class GAM_Scripts {
 						defined_ad_units[ container_id ].setTargeting( target_key, ad_unit['targeting'][ target_key ] );
 					}
 
+					<?php
 					/**
-					 * Configure responsive ads.
-					 * Ads wider than the viewport should not show.
+					 * Build and set the responsive mapping.
+					 *
+					 * @see https://developers.google.com/doubleclick-gpt/guides/ad-sizes#responsive_ads
 					 */
-
-					// Get all of the unique ad widths.
-					var unique_widths = {};
-					ad_unit['sizes'].forEach( function( size ) {
-						unique_widths[ size[0] ] = [];
-					} );
-
-					// For each width, get all of the sizes equal-to-or-smaller than it.
-					for ( width in unique_widths ) {
-						ad_unit['sizes'].forEach( function( size ) {
-							if ( size[0] <= width ) {
-								unique_widths[ width ].push( size );
-							}
-						} );
-					}
-
-					// Build and set the responsive mapping.
-					// @see https://developers.google.com/doubleclick-gpt/guides/ad-sizes#responsive_ads
+					?>
 					var mapping = googletag.sizeMapping();
+					<?php
 					// Default base is to not show ads.
+					?>
 					var baseSizes = [];
+					<?php
 					// If the ad unit is fluid, base includes fluid.
+					?>
 					if( ad_unit['fluid'] ) {
 						baseSizes = baseSizes.concat( 'fluid' );
 					}
+					<?php
 					// Iterate through size map.
+					?>
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 						mapping.addSize( [ parseInt( viewportWidth ), 0 ], baseSizes.concat( mappedSizes ) );
 					}
+					<?php
 					// Sticky ads should only be shown on mobile (screen width <=600px).
+					?>
 					if ( ad_unit['sticky'] ) {
 						mapping.addSize( [600, 0], baseSizes );
 					}
+					<?php
 					// On viewports smaller than the smallest ad size, don't show any ads.
+					?>
 					mapping.addSize( [0, 0], baseSizes );
 					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
 				}
@@ -212,9 +209,14 @@ final class GAM_Scripts {
 				for ( var container_id in defined_ad_units ) {
 					googletag.display( container_id );
 				}
-				// Identify fluid rendered ad and fix iframe width.
-				// GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
-				// This causes the iframe to be rendered with 0 width.
+
+				<?php
+				/**
+				 * Identify fluid rendered ad and fix iframe width.
+				 * GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
+				 * This causes the iframe to be rendered with 0 width.
+				 */
+				?>
 				googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
 					var sizes = event.slot.getSizes();
 					if (
