@@ -23,18 +23,6 @@ final class Bidding {
 
 	const PREBID_SCRIPT_HANDLE = 'newspack-ads-prebid';
 
-	// Standard sizes accepted by partners.
-	const ACCEPTED_AD_SIZES = [
-		[ 728, 90 ],
-		[ 970, 90 ],
-		[ 970, 250 ],
-		[ 320, 50 ],
-		[ 320, 100 ],
-		[ 300, 250 ],
-		[ 300, 600 ],
-		[ 160, 600 ],
-	];
-
 	// Default precision to use for price bucket increments.
 	const DEFAULT_BUCKET_PRECISION = 2;
 
@@ -296,7 +284,7 @@ final class Bidding {
 			SORT_REGULAR
 		);
 		if ( empty( $bidders_sizes ) ) {
-			return self::ACCEPTED_AD_SIZES;
+			return get_iab_size_array();
 		}
 		return $bidders_sizes;
 	}
@@ -476,7 +464,7 @@ final class Bidding {
 			$config,
 			array(
 				'name'     => $bidder_id,
-				'ad_sizes' => self::ACCEPTED_AD_SIZES,
+				'ad_sizes' => get_iab_size_array(),
 				'settings' => array(),
 			)
 		);
