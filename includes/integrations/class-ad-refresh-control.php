@@ -118,20 +118,20 @@ class Ad_Refresh_Control {
 		return $settings;
 	}
 
-		/**
-		 * Whether or not the plugin is enabled.
-		 *
-		 * @return bool Whether or not the plugin is enabled.
-		 */
+	/**
+	 * Whether or not the plugin is enabled.
+	 *
+	 * @return bool Whether or not the plugin is enabled.
+	 */
 	public static function is_active() {
 		return defined( 'AD_REFRESH_CONTROL_VERSION' );
 	}
 
-		/**
-		 * Get the settings for the "Ad Refresh Control" plugin.
-		 *
-		 * @return WP_REST_Response The response.
-		 */
+	/**
+	 * Get the settings for the "Ad Refresh Control" plugin.
+	 *
+	 * @return WP_REST_Response The response.
+	 */
 	public static function api_get_settings() {
 		if ( ! self::is_active() ) {
 			return new \WP_Error(
@@ -145,12 +145,12 @@ class Ad_Refresh_Control {
 		return \rest_ensure_response( self::get_settings() );
 	}
 
-		/**
-		 * Update the settings for the "Ad Refresh Control" plugin.
-		 *
-		 * @param WP_REST_Request $request The request.
-		 * @return WP_REST_Response The response.
-		 */
+	/**
+	 * Update the settings for the "Ad Refresh Control" plugin.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return WP_REST_Response The response.
+	 */
 	public static function api_update_settings( $request ) {
 		if ( ! self::is_active() ) {
 			return new \WP_Error(
@@ -175,7 +175,7 @@ class Ad_Refresh_Control {
 			self::get_settings()
 		);
 		if ( isset( $settings['active'] ) ) {
-			$settings['disable_refresh'] = ! \rest_sanitize_boolean( $settings['active'] );
+			$settings['disable_refresh'] = ! (bool) $settings['active'];
 			unset( $settings['active'] );
 		}
 		\update_option( self::SETTINGS_KEY, \AdRefreshControl\Settings\sanitize_settings( $settings ) );
