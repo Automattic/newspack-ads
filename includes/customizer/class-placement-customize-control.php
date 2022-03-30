@@ -195,6 +195,24 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	}
 
 	/**
+	 * Render a placement hook control.
+	 *
+	 * @param string $hook_key Optional hook_key key, will treat as root placement otherwise.
+	 */
+	private function render_placement_hook_control( $hook_key = '' ) {
+		?>
+		<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
+			<?php
+			$this->render_provider_select( $this->get_provider_value( $hook_key ), $hook_key );
+			foreach ( $this->providers as $provider ) {
+				$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value( $hook_key ), $hook_key );
+			}
+			?>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Render the control's content.
 	 */
 	public function render_content() {
@@ -218,29 +236,11 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 			</span>
 			<?php
 			if ( isset( $this->placement['hook_name'] ) && $this->placement['hook_name'] ) {
-				?>
-				<div class="placement-hook-control">
-					<?php
-					$this->render_provider_select( $this->get_provider_value() );
-					foreach ( $this->providers as $provider ) {
-						$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value() );
-					}
-					?>
-				</div>
-				<?php
+				$this->render_placement_hook_control();
 			}
 			if ( isset( $this->placement['hooks'] ) && count( $this->placement['hooks'] ) ) {
 				foreach ( array_keys( $this->placement['hooks'] ) as $hook_key ) {
-					?>
-					<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
-						<?php
-						$this->render_provider_select( $this->get_provider_value( $hook_key ), $hook_key );
-						foreach ( $this->providers as $provider ) {
-							$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value( $hook_key ), $hook_key );
-						}
-						?>
-					</div>
-					<?php
+					$this->render_placement_hook_control( $hook_key );
 				}
 			}
 			?>

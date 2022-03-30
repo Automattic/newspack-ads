@@ -57,11 +57,11 @@ const set = ( obj = {}, paths = [], value ) => {
 				const $provider = $container.find( '.provider-select select' );
 				const $adUnit = $container.find( '.ad-unit-select select' );
 				const hook = $( this ).data( 'hook' ) || '';
-				$container.find( `[data-provider]` ).hide();
+				$container.find( '[data-provider]' ).hide();
 				$container.find( `[data-provider="${ $provider.val() }"]` ).show();
 				$provider.on( 'change', function () {
 					updateValue( hook, 'provider', $provider.val() );
-					$container.find( `[data-provider]` ).hide();
+					$container.find( '[data-provider]' ).hide();
 					$container.find( `[data-provider="${ $provider.val() }"]` ).show();
 				} );
 				$adUnit.on( 'change', function () {

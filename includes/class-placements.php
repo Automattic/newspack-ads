@@ -146,16 +146,16 @@ final class Placements {
 	/**
 	 * Sanitize hooks data.
 	 *
-	 * @param array                  $hooks   Hooks data.
-	 * @param WP_REST_Request|string $request Optional full details about the request or placement key.
+	 * @param array                  $hooks                    Hooks data.
+	 * @param WP_REST_Request|string $request_or_placement_key Full details about the request or placement key.
 	 *
 	 * @return array Sanitized hooks data.
 	 */
-	public static function sanitize_hooks_data( $hooks, $request = '' ) {
-		if ( is_string( $request ) ) {
-			$placement_key = $request;
+	public static function sanitize_hooks_data( $hooks, $request_or_placement_key = '' ) {
+		if ( is_string( $request_or_placement_key ) ) {
+			$placement_key = $request_or_placement_key;
 		} else {
-			$placement_key = (string) $request->get_param( 'placement' );
+			$placement_key = (string) $request_or_placement_key->get_param( 'placement' );
 		}
 		if ( $placement_key ) {
 			$placements = self::get_placements();
@@ -432,14 +432,12 @@ final class Placements {
 		}
 		if ( isset( $config['hooks'] ) && ! empty( $config['hooks'] ) ) {
 			foreach ( $config['hooks'] as $hook_key => $hook ) {
-				if ( ! has_action( $hook['hook_name'] ) ) {
-					add_action(
-						$hook['hook_name'],
-						function () use ( $key, $hook_key ) {
-							self::inject_placement_ad( $key, $hook_key );
-						}
-					);
-				}
+				add_action(
+					$hook['hook_name'],
+					function () use ( $key, $hook_key ) {
+						self::inject_placement_ad( $key, $hook_key );
+					}
+				);
 			}
 		}
 		return true;
