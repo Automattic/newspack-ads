@@ -23,14 +23,14 @@ const set = ( obj = {}, paths = [], value ) => {
 	return { ...inputObj, [ path ]: childNode };
 };
 
-( function( $ ) {
-	wp.customize.bind( 'ready', function() {
+( function ( $ ) {
+	wp.customize.bind( 'ready', function () {
 		let controls = [];
 		const sections = wp.customize.panel( 'newspack-ads' ).sections();
-		sections.forEach( function( section ) {
+		sections.forEach( function ( section ) {
 			controls = controls.concat( section.controls() );
 		} );
-		controls.forEach( function( control ) {
+		controls.forEach( function ( control ) {
 			if ( control.params.type !== 'newspack_ads_placement' ) {
 				return;
 			}
@@ -44,10 +44,10 @@ const set = ( obj = {}, paths = [], value ) => {
 				value = set( value, path, val );
 				control.setting.set( JSON.stringify( value ) );
 			};
-			control.container.on( 'change', 'input[type=checkbox]', function() {
+			control.container.on( 'change', 'input[type=checkbox]', function () {
 				updateValue( 'enabled', $( this ).is( ':checked' ) );
 			} );
-			control.container.on( 'change', 'select', function() {
+			control.container.on( 'change', 'select', function () {
 				const $select = $( this );
 				const hook = $select.data( 'hook' );
 				let path = 'ad_unit';
