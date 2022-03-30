@@ -8,7 +8,7 @@
 namespace Newspack_Ads;
 
 use Newspack_Ads\Placements;
-use Newspack_Ads\Providers\GAM_Model;
+use Newspack_Ads\Providers;
 
 // Require WP_Customize_Control.
 require_once ABSPATH . 'wp-includes/class-wp-customize-control.php';
@@ -26,11 +26,11 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	public $type = 'newspack_ads_placement';
 
 	/**
-	 * Available ad units.
+	 * Availabe providers and its data.
 	 *
 	 * @var array[]
 	 */
-	private $ad_units = null;
+	private $providers = null;
 
 	/**
 	 * Placement configuration.
@@ -48,7 +48,7 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	 */
 	public function __construct( $manager, $id, $args = [] ) {
 		// Available ad units.
-		$this->ad_units = GAM_Model::get_ad_units();
+		$this->providers = Providers::get_active_providers_data();
 
 		// Placement configuration.
 		if ( isset( $args['placement'] ) ) {
@@ -70,14 +70,32 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 		$value = $this->value();
 		if ( $value ) {
 			if ( $this->placement['hook_name'] ) {
-				$this->json['ad_unit'] = $this->get_ad_unit_value();
+				$this->json['provider'] = $this->get_provider_value();
+				$this->json['ad_unit']  = $this->get_ad_unit_value();
 			}
 			if ( isset( $this->placement['hooks'] ) && count( $this->placement['hooks'] ) ) {
-				foreach ( $this->placement['hooks'] as $hook_key => $hook ) {
-					$this->json['hooks'][ $hook_key ]['ad_unit'] = $this->get_ad_unit_value( $hook_key );
+				foreach ( array_keys( $this->placement['hooks'] ) as $hook_key ) {
+					$this->json['hooks'][ $hook_key ]['provider'] = $this->get_provider_value( $hook_key );
+					$this->json['hooks'][ $hook_key ]['ad_unit']  = $this->get_ad_unit_value( $hook_key );
 				}
 			}
 		}
+	}
+
+	/**
+	 * Get the value of the provider given its hook key.
+	 *
+	 * @param string $hook_key Optional hook key, will look root placement otherwise.
+	 *
+	 * @return string Provider ID or \Newspack_Ads\Providers::DEFAULT_PROVIDER if not found.
+	 */
+	private function get_provider_value( $hook_key = '' ) {
+		$value   = json_decode( $this->value(), true );
+		$default = Providers::DEFAULT_PROVIDER;
+		if ( ! $hook_key ) {
+			return $value['provider'] ?? $default;
+		}
+		return isset( $value['hooks'][ $hook_key ]['provider'] ) ? $value['hooks'][ $hook_key ]['provider'] : $default;
 	}
 
 	/**
@@ -108,29 +126,67 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	}
 
 	/**
-	 * Render the control's ad unit select given its value and hook key.
+	 * Render the control's provider select given its value and hook key.
 	 *
 	 * @param string $value    The current value of the control.
 	 * @param string $hook_key The hook key.
 	 */
-	private function render_ad_unit_select( $value = '', $hook_key = '' ) {
-		$id_args = [ 'ad-unit' ];
+	private function render_provider_select( $value = '', $hook_key = '' ) {
+		$id_args = [ 'provider' ];
 		if ( $hook_key ) {
 			$id_args[] = $hook_key;
 		}
 		$input_id       = $this->get_element_id( 'input', $id_args );
 		$description_id = $this->get_element_id( 'description', $id_args );
-		$label          = $hook_key ? $this->placement['hooks'][ $hook_key ]['name'] : __( 'Ad Unit', 'newspack-ads' );
+		$label          = $hook_key ?
+			sprintf(
+				// translators: %s is the hook name.
+				__( 'Provider for "%s"', 'newspack-ads' ),
+				$this->placement['hooks'][ $hook_key ]['name'] 
+			) : __( 'Provider', 'newspack-ads' );
+		$description = __( 'Select which provider to use for this placement.', 'newspack-ads' );
+		?>
+		<span class="customize-control provider-select">
+			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
+			<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo esc_html( $description ); ?></span>
+			<select id="<?php echo esc_attr( $input_id ); ?>" aria-describedby="<?php echo esc_attr( $description_id ); ?>" data-hook="<?php echo esc_attr( $hook_key ); ?>">
+				<option <?php selected( $value, '' ); ?>><?php esc_html_e( '&mdash; Select a provider &mdash;', 'newspack-ads' ); ?></option>
+				<?php
+				foreach ( $this->providers as $provider ) {
+						echo '<option value="' . esc_attr( $provider['id'] ) . '"' . selected( $value, $provider['id'], false ) . '>' . esc_html( $provider['name'] ) . '</option>';
+				}
+				?>
+			</select>
+		</span>
+		<?php
+	}
+
+	/**
+	 * Render the control's ad unit select given its provider, value and hook key.
+	 *
+	 * @param string  $provider The provider ID.
+	 * @param array[] $ad_units The provider ad units to render.
+	 * @param string  $value    The current value of the control.
+	 * @param string  $hook_key The hook key.
+	 */
+	private function render_ad_unit_select( $provider, $ad_units, $value = '', $hook_key = '' ) {
+		$id_args = [ $provider, 'ad-unit' ];
+		if ( $hook_key ) {
+			$id_args[] = $hook_key;
+		}
+		$input_id       = $this->get_element_id( 'input', $id_args );
+		$description_id = $this->get_element_id( 'description', $id_args );
+		$label          = __( 'Ad Unit', 'newspack-ads' );
 		$description    = __( 'Select an ad unit to display in this placement.', 'newspack-ads' );
 		?>
-		<span class="customize-control">
+		<span class="customize-control ad-unit-select" data-provider="<?php echo esc_attr( $provider ); ?>">
 			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
 			<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo esc_html( $description ); ?></span>
 			<select id="<?php echo esc_attr( $input_id ); ?>" aria-describedby="<?php echo esc_attr( $description_id ); ?>" data-hook="<?php echo esc_attr( $hook_key ); ?>">
 				<option <?php selected( $value, '' ); ?>><?php esc_html_e( '&mdash; Select an ad unit &mdash;', 'newspack-ads' ); ?></option>
 				<?php
-				foreach ( $this->ad_units as $ad_unit ) {
-						echo '<option value="' . esc_attr( $ad_unit['id'] ) . '"' . selected( $value, $ad_unit['id'], false ) . '>' . esc_html( $ad_unit['name'] ) . '</option>';
+				foreach ( $ad_units as $ad_unit ) {
+						echo '<option value="' . esc_attr( $ad_unit['value'] ) . '"' . selected( $value, $ad_unit['value'], false ) . '>' . esc_html( $ad_unit['name'] ) . '</option>';
 				}
 				?>
 			</select>
@@ -149,7 +205,7 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 		$enabled_desc_id = $this->get_element_id( 'description', [ 'enabled' ] );
 		?>
 		<div id="<?php echo esc_attr( $container_id ); ?>">
-			<span class="customize-control">
+			<span class="customize-control placement-toggle">
 				<input
 					id="<?php echo esc_attr( $enabled_id ); ?>"
 					aria-describedby="<?php echo esc_attr( $enabled_desc_id ); ?>"
@@ -162,11 +218,29 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 			</span>
 			<?php
 			if ( isset( $this->placement['hook_name'] ) && $this->placement['hook_name'] ) {
-				$this->render_ad_unit_select( $this->get_ad_unit_value() );
+				?>
+				<div class="placement-hook-control">
+					<?php
+					$this->render_provider_select( $this->get_provider_value() );
+					foreach ( $this->providers as $provider ) {
+						$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value() );
+					}
+					?>
+				</div>
+				<?php
 			}
 			if ( isset( $this->placement['hooks'] ) && count( $this->placement['hooks'] ) ) {
-				foreach ( $this->placement['hooks'] as $hook_key => $hook ) {
-					$this->render_ad_unit_select( $this->get_ad_unit_value( $hook_key ), $hook_key );
+				foreach ( array_keys( $this->placement['hooks'] ) as $hook_key ) {
+					?>
+					<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
+						<?php
+						$this->render_provider_select( $this->get_provider_value( $hook_key ), $hook_key );
+						foreach ( $this->providers as $provider ) {
+							$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value( $hook_key ), $hook_key );
+						}
+						?>
+					</div>
+					<?php
 				}
 			}
 			?>

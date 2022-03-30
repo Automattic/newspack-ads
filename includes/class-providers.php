@@ -33,6 +33,13 @@ final class Providers {
 	protected static $providers = [];
 
 	/**
+	 * Cache of active providers data.
+	 *
+	 * @var array[] Serialised providers with their units.
+	 */
+	protected static $active_providers_data = null;
+
+	/**
 	 * Initialize providers.
 	 */
 	public static function init() {
@@ -62,14 +69,7 @@ final class Providers {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_get_providers() {
-		$active_providers = self::get_active_providers();
-		$data             = array_map(
-			function( $provider ) {
-				return array_merge( self::get_serialised_provider( $provider ), [ 'units' => $provider->get_units() ] );
-			},
-			array_values( $active_providers )
-		);
-		return rest_ensure_response( $data );
+		return rest_ensure_response( self::get_active_providers_data() );
 	}
 
 	/**
@@ -124,6 +124,24 @@ final class Providers {
 			}
 		}
 		return $active_providers;
+	}
+
+	/**
+	 * Get active providers with their units.
+	 *
+	 * @return array[] Serialised providers with their units.
+	 */
+	public static function get_active_providers_data() {
+		if ( empty( self::$active_providers_data ) ) {
+			$active_providers            = self::get_active_providers();
+			self::$active_providers_data = array_map(
+				function( $provider ) {
+					return array_merge( self::get_serialised_provider( $provider ), [ 'units' => $provider->get_units() ] );
+				},
+				array_values( $active_providers )
+			);
+		}
+		return self::$active_providers_data;
 	}
 
 	/**

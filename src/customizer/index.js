@@ -38,23 +38,35 @@ const set = ( obj = {}, paths = [], value ) => {
 			try {
 				value = JSON.parse( control.setting.get() || '{}' );
 			} catch ( e ) {
-				value = { enabled: false };
+				value = { enabled: false, provider: 'gam' };
 			}
-			const updateValue = ( path, val ) => {
+			control.container.find( `[data-provider]` ).hide();
+			control.container.find( `[data-provider="${ value.provider || 'gam' }"]` ).show();
+			const updateValue = ( hook, path, val ) => {
+				if ( hook ) {
+					path = [ 'hooks', hook, path ];
+				}
 				value = set( value, path, val );
 				control.setting.set( JSON.stringify( value ) );
 			};
 			control.container.on( 'change', 'input[type=checkbox]', function () {
-				updateValue( 'enabled', $( this ).is( ':checked' ) );
+				updateValue( '', 'enabled', $( this ).is( ':checked' ) );
 			} );
-			control.container.on( 'change', 'select', function () {
-				const $select = $( this );
-				const hook = $select.data( 'hook' );
-				let path = 'ad_unit';
-				if ( hook ) {
-					path = [ 'hooks', hook, 'ad_unit' ];
-				}
-				updateValue( path, $select.val() );
+			control.container.find( '.placement-hook-control' ).each( function () {
+				const $container = $( this );
+				const $provider = $container.find( '.provider-select select' );
+				const $adUnit = $container.find( '.ad-unit-select select' );
+				const hook = $( this ).data( 'hook' ) || '';
+				$container.find( `[data-provider]` ).hide();
+				$container.find( `[data-provider="${ $provider.val() }"]` ).show();
+				$provider.on( 'change', function () {
+					updateValue( hook, 'provider', $provider.val() );
+					$container.find( `[data-provider]` ).hide();
+					$container.find( `[data-provider="${ $provider.val() }"]` ).show();
+				} );
+				$adUnit.on( 'change', function () {
+					updateValue( hook, 'ad_unit', $adUnit.val() );
+				} );
 			} );
 		} );
 	} );

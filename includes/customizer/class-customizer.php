@@ -9,7 +9,6 @@ namespace Newspack_Ads;
 
 use Newspack_Ads\Placements;
 use Newspack_Ads\Settings;
-use Newspack_Ads\Providers\GAM_Model;
 use Newspack_Ads\Placement_Customize_Control;
 
 /**
@@ -67,15 +66,10 @@ class Customizer {
 	 * @param WP_Customize_Manager $wp_customize Customizer manager.
 	 */
 	public static function register_customizer_controls( $wp_customize ) {
-		include_once NEWSPACK_ADS_ABSPATH . '/includes/customizer/class-newspack-ads-placement-customize-control.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/customizer/class-placement-customize-control.php';
 
-		$placements       = Placements::get_placements();
-		$capability       = Settings::API_CAPABILITY;
-		$ad_units         = GAM_Model::get_ad_units();
-		$ad_units_choices = [ '' => __( 'None', 'newspack-ads' ) ];
-		foreach ( $ad_units as $ad_unit ) {
-			$ad_units_choices[ $ad_unit['id'] ] = $ad_unit['name'];
-		}
+		$placements = Placements::get_placements();
+		$capability = Settings::API_CAPABILITY;
 
 		// Register panel.
 		$wp_customize->add_panel(
