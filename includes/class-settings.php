@@ -5,12 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Settings Class.
  */
-class Newspack_Ads_Settings {
+final class Settings {
 
 	const API_NAMESPACE      = 'newspack-ads/v1';
 	const API_CAPABILITY     = 'manage_options';
@@ -62,7 +64,7 @@ class Newspack_Ads_Settings {
 	/**
 	 * Check capabilities for using API.
 	 *
-	 * @return bool|WP_Error True or error object.
+	 * @return bool|\WP_Error True or error object.
 	 */
 	public static function api_permissions_check() {
 		if ( ! current_user_can( self::API_CAPABILITY ) ) {
@@ -90,7 +92,17 @@ class Newspack_Ads_Settings {
 		$sanitized_settings = [];
 		foreach ( $settings as $key => $value ) {
 			$config = self::get_setting_config( $section, $key );
-			settype( $value, $config['type'] );
+			if ( isset( $config['options'] ) && isset( $config['multiple'] ) && true === $config['multiple'] ) {
+				$value = array_map(
+					function ( $value ) use ( $config ) {
+						settype( $value, $config['type'] );
+						return $value;
+					},
+					$value
+				);
+			} else {
+				settype( $value, $config['type'] );
+			}
 			$sanitized_settings[ $key ] = $value;
 		}
 		return $sanitized_settings;
@@ -125,7 +137,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @param object $setting The setting object to retrieve the key from.
 	 *
-	 * @return string Option name. 
+	 * @return string Option name.
 	 */
 	private static function get_setting_option_name( $setting ) {
 		$option_name = isset( $setting['key'] ) ? $setting['section'] . '_' . $setting['key'] : $setting['section'];
@@ -158,7 +170,7 @@ class Newspack_Ads_Settings {
 	public static function get_settings_list( $assoc = false ) {
 		$settings_list = array(
 			array(
-				'description' => __( 'Lazy loading', 'newspack-ads' ),
+				'description' => __( 'Lazy Loading', 'newspack-ads' ),
 				'help'        => __( 'Enables pages to load faster, reduces resource consumption and contention, and improves viewability rate.', 'newspack-ads' ),
 				'section'     => 'lazy_load',
 				'key'         => 'active',
@@ -210,7 +222,17 @@ class Newspack_Ads_Settings {
 				$default_value = isset( $item['default'] ) ? $item['default'] : false;
 				$value         = get_option( self::get_setting_option_name( $item ), $default_value );
 				if ( false !== $value ) {
-					settype( $value, $item['type'] );
+					if ( isset( $item['options'] ) && isset( $item['multiple'] ) && true === $item['multiple'] ) {
+						$value = array_map(
+							function ( $value ) use ( $item ) {
+								settype( $value, $item['type'] );
+								return $value;
+							},
+							$value
+						);
+					} else {
+						settype( $value, $item['type'] );
+					}
 					$item['value'] = $value;
 				}
 				return $item;
@@ -256,7 +278,7 @@ class Newspack_Ads_Settings {
 	 *
 	 * @param string $type The type of the setting.
 	 * @param mixed  $value The value to sanitize.
-	 * 
+	 *
 	 * @return mixed The sanitized value.
 	 */
 	private static function sanitize_setting_option( $type, $value ) {
@@ -286,7 +308,7 @@ class Newspack_Ads_Settings {
 	private static function update_setting( $section, $key, $value ) {
 		$config = self::get_setting_config( $section, $key );
 		if ( ! $config ) {
-			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
 		if ( isset( $config['options'] ) && is_array( $config['options'] ) ) {
 			$accepted_values = array_map(
@@ -295,12 +317,37 @@ class Newspack_Ads_Settings {
 				},
 				$config['options']
 			);
-			if ( ! in_array( $value, $accepted_values, true ) ) {
+			if ( isset( $config['multiple'] ) && true === $config['multiple'] ) {
+				if ( ! is_array( $value ) ) {
+					// translators: %s is the description of the option.
+					return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
+				}
+				$value = array_map(
+					function ( $option ) use ( $accepted_values ) {
+						return in_array( $option, $accepted_values, true ) ? $option : '';
+					},
+					$value
+				);
+				$value = array_filter( $value );
+			} elseif ( ! in_array( $value, $accepted_values, true ) ) {
 				// translators: %s is the description of the option.
-				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
+				return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
-		return update_option( self::get_setting_option_name( $config ), self::sanitize_setting_option( $config['type'], $value ) );
+		do_action( 'newspack_ads_before_update_setting', $section, $key, $value );
+		$updated = update_option(
+			self::get_setting_option_name( $config ),
+			is_array( $value ) ?
+				array_map(
+					function( $value ) use ( $config ) {
+						return self::sanitize_setting_option( $config['type'], $value );
+					},
+					$value
+				) :
+				self::sanitize_setting_option( $config['type'], $value )
+		);
+		do_action( 'newspack_ads_after_update_setting', $updated, $section, $key, $value );
+		return $updated;
 	}
 
 	/**
@@ -314,7 +361,7 @@ class Newspack_Ads_Settings {
 	public static function update_section( $section, $data ) {
 		foreach ( $data as $key => $value ) {
 			$updated = self::update_setting( $section, $key, $value );
-			if ( is_wp_error( $updated ) ) {
+			if ( \is_wp_error( $updated ) ) {
 				return $updated;
 			}
 		}
@@ -367,4 +414,4 @@ class Newspack_Ads_Settings {
 		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
 	}
 }
-Newspack_Ads_Settings::init();
+Settings::init();

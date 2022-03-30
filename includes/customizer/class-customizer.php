@@ -5,10 +5,17 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Placements;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers\GAM_Model;
+use Newspack_Ads\Placement_Customize_Control;
+
 /**
  * Newspack Ads Customizer Class.
  */
-class Newspack_Ads_Customizer {
+class Customizer {
 
 	/**
 	 * Initialize hooks.
@@ -51,7 +58,7 @@ class Newspack_Ads_Customizer {
 	 * @return array[] Sanitized placement value.
 	 */
 	public static function sanitize( $value ) {
-		return wp_json_encode( Newspack_Ads_Placements::sanitize_placement( json_decode( $value, true ) ) );
+		return wp_json_encode( Placements::sanitize_placement( json_decode( $value, true ) ) );
 	}
 
 	/**
@@ -62,9 +69,9 @@ class Newspack_Ads_Customizer {
 	public static function register_customizer_controls( $wp_customize ) {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/customizer/class-newspack-ads-placement-customize-control.php';
 
-		$placements       = Newspack_Ads_Placements::get_placements();
-		$capability       = Newspack_Ads_Settings::API_CAPABILITY;
-		$ad_units         = Newspack_Ads_Model::get_ad_units();
+		$placements       = Placements::get_placements();
+		$capability       = Settings::API_CAPABILITY;
+		$ad_units         = GAM_Model::get_ad_units();
 		$ad_units_choices = [ '' => __( 'None', 'newspack-ads' ) ];
 		foreach ( $ad_units as $ad_unit ) {
 			$ad_units_choices[ $ad_unit['id'] ] = $ad_unit['name'];
@@ -81,7 +88,7 @@ class Newspack_Ads_Customizer {
 		);
 		foreach ( $placements as $placement_key => $placement ) {
 			$section_id = self::get_section_id( $placement_key );
-			$setting_id = Newspack_Ads_Placements::get_option_name( $placement_key );
+			$setting_id = Placements::get_option_name( $placement_key );
 			$wp_customize->add_section(
 				$section_id,
 				[
@@ -99,7 +106,7 @@ class Newspack_Ads_Customizer {
 				] 
 			);
 			$wp_customize->add_control(
-				new Newspack_Ads_Placement_Customize_Control(
+				new Placement_Customize_Control(
 					$wp_customize,
 					$setting_id,
 					[
@@ -133,7 +140,7 @@ class Newspack_Ads_Customizer {
 		if ( empty( $GLOBALS['wp_customize'] ) ) {
 			return;
 		}
-		$placements = Newspack_Ads_Placements::get_placements();
+		$placements = Placements::get_placements();
 		$placement  = $placements[ $placement_key ];
 		?>
 		<div class="newspack-ads-customizer-placement <?php echo esc_attr( $placement_key ); ?>">
@@ -145,4 +152,4 @@ class Newspack_Ads_Customizer {
 		<?php
 	}
 }
-Newspack_Ads_Customizer::init();
+Customizer::init();

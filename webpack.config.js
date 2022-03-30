@@ -2,12 +2,13 @@
  **** WARNING: No ES6 modules here. Not transpiled! ****
  */
 /* eslint-disable import/no-nodejs-modules */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 /**
  * External dependencies
  */
 const fs = require( 'fs' );
-const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.js' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
 const path = require( 'path' );
 
 /**
@@ -17,6 +18,7 @@ const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
 const customizer = path.join( __dirname, 'src', 'customizer' );
+const headerBiddingGAM = path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' );
 const prebid = path.join( __dirname, 'src', 'prebid' );
 
 function blockScripts( type, inputDir, blocks ) {
@@ -56,20 +58,26 @@ const webpackConfig = getBaseWebpackConfig(
 			'suppress-ads': suppressAdsScript,
 			frontend,
 			customizer,
+			'header-bidding-gam': headerBiddingGAM,
 			prebid,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
 );
 
+/**
+ * Custom babel config for Prebid.js.
+ * https://github.com/prebid/Prebid.js/blob/6.12.0/README.md#usage-as-a-npm-dependency.
+ */
 webpackConfig.module.rules.push( {
 	test: /.js$/,
-	include: new RegExp( `\\${ path.sep }prebid\.js` ),
+	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
 		loader: 'babel-loader',
-		// presets and plugins for Prebid.js must be manually specified separate from your other babel rule.
-		// this can be accomplished by requiring prebid's .babelrc.js file (requires Babel 7 and Node v8.9.0+)
-		options: require( 'prebid.js/.babelrc.js' ),
+		options: {
+			...require( 'prebid.js/.babelrc.js' ),
+			configFile: false,
+		},
 	},
 } );
 

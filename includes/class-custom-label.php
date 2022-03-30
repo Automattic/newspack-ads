@@ -5,10 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Settings;
+
 /**
  * Newspack Ads Custom Ad Label Class.
  */
-class Newspack_Ads_Custom_Label {
+final class Custom_Label {
 
 	/**
 	 * Initialize settings.
@@ -29,7 +33,7 @@ class Newspack_Ads_Custom_Label {
 		return array_merge(
 			[
 				[
-					'description' => esc_html__( 'Custom ad label', 'newspack-ads' ),
+					'description' => esc_html__( 'Custom Ad Label', 'newspack-ads' ),
 					'help'        => esc_html__( 'Add a custom text to be displayed right before your rendered ads.' ),
 					'section'     => 'custom_label',
 					'key'         => 'active',
@@ -41,7 +45,7 @@ class Newspack_Ads_Custom_Label {
 					'section'     => 'custom_label',
 					'key'         => 'label_text',
 					'type'        => 'string',
-					'default'     => esc_html__( 'Advertising', 'newspack-ads' ),
+					'default'     => esc_html__( 'Advertisement', 'newspack-ads' ),
 				],
 			],
 			$settings_list
@@ -52,14 +56,42 @@ class Newspack_Ads_Custom_Label {
 	 * Render custom label.
 	 */
 	public static function render_label() {
-		$enabled    = Newspack_Ads_Settings::get_setting( 'custom_label', 'active' );
-		$label_text = Newspack_Ads_Settings::get_setting( 'custom_label', 'label_text' );
+		$enabled    = Settings::get_setting( 'custom_label', 'active' );
+		$label_text = Settings::get_setting( 'custom_label', 'label_text' );
 		if ( true !== $enabled || empty( $label_text ) ) {
 			return;
 		}
+
+		/**
+		 * Filters the CSS selectors that contain an ad unit to be labeled.
+		 * The ad should be a direct child of the element so the label does not 
+		 * display in case there's no ad to render.
+		 *
+		 * @param string[] $selectors CSS selectors.
+		 */
+		$selectors = apply_filters(
+			'newspack_ads_custom_label_container_selectors',
+			[
+				'.newspack_global_ad',
+				'.widget.widget_newspack-ads-widget .textwidget',
+			]
+		);
+
+		if ( empty( $selectors ) ) {
+			return;
+		}
+		$selectors_str = implode(
+			",\n",
+			array_map(
+				function( $selector ) {
+					return sprintf( '%s > *::before', esc_html( $selector ) );
+				},
+				$selectors
+			)
+		);
 		?>
 		<style>
-			.newspack_global_ad > div::before {
+			<?php echo $selectors_str; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> {
 				content: '<?php echo esc_html( $label_text ); ?>';
 				display: block;
 				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -74,4 +106,4 @@ class Newspack_Ads_Custom_Label {
 	}
 
 }
-Newspack_Ads_Custom_Label::init();
+Custom_Label::init();

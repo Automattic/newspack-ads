@@ -5,6 +5,9 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Settings;
+use Newspack_Ads\Bidding;
+
 /**
  * Test ads bidding functionality.
  */
@@ -28,7 +31,7 @@ class BiddingTest extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		// Register the bidder.
-		newspack_register_ads_bidder(
+		\Newspack_Ads\register_bidder(
 			self::$bidder_id,
 			array(
 				'name'       => 'Sample Bidder',
@@ -43,8 +46,8 @@ class BiddingTest extends WP_UnitTestCase {
 			)
 		);
 		// Enable header bidding.
-		Newspack_Ads_Settings::update_section(
-			Newspack_Ads_Bidding::SETTINGS_SECTION_NAME,
+		Settings::update_section(
+			Bidding::SETTINGS_SECTION_NAME,
 			array( 'active' => true )
 		);
 	}
@@ -53,9 +56,12 @@ class BiddingTest extends WP_UnitTestCase {
 	 * Enable the sample bidder by setting its customer ID.
 	 */
 	private static function set_bidder_active() {
-		Newspack_Ads_Settings::update_section(
-			Newspack_Ads_Bidding::SETTINGS_SECTION_NAME,
-			array( self::$bidder_active_key => '1234567890' )
+		Settings::update_section(
+			Bidding::SETTINGS_SECTION_NAME,
+			array(
+				'enabled_bidders'        => array( self::$bidder_id ),
+				self::$bidder_active_key => '1234567890',
+			)
 		);
 	}
 
@@ -63,7 +69,7 @@ class BiddingTest extends WP_UnitTestCase {
 	 * Test bidder setting is registered.
 	 */
 	public function test_bidder_setting() {
-		$settings = Newspack_Ads_Settings::get_settings_list();
+		$settings = Settings::get_settings_list();
 		self::assertTrue(
 			false !== array_search( self::$bidder_active_key, array_column( $settings, 'key' ) ),
 			'Bidder setting is registered'
@@ -75,12 +81,12 @@ class BiddingTest extends WP_UnitTestCase {
 	 */
 	public function test_available_bidder() {
 		self::assertFalse(
-			newspack_get_ads_bidder( self::$bidder_id ),
+			\Newspack_Ads\get_bidder( self::$bidder_id ),
 			'Sample bidder should not be available.'
 		);
 		self::set_bidder_active();
 		self::assertTrue(
-			is_array( newspack_get_ads_bidder( self::$bidder_id ) ),
+			is_array( \Newspack_Ads\get_bidder( self::$bidder_id ) ),
 			'Sample bidder should be available.'
 		);
 	}

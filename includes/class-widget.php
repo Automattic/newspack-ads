@@ -5,10 +5,16 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Providers;
+use Newspack_Ads\Providers\GAM_Model;
+
 /**
  * Newspack Ads Blocks Management
  */
-class Newspack_Ads_Widget extends WP_Widget {
+final class Widget extends \WP_Widget {
 
 	/**
 	 * Constructor
@@ -21,7 +27,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 		add_action(
 			'widgets_init',
 			function() {
-				register_widget( 'Newspack_Ads_Widget' );
+				register_widget( 'Newspack_Ads\Widget' );
 			}
 		);
 	}
@@ -36,9 +42,12 @@ class Newspack_Ads_Widget extends WP_Widget {
 		if ( ! newspack_ads_should_show_ads() || ! isset( $args['id'] ) || 0 === (int) $instance['selected_ad_unit'] ) {
 			return;
 		}
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
 
 		$selected_ad_unit = $instance['selected_ad_unit'];
-		$ad_unit          = Newspack_Ads_Model::get_ad_unit_for_display(
+		$ad_unit          = GAM_Model::get_ad_unit_for_display(
 			$selected_ad_unit,
 			array(
 				'placement' => 'newspack_ads_widget',
@@ -46,16 +55,16 @@ class Newspack_Ads_Widget extends WP_Widget {
 			) 
 		);
 
-		if ( is_wp_error( $ad_unit ) ) {
+		if ( \is_wp_error( $ad_unit ) ) {
 			return;
 		}
-		if ( ! Newspack_Ads::is_amp() && isset( $instance['stick_to_top'] ) ) {
+		if ( ! Core::is_amp() && isset( $instance['stick_to_top'] ) ) {
 			$stick_to_top = $instance['stick_to_top'];
 		} else {
 			$stick_to_top = false;
 		}
 
-		$code = Newspack_Ads::is_amp() ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
+		$code = Core::is_amp() ? $ad_unit['amp_ad_code'] : $ad_unit['ad_code'];
 
 		$before_widget = $args['before_widget'];
 		if ( false !== $stick_to_top ) {
@@ -85,7 +94,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 			$stick_to_top = false;
 		}
 
-		$ad_units = Newspack_Ads_Model::get_ad_units();
+		$ad_units = GAM_Model::get_ad_units();
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'selected_ad_unit' ) ); ?>">
@@ -103,7 +112,7 @@ class Newspack_Ads_Widget extends WP_Widget {
 					<?php endforeach; ?>
 				</select>
 			</label>
-			<?php if ( Newspack_Ads::is_amp_plus_configured() ) : ?>
+			<?php if ( Core::is_amp_plus_configured() ) : ?>
 				<br/>
 				<br/>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'stick_to_top' ) ); ?>">
@@ -136,4 +145,4 @@ class Newspack_Ads_Widget extends WP_Widget {
 		];
 	}
 }
-$newspack_ads_widget = new Newspack_Ads_Widget();
+$newspack_ads_widget = new Widget();

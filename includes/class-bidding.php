@@ -5,12 +5,19 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers;
+use Newspack_Ads\Placements;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Bidding Class.
  */
-class Newspack_Ads_Bidding {
+final class Bidding {
 
 	const SETTINGS_SECTION_NAME = 'bidding';
 
@@ -28,17 +35,110 @@ class Newspack_Ads_Bidding {
 		[ 160, 600 ],
 	];
 
+	// Default precision to use for price bucket increments.
+	const DEFAULT_BUCKET_PRECISION = 2;
+
+	// Default price granularity to use for price bucket increments.
+	const DEFAULT_PRICE_GRANULARITY = 'dense';
+
+	/**
+	 * Get custom price granularities.
+	 *
+	 * @return array[] Custom price granularities.
+	 */
+	public static function get_price_granularities() {
+		$price_granularities = [
+			'low'    => [
+				'label'   => __( 'Low', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.5,
+						'max'       => 5,
+					],
+				],
+			],
+			'medium' => [
+				'label'   => __( 'Medium', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.1,
+						'max'       => 20,
+					],
+				],
+			],
+			'auto'   => [
+				'label'   => __( 'Auto', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.05,
+						'max'       => 5,
+					],
+					[
+						'increment' => 0.1,
+						'max'       => 10,
+					],
+					[
+						'increment' => 0.5,
+						'max'       => 20,
+					],  
+				],
+			],
+			'dense'  => [
+				'label'   => __( 'Dense', 'newspack-ads' ),
+				'buckets' => [
+					[
+						'increment' => 0.01,
+						'max'       => 0.6,
+					],
+					[
+						'increment' => 0.05,
+						'max'       => 5,
+					],
+					[
+						'increment' => 0.1,
+						'max'       => 10,
+					],
+					[
+						'increment' => 0.5,
+						'max'       => 20,
+					],
+				],
+			],
+		];
+		/**
+		 * Filters custom price granularities.
+		 *
+		 * @param array $price_granularities Custom price granularities.
+		 */
+		return apply_filters( 'newspack_ads_price_granularities', $price_granularities );
+	}
+
+	/**
+	 * Get a price granularity by key.
+	 *
+	 * @param string $key Price granularity key.
+	 *
+	 * @return array|false Price granularity or false if not found.
+	 */
+	public static function get_price_granularity( $key ) {
+		$price_granularities = self::get_price_granularities();
+		if ( ! isset( $price_granularities[ $key ] ) ) {
+			return false;
+		}
+		return $price_granularities[ $key ];
+	}
+
 	/**
 	 * Registered bidders.
 	 *
 	 * @var array
 	 */
 	protected $bidders = array();
-	
+
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var Newspack_Ads_Bidding
+	 * @var Bidding
 	 */
 	protected static $instance = null;
 
@@ -46,7 +146,7 @@ class Newspack_Ads_Bidding {
 	 * Main Newspack Ads Bidding Instance.
 	 * Ensures only one instance of Newspack Ads Bidding is loaded or can be loaded.
 	 *
-	 * @return Newspack_Ads_Bidding - Main instance.
+	 * @return Bidding - Main instance.
 	 */
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
@@ -75,7 +175,10 @@ class Newspack_Ads_Bidding {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
-		if ( Newspack_Ads::is_amp() ) {
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
+		if ( Core::is_amp() ) {
 			return;
 		}
 		if ( ! self::is_enabled() ) {
@@ -110,7 +213,7 @@ class Newspack_Ads_Bidding {
 	 */
 	public function add_gtag_ads_data( $data ) {
 		$bidders    = $this->get_bidders();
-		$placements = Newspack_Ads_Placements::get_placements_data_by_id();
+		$placements = Placements::get_placements_data_by_id();
 		foreach ( $data as $container_id => $ad_data ) {
 			$unique_id = $ad_data['unique_id'];
 			// Skip if no placement data.
@@ -152,27 +255,35 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
-	 * Prebid script.
+	 * Sanitize an array of price buckets.
 	 *
-	 * @param array   $ad_config Ad config.
-	 * @param array[] $data      Ads data parsed for inline script.
+	 * @param array[] $price_buckets Array of price buckets.
+	 *
+	 * @return array[] Sanitized array of price buckets.
 	 */
-	public function prebid_script( $ad_config, $data ) {
+	public static function sanitize_price_buckets( $price_buckets ) {
+		return array_map(
+			function ( $bucket ) {
+				return wp_parse_args(
+					$bucket,
+					[
+						'precision' => self::DEFAULT_BUCKET_PRECISION,
+						'increment' => 0,
+						'max'       => 0,
+					]
+				);
+			},
+			$price_buckets
+		);
+	}
 
-		if ( ! newspack_ads_should_show_ads() ) {
-			return;
-		}
-		if ( Newspack_Ads::is_amp() ) {
-			return;
-		}
-
-		$bidders = $this->get_bidders();
-
-		if ( ! count( $bidders ) ) {
-			return;
-		}
-
-		// Get all of the existing sizes for available bidders.
+	/**
+	 * Get a list of all sizes being used by all active bidders.
+	 *
+	 * @return array[] List of sizes.
+	 */
+	public function get_all_sizes() {
+		$bidders       = $this->get_bidders();
 		$bidders_sizes = array_unique(
 			array_merge(
 				...array_map(
@@ -184,10 +295,37 @@ class Newspack_Ads_Bidding {
 			),
 			SORT_REGULAR
 		);
+		if ( empty( $bidders_sizes ) ) {
+			return self::ACCEPTED_AD_SIZES;
+		}
+		return $bidders_sizes;
+	}
+
+	/**
+	 * Prebid script.
+	 *
+	 * @param array   $ad_config Ad config.
+	 * @param array[] $data      Ads data parsed for inline script.
+	 */
+	public function prebid_script( $ad_config, $data ) {
+
+		if ( ! newspack_ads_should_show_ads() ) {
+			return;
+		}
+		if ( ! Providers::is_provider_active( 'gam' ) ) {
+			return;
+		}
+		if ( Core::is_amp() ) {
+			return;
+		}
+
+		$bidders = $this->get_bidders();
+
+		if ( ! count( $bidders ) ) {
+			return;
+		}
 
 		$ad_units = array();
-
-		$settings = self::get_settings();
 
 		foreach ( $data as $container_id => $ad_data ) {
 
@@ -196,8 +334,10 @@ class Newspack_Ads_Bidding {
 				// Detect sizes supported by available bidders.
 				$sizes = array_intersect(
 					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
-					array_map( [ __CLASS__, 'get_size_string' ], $bidders_sizes )
+					array_map( [ __CLASS__, 'get_size_string' ], $this->get_all_sizes() )
 				);
+				// Reindex filtered array.
+				$sizes = array_values( $sizes );
 				if ( ! count( $sizes ) ) {
 					continue;
 				}
@@ -207,7 +347,7 @@ class Newspack_Ads_Bidding {
 
 				foreach ( $bidders as $bidder_id => $bidder ) {
 
-					if ( isset( $ad_data['bidders'][ $bidder_id ] ) ) {
+					if ( isset( $ad_data['bidders'][ $bidder_id ] ) && ! empty( $ad_data['bidders'][ $bidder_id ] ) ) {
 
 						$bidder_placement_id = $ad_data['bidders'][ $bidder_id ];
 
@@ -246,6 +386,10 @@ class Newspack_Ads_Bidding {
 				];
 			}
 		}
+		// Configure price buckets.
+		$price_granularities = self::get_price_granularities();
+		$price_granularity   = $price_granularities[ self::get_setting( 'price_granularity', self::DEFAULT_PRICE_GRANULARITY ) ];
+
 		/**
 		 * Filters the Prebid.js default config.
 		 * See https://docs.prebid.org/dev-docs/publisher-api-reference/setConfig.html.
@@ -253,8 +397,8 @@ class Newspack_Ads_Bidding {
 		$prebid_config = apply_filters(
 			'newspack_ads_prebid_config',
 			[
-				'debug'            => (bool) $settings['debug'],
-				'priceGranularity' => $settings['price_granularity'] ?? 'medium',
+				'debug'            => (bool) self::get_setting( 'debug', false ),
+				'priceGranularity' => [ 'buckets' => self::sanitize_price_buckets( $price_granularity['buckets'] ) ],
 				'bidderTimeout'    => 1000,
 				'userSync'         => [
 					'enabled' => true,
@@ -344,7 +488,19 @@ class Newspack_Ads_Bidding {
 	 * @return array Header bidding settings.
 	 */
 	public static function get_settings() {
-		return Newspack_Ads_Settings::get_settings( self::SETTINGS_SECTION_NAME );
+		return Settings::get_settings( self::SETTINGS_SECTION_NAME );
+	}
+
+	/**
+	 * Get a header bidding setting.
+	 *
+	 * @param string $key           The key of the setting to retrieve.
+	 * @param mixed  $default_value The default value to return if the setting is not found.
+	 *
+	 * @return mixed The setting value or null if not found.
+	 */
+	public static function get_setting( $key, $default_value = null ) {
+		return Settings::get_setting( self::SETTINGS_SECTION_NAME, $key, $default_value );
 	}
 
 	/**
@@ -353,8 +509,19 @@ class Newspack_Ads_Bidding {
 	 * @return bool Whether header bidding is active.
 	 */
 	public static function is_enabled() {
-		$settings = self::get_settings();
-		return isset( $settings['active'] ) && $settings['active'];
+		return Settings::get_setting( self::SETTINGS_SECTION_NAME, 'active' );
+	}
+
+	/**
+	 * Return whether the bidder adapter is enabled.
+	 *
+	 * @param string $bidder_id Bidder ID.
+	 *
+	 * @return boolean Whether the bidder adapter is enabled.
+	 */
+	public static function is_bidder_enabled( $bidder_id ) { 
+		$enabled_bidders = Settings::get_setting( self::SETTINGS_SECTION_NAME, 'enabled_bidders', [] );
+		return in_array( $bidder_id, $enabled_bidders );
 	}
 
 	/**
@@ -366,7 +533,7 @@ class Newspack_Ads_Bidding {
 
 		$bidders  = array();
 		$settings = self::get_settings();
-		
+
 		if ( self::is_enabled() ) {
 			$bidders_configs = $this->bidders;
 
@@ -374,8 +541,10 @@ class Newspack_Ads_Bidding {
 
 				// Check if bidder is active or doesn't require activation.
 				if (
-					! isset( $bidder_config['active_key'] ) ||
-					( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
+					self::is_bidder_enabled( $bidder_id ) && (
+						! isset( $bidder_config['active_key'] ) ||
+						( isset( $settings[ $bidder_config['active_key'] ] ) && $settings[ $bidder_config['active_key'] ] )
+					)
 				) {
 
 					// Add bidder settings data.
@@ -388,9 +557,10 @@ class Newspack_Ads_Bidding {
 					}
 
 					$bidders[ $bidder_id ] = array(
-						'name'     => $bidder_config['name'],
-						'ad_sizes' => $bidder_config['ad_sizes'],
-						'data'     => $settings_data,
+						'name'       => $bidder_config['name'],
+						'ad_sizes'   => $bidder_config['ad_sizes'],
+						'active_key' => isset( $bidder_config['active_key'] ) ? $bidder_config['active_key'] : '',
+						'data'       => $settings_data,
 					);
 				}
 			}
@@ -436,7 +606,7 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
-	 * Get settings for registered bidders to use with Newspack_Ads_Settings.
+	 * Get settings for registered bidders to use with Settings.
 	 *
 	 * @return array[] List of settings from registered bidders.
 	 */
@@ -453,16 +623,42 @@ class Newspack_Ads_Bidding {
 	}
 
 	/**
+	 * Get setting for toggling bidder adapters.
+	 *
+	 * @return array Setting for toggling bidder adapters.
+	 */
+	private function get_enabled_bidders_setting() {
+		return [
+			'section'     => self::SETTINGS_SECTION_NAME,
+			'type'        => 'string',
+			'key'         => 'enabled_bidders',
+			'description' => __( 'Adapters', 'newspack' ),
+			'help'        => __( 'Select which bidder adapters should be enabled.', 'newspack' ),
+			'multiple'    => true,
+			'options'     => array_map(
+				function( $bidder_id, $bidder ) {
+					return [
+						'name'  => $bidder['name'],
+						'value' => $bidder_id,
+					];
+				},
+				array_keys( $this->bidders ),
+				array_values( $this->bidders ) 
+			),
+		];
+	}
+
+	/**
 	 * Register API endpoints.
 	 */
 	public function register_api_endpoints() {
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/bidders',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'api_get_bidders' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
 	}
@@ -486,7 +682,7 @@ class Newspack_Ads_Bidding {
 	public function register_settings( $settings_list ) {
 
 		// Skip if using AMP.
-		if ( Newspack_Ads::is_amp() ) {
+		if ( Core::is_amp() ) {
 			return $settings_list;
 		}
 
@@ -505,36 +701,7 @@ class Newspack_Ads_Bidding {
 					'type'        => 'boolean',
 					'default'     => false,
 				),
-				array(
-					'description' => __( 'Price granularity', 'newspack-ads' ),
-					'help'        => __( 'The level of the price target set in the header bidding line items. The price buckets impact the line items’ ability to compete optimally with your other price-based ad campaigns.', 'newspack-ads' ),
-					'section'     => self::SETTINGS_SECTION_NAME,
-					'key'         => 'price_granularity',
-					'type'        => 'string',
-					'default'     => 'dense',
-					'options'     => array(
-						array(
-							'value' => 'low',
-							'name'  => __( 'Low', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'medium',
-							'name'  => __( 'Medium', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'high',
-							'name'  => __( 'High', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'auto',
-							'name'  => __( 'Auto', 'newspack-ads' ),
-						),
-						array(
-							'value' => 'dense',
-							'name'  => __( 'Dense', 'newspack-ads' ),
-						),
-					),
-				),
+				$this->get_enabled_bidders_setting(),
 			),
 			$this->get_bidders_settings_config(),
 			array(
@@ -552,46 +719,49 @@ class Newspack_Ads_Bidding {
 	}
 }
 
-if ( ! function_exists( 'newspack_get_ads_bidders' ) ) {
-	/**
-	 * Get available bidders.
-	 *
-	 * @return string[] Associative array containing a bidder key and name.
-	 */
-	function newspack_get_ads_bidders() {
-		return $GLOBALS['newspack_ads_bidding']->get_bidders();
-	}
+/**
+ * Get available bidders.
+ *
+ * @return string[] Associative array containing a bidder key and name.
+ */
+function get_bidders() {
+	return $GLOBALS['newspack_ads_bidding']->get_bidders();
 }
 
-if ( ! function_exists( 'newspack_get_ads_bidder' ) ) {
-	/**
-	 * Get bidder config by its ID.
-	 *
-	 * @param string $bidder_id Bidder ID.
-	 *
-	 * @return array|false Bidder config or false if not found.
-	 */
-	function newspack_get_ads_bidder( $bidder_id ) {
-		return $GLOBALS['newspack_ads_bidding']->get_bidder( $bidder_id );
-	}
+/**
+ * Get bidder config by its ID.
+ *
+ * @param string $bidder_id Bidder ID.
+ *
+ * @return array|false Bidder config or false if not found.
+ */
+function get_bidder( $bidder_id ) {
+	return $GLOBALS['newspack_ads_bidding']->get_bidder( $bidder_id );
 }
 
-if ( ! function_exists( 'newspack_register_ads_bidder' ) ) {
-	/**
-	 * Register a new bidder.
-	 *
-	 * @param string $bidder_id Unique bidder ID.
-	 * @param array  $config    {
-	 *   Optional configuration for the bidder.
-	 *   @type string  $name       Name of the bidder.
-	 *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
-	 *   @type string  $active_key Optional setting key that determines if the bidder is active.
-	 *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
-	 * }
-	 */
-	function newspack_register_ads_bidder( $bidder_id, $config = array() ) {
-		$GLOBALS['newspack_ads_bidding']->register_bidder( $bidder_id, $config );
-	}
+/**
+ * Get a list of all sizes being used by all active bidders.
+ *
+ * @return array[] List of sizes.
+ */
+function get_bidders_sizes() {
+	return $GLOBALS['newspack_ads_bidding']->get_all_sizes();
 }
 
-$GLOBALS['newspack_ads_bidding'] = Newspack_Ads_Bidding::instance();
+/**
+ * Register a new bidder.
+ *
+ * @param string $bidder_id Unique bidder ID.
+ * @param array  $config    {
+ *   Optional configuration for the bidder.
+ *   @type string  $name       Name of the bidder.
+ *   @type string  $ad_sizes   Optional custom ad sizes accepted by the bidder.
+ *   @type string  $active_key Optional setting key that determines if the bidder is active.
+ *   @type array[] $settings   Optional Newspack_Settings_Ads array of settings.
+ * }
+ */
+function register_bidder( $bidder_id, $config = array() ) {
+	$GLOBALS['newspack_ads_bidding']->register_bidder( $bidder_id, $config );
+}
+
+$GLOBALS['newspack_ads_bidding'] = Bidding::instance();

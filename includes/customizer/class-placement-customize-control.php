@@ -5,13 +5,18 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Placements;
+use Newspack_Ads\Providers\GAM_Model;
+
 // Require WP_Customize_Control.
 require_once ABSPATH . 'wp-includes/class-wp-customize-control.php';
 
 /**
  * Newspack Ads Placement Customize Control Class.
  */
-class Newspack_Ads_Placement_Customize_Control extends \WP_Customize_Control {
+class Placement_Customize_Control extends \WP_Customize_Control {
 
 	/**
 	 * Customize control type.
@@ -43,14 +48,14 @@ class Newspack_Ads_Placement_Customize_Control extends \WP_Customize_Control {
 	 */
 	public function __construct( $manager, $id, $args = [] ) {
 		// Available ad units.
-		$this->ad_units = Newspack_Ads_Model::get_ad_units();
+		$this->ad_units = GAM_Model::get_ad_units();
 
 		// Placement configuration.
 		if ( isset( $args['placement'] ) ) {
-			$placements      = Newspack_Ads_Placements::get_placements();
+			$placements      = Placements::get_placements();
 			$this->placement = $placements[ $args['placement'] ];
 		} else {
-			return new WP_Error( 'newspack_ads_placement_customize_control_no_placement', __( 'No placement specified.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_placement_customize_control_no_placement', __( 'No placement specified.', 'newspack-ads' ) );
 		}
 
 		parent::__construct( $manager, $id, $args );
