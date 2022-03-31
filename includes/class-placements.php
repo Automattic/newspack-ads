@@ -261,7 +261,7 @@ final class Placements {
 				$data['hooks'][ $hook_key ] = wp_parse_args(
 					$hook,
 					[
-						'provider' => 'gam',
+						'provider' => Providers::DEFAULT_PROVIDER,
 					]
 				);
 				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] && ! isset( $hook['id'] ) ) {
