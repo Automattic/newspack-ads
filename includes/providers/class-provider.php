@@ -5,12 +5,16 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Providers;
+
+use Newspack_Ads\Providers\Provider_Interface;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Provider.
  */
-abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface {
+abstract class Provider implements Provider_Interface {
 	/**
 	 * The provider ID.
 	 *
@@ -60,11 +64,11 @@ abstract class Newspack_Ads_Provider implements Newspack_Ads_Provider_Interface 
 	 * Render the ad code for the given placement.
 	 *
 	 * @param string $unit_id        The unit ID.
-	 * @param string $placement_key  The placement key.
-	 * @param string $hook_key       The hook key, if the placement has multiple hooks.
-	 * @param array  $placement_data The placement data.
+	 * @param string $placement_key  Optional placement key.
+	 * @param string $hook_key       Optional hook key, if the placement has multiple hooks.
+	 * @param array  $placement_data Optional placement data.
 	 */
-	public function render_code( $unit_id, $placement_key, $hook_key, $placement_data ) {
+	public function render_code( $unit_id, $placement_key = '', $hook_key = '', $placement_data = [] ) {
 		if ( ! $this->is_active() ) {
 			return;
 		}
