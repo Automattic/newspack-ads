@@ -17,7 +17,8 @@ const path = require( 'path' );
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
-const customizer = path.join( __dirname, 'src', 'customizer' );
+const customizerPreview = path.join( __dirname, 'src', 'customizer', 'preview' );
+const customizerControl = path.join( __dirname, 'src', 'customizer', 'control' );
 const headerBiddingGAM = path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' );
 const prebid = path.join( __dirname, 'src', 'prebid' );
 
@@ -57,7 +58,8 @@ const webpackConfig = getBaseWebpackConfig(
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
 			frontend,
-			customizer,
+			'customizer-preview': customizerPreview,
+			'customizer-control': customizerControl,
 			'header-bidding-gam': headerBiddingGAM,
 			prebid,
 		},

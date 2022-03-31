@@ -138,13 +138,8 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 		}
 		$input_id       = $this->get_element_id( 'input', $id_args );
 		$description_id = $this->get_element_id( 'description', $id_args );
-		$label          = $hook_key ?
-			sprintf(
-				// translators: %s is the hook name.
-				__( 'Provider for "%s"', 'newspack-ads' ),
-				$this->placement['hooks'][ $hook_key ]['name'] 
-			) : __( 'Provider', 'newspack-ads' );
-		$description = __( 'Select which provider to use for this placement.', 'newspack-ads' );
+		$label          = __( 'Provider', 'newspack-ads' );
+		$description    = __( 'Select which provider to use for this placement.', 'newspack-ads' );
 		?>
 		<span class="customize-control provider-select">
 			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
@@ -203,6 +198,12 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 		?>
 		<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
 			<?php
+			if ( $hook_key ) :
+				$hook_name = $this->placement['hooks'][ $hook_key ]['name'];
+				?>
+				<span class="customize-control-title"><?php echo esc_html( $hook_name ); ?></span>
+				<?php
+			endif;
 			$this->render_provider_select( $this->get_provider_value( $hook_key ), $hook_key );
 			foreach ( $this->providers as $provider ) {
 				$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value( $hook_key ), $hook_key );

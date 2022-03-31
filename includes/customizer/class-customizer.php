@@ -21,19 +21,40 @@ class Customizer {
 	 */
 	public static function init() {
 		add_action( 'customize_register', [ __CLASS__, 'register_customizer_controls' ] );
-		add_action( 'customize_controls_enqueue_scripts', [ __CLASS__, 'enqueue' ] );
-		add_action( 'newspack_ads_placement_ad', [ __CLASS__, 'render_placement' ], 10, 2 );
+		add_action( 'customize_preview_init', [ __CLASS__, 'enqueue_preview_scripts' ] );
+		add_action( 'customize_controls_enqueue_scripts', [ __CLASS__, 'enqueue_control_scripts' ] );
 	}
 
 	/**
-	 * Enqueue customizer script.
+	 * Enqueue customizer preview script.
 	 */
-	public static function enqueue() {
+	public static function enqueue_preview_scripts() {
 		wp_enqueue_script(
 			'newspack-ads-customizer',
-			plugins_url( '../../dist/customizer.js', __FILE__ ),
+			plugins_url( '../../dist/customizer-preview.js', __FILE__ ),
+			[ 'customize-preview', 'jquery' ],
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-preview.js' ),
+			true
+		);
+		$settings_ids = array_map( [ 'Newspack_Ads\Placements', 'get_option_name' ], array_keys( Placements::get_placements() ) );
+		wp_localize_script(
+			'newspack-ads-customizer',
+			'newspackAdsCustomizer',
+			[
+				'settingsIds' => $settings_ids,
+			]
+		);
+	}
+
+	/**
+	 * Enqueue customizer control script.
+	 */
+	public static function enqueue_control_scripts() {
+		wp_enqueue_script(
+			'newspack-ads-customizer',
+			plugins_url( '../../dist/customizer-control.js', __FILE__ ),
 			[ 'customize-controls', 'jquery' ],
-			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer.js' ),
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-control.js' ),
 			true
 		);
 	}
@@ -113,37 +134,32 @@ class Customizer {
 			$wp_customize->selective_refresh->add_partial(
 				$setting_id,
 				[
-					'selector'            => sprintf( '.newspack-ads-customizer-placement.%s', $placement_key ),
+					'selector'            => sprintf( '.newspack_global_ad.%s', $placement_key ),
 					'container_inclusive' => false,
 					'fallback_refresh'    => false,
-					'render_callback'     => function( $wp_customize_partial ) use ( $placement_key ) {
-						// TODO: Support inject placement hooks.
+					'render_callback'     => function() use ( $placement_key ) {
+						$data = Placements::get_placement_data( $placement_key );
+						if ( ! isset( $data['enabled'] ) || false === $data['enabled'] ) {
+							return;
+						}
+						if ( isset( $data['ad_unit'] ) && ! empty( $data['ad_unit'] ) ) {
+							Placements::render_ad_unit_mock( $data['provider'], $data['ad_unit'] );
+						}
+						if ( isset( $data['hooks'] ) && ! empty( $data['hooks'] ) ) {
+							foreach ( $data['hooks'] as $hook_key => $hook ) {
+								if ( isset( $hook['ad_unit'] ) && ! empty( $hook['ad_unit'] ) ) {
+									Placements::render_ad_unit_mock(
+										$hook['provider'],
+										$hook['ad_unit'],
+										[ sprintf( 'hook-%s', $hook_key ) ]
+									);
+								}
+							}
+						}
 					},
 				]
 			);
 		}
-	}
-
-	/**
-	 * Render placement metadata for customizer.
-	 *
-	 * @param string $placement_key Placement key.
-	 * @param string $hook_key      Optional hook key.
-	 */
-	public static function render_placement( $placement_key, $hook_key = '' ) {
-		if ( empty( $GLOBALS['wp_customize'] ) ) {
-			return;
-		}
-		$placements = Placements::get_placements();
-		$placement  = $placements[ $placement_key ];
-		?>
-		<div class="newspack-ads-customizer-placement <?php echo esc_attr( $placement_key ); ?>">
-			<p>
-				<?php echo esc_html( $placement['name'] ); ?>
-				<?php echo esc_html( $hook_key ); ?>
-			</p>
-		</div>
-		<?php
 	}
 }
 Customizer::init();
