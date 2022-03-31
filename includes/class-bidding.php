@@ -333,15 +333,15 @@ final class Bidding {
 
 				// Detect sizes supported by available bidders.
 				$sizes = array_intersect(
-					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
-					array_map( [ __CLASS__, 'get_size_string' ], $this->get_all_sizes() )
+					array_map( 'Newspack_Ads\get_size_string', $ad_data['sizes'] ),
+					array_map( 'Newspack_Ads\get_size_string', $this->get_all_sizes() )
 				);
 				// Reindex filtered array.
 				$sizes = array_values( $sizes );
 				if ( ! count( $sizes ) ) {
 					continue;
 				}
-				$sizes = array_map( [ __CLASS__, 'get_size_array' ], $sizes );
+				$sizes = array_map( 'Newspack_Ads\get_size_array', $sizes );
 
 				$bids = [];
 
