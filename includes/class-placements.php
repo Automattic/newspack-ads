@@ -258,6 +258,12 @@ final class Placements {
 		}
 		if ( isset( $data['hooks'] ) ) {
 			foreach ( $data['hooks'] as $hook_key => $hook ) {
+				$data['hooks'][ $hook_key ] = wp_parse_args(
+					$hook,
+					[
+						'provider' => 'gam',
+					]
+				);
 				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] && ! isset( $hook['id'] ) ) {
 					$data['hooks'][ $hook_key ]['id'] = self::get_id( [ $placement_key, $hook_key, $data['ad_unit'] ] );
 				}
@@ -593,6 +599,49 @@ final class Placements {
 	}
 
 	/**
+	 * Render ad unit mock with dimensions.
+	 *
+	 * @param string   $provider_id Provider.
+	 * @param string   $ad_unit     Ad unit.
+	 * @param string[] $classes     List of additional classes. Optional.
+	 */
+	public static function render_ad_unit_mock( $provider_id, $ad_unit, $classes = [] ) {
+		$provider     = Providers::get_provider( $provider_id );
+		$ad_unit_data = Providers::get_provider_unit_data( $provider_id, $ad_unit );
+		/**
+		 * Default to a 300x200 size if no sizes are provided.
+		 */
+		$sizes  = $ad_unit_data['sizes'];
+		$width  = count( $sizes ) ? max( array_column( $sizes, 0 ) ) : 300;
+		$height = count( $sizes ) ? max( array_column( $sizes, 1 ) ) : 200;
+		?>
+		<div
+			class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+			style="width:<?php echo esc_attr( $width ); ?>px;height:<?php echo esc_attr( $height ); ?>px;"
+		>
+			<svg
+				class="newspack-ads__ad-placement-mock__svg"
+				width="<?php echo esc_attr( $width ); ?>"
+				viewbox="0 0 <?php echo esc_attr( $width ); ?> <?php echo esc_attr( $height ); ?>"
+			>
+				<rect
+					width="<?php echo esc_attr( $width ); ?>"
+					height="<?php echo esc_attr( $height ); ?>"
+					strokeDasharray="2"
+					fill="transparent"
+				/>
+				<line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="2" />
+			</svg>
+			<span class="newspack-ads__ad-placement-mock__label">
+				<?php printf( '%s - %s', esc_html( $provider->get_provider_name() ), esc_html( $ad_unit_data['name'] ) ); ?>
+				<br />
+				<?php echo esc_html( implode( ', ', array_map( 'Newspack_Ads\get_size_string', $sizes ) ) ); ?>
+			</span>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Inject Ad into given placement.
 	 *
 	 * @param string $placement_key Placement key.
@@ -622,6 +671,9 @@ final class Placements {
 		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
+
+		$provider_id = isset( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::DEFAULT_PROVIDER;
+		$ad_unit     = $placement_data['ad_unit'];
 		
 		$is_amp        = Core::is_amp();
 		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
@@ -642,6 +694,7 @@ final class Placements {
 				'newspack_amp_sticky_ad__container' => $is_sticky_amp,
 				$placement_key                      => true,
 				$placement_key . '-' . $hook_key    => ! empty( $hook_key ),
+				'hook-' . $hook_key                 => ! empty( $hook_key ),
 				'stick-to-top'                      => $stick_to_top,
 			],
 			$placement_key,
@@ -657,13 +710,20 @@ final class Placements {
 				<button class='newspack_sticky_ad__close'></button>
 			<?php endif; ?>
 			<?php
-			Providers::render_placement_ad_code(
-				$placement_data['ad_unit'],
-				isset( $placement_data['provider'] ) ? $placement_data['provider'] : null,
-				$placement_key,
-				$hook_key,
-				$placement_data
-			);
+			/**
+			 * Render ad unit mock when in WordPress Customizer.
+			 */
+			if ( ! empty( $GLOBALS['wp_customize'] ) ) {
+				self::render_ad_unit_mock( $provider_id, $ad_unit );
+			} else {
+				Providers::render_placement_ad_code(
+					$ad_unit,
+					$provider_id,
+					$placement_key,
+					$hook_key,
+					$placement_data
+				);
+			}
 			?>
 		</div>
 		<?php
