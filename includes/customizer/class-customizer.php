@@ -30,7 +30,7 @@ class Customizer {
 	 */
 	public static function enqueue_preview_scripts() {
 		wp_enqueue_script(
-			'newspack-ads-customizer',
+			'newspack-ads-customizer-preview',
 			plugins_url( '../../dist/customizer-preview.js', __FILE__ ),
 			[ 'customize-preview', 'jquery' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-preview.js' ),
@@ -38,12 +38,20 @@ class Customizer {
 		);
 		$settings_ids = array_map( [ 'Newspack_Ads\Placements', 'get_option_name' ], array_keys( Placements::get_placements() ) );
 		wp_localize_script(
-			'newspack-ads-customizer',
+			'newspack-ads-customizer-preview',
 			'newspackAdsCustomizer',
 			[
 				'settingsIds' => $settings_ids,
 			]
 		);
+		\wp_register_style(
+			'newspack-ads-customizer-preview-style',
+			plugins_url( '../../dist/customizer-preview.css', __FILE__ ),
+			null,
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-preview.css' )
+		);
+		\wp_style_add_data( 'newspack-ads-customizer-preview-style', 'rtl', 'replace' );
+		\wp_enqueue_style( 'newspack-ads-customizer-preview-style' );
 	}
 
 	/**
@@ -51,7 +59,7 @@ class Customizer {
 	 */
 	public static function enqueue_control_scripts() {
 		wp_enqueue_script(
-			'newspack-ads-customizer',
+			'newspack-ads-customizer-control',
 			plugins_url( '../../dist/customizer-control.js', __FILE__ ),
 			[ 'customize-controls', 'jquery' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-control.js' ),

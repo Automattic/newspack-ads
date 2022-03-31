@@ -1,3 +1,5 @@
+import './preview.scss';
+
 ( function ( api, $ ) {
 	$( document ).ready( function () {
 		if ( 'undefined' !== typeof api.selectiveRefresh ) {

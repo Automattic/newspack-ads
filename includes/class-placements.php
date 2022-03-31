@@ -657,28 +657,30 @@ final class Placements {
 		$width  = count( $sizes ) ? max( array_column( $sizes, 0 ) ) : 300;
 		$height = count( $sizes ) ? max( array_column( $sizes, 1 ) ) : 200;
 		?>
-		<div
-			class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-			style="width:<?php echo esc_attr( $width ); ?>px;height:<?php echo esc_attr( $height ); ?>px;"
-		>
-			<svg
-				class="newspack-ads__ad-placement-mock__svg"
-				width="<?php echo esc_attr( $width ); ?>"
-				viewbox="0 0 <?php echo esc_attr( $width ); ?> <?php echo esc_attr( $height ); ?>"
+		<div class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+			<div
+				class="newspack-ads__ad-placement-mock__content"
+				style="width:<?php echo esc_attr( $width ); ?>px;height:<?php echo esc_attr( $height ); ?>px;"
 			>
-				<rect
+				<svg
+					class="newspack-ads__ad-placement-mock__svg"
 					width="<?php echo esc_attr( $width ); ?>"
-					height="<?php echo esc_attr( $height ); ?>"
-					strokeDasharray="2"
-					fill="transparent"
-				/>
-				<line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="2" />
-			</svg>
-			<span class="newspack-ads__ad-placement-mock__label">
-				<?php printf( '%s - %s', esc_html( $provider->get_provider_name() ), esc_html( $ad_unit_data['name'] ) ); ?>
-				<br />
-				<?php echo esc_html( implode( ', ', array_map( 'Newspack_Ads\get_size_string', $sizes ) ) ); ?>
-			</span>
+					viewbox="0 0 <?php echo esc_attr( $width ); ?> <?php echo esc_attr( $height ); ?>"
+				>
+					<rect
+						width="<?php echo esc_attr( $width ); ?>"
+						height="<?php echo esc_attr( $height ); ?>"
+						strokeDasharray="2"
+						fill="transparent"
+					/>
+					<line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="2" />
+				</svg>
+				<span class="newspack-ads__ad-placement-mock__label">
+					<?php printf( '%s - %s', esc_html( $provider->get_provider_name() ), esc_html( $ad_unit_data['name'] ) ); ?>
+					<br />
+					<?php echo esc_html( implode( ', ', array_map( 'Newspack_Ads\get_size_string', $sizes ) ) ); ?>
+				</span>
+			</div>
 		</div>
 		<?php
 	}
