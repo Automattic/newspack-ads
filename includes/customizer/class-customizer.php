@@ -144,7 +144,7 @@ class Customizer {
 				[
 					'selector'            => sprintf( '.newspack_global_ad.%s', $placement_key ),
 					'container_inclusive' => false,
-					'fallback_refresh'    => false,
+					'fallback_refresh'    => true,
 					'render_callback'     => function() use ( $placement_key ) {
 						$data = Placements::get_placement_data( $placement_key );
 						if ( ! isset( $data['enabled'] ) || false === $data['enabled'] ) {
