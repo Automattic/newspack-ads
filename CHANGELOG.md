@@ -1,3 +1,10 @@
+# [1.30.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.30.0-alpha.1...v1.30.0-alpha.2) (2022-04-05)
+
+
+### Bug Fixes
+
+* **integrations:** ad refresh control sanitized settings ([#359](https://github.com/Automattic/newspack-ads/issues/359)) ([68422ff](https://github.com/Automattic/newspack-ads/commit/68422ff792b08540f86e958bdab50131fb31dec4))
+
 # [1.30.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.29.0...v1.30.0-alpha.1) (2022-03-31)
 
 
