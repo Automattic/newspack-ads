@@ -178,7 +178,8 @@ class Ad_Refresh_Control {
 			$settings['disable_refresh'] = ! (bool) $settings['active'];
 			unset( $settings['active'] );
 		}
-		\update_option( self::SETTINGS_KEY, \AdRefreshControl\Settings\sanitize_settings( $settings ) );
+		$settings = \AdRefreshControl\Settings\sanitize_settings( $settings );
+		\update_option( self::SETTINGS_KEY, $settings );
 		return \rest_ensure_response( $settings );
 	}
 }
