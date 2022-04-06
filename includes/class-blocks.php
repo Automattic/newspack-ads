@@ -16,6 +16,13 @@ use Newspack_Ads\Placements;
 final class Blocks {
 
 	/**
+	 * Amount of blocks rendered in the page.
+	 *
+	 * @var int
+	 */
+	private static $block_count = 0;
+
+	/**
 	 * Initialize blocks
 	 *
 	 * @return void
@@ -71,7 +78,7 @@ final class Blocks {
 		if ( isset( $data['id'] ) && ! empty( $data['id'] ) ) {
 			return $data['id'];
 		}
-		return sprintf( '%1$s_%2$s', get_the_ID(), $data['ad_unit'] );
+		return sprintf( '%1$s_%2$s_%3$s', get_the_ID(), $data['ad_unit'], self::$block_count );
 	}
 
 	/**
@@ -153,6 +160,7 @@ final class Blocks {
 		if ( empty( $content ) ) {
 			return '';
 		}
+		self::$block_count++;
 		return sprintf( '<div class="%1$s" style="text-align:%2$s">%3$s</div>', $classes, $align, $content );
 	}
 
