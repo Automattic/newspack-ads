@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/Automattic/newspack-ads/compare/v1.30.0...v1.30.1) (2022-04-06)
+
+
+### Bug Fixes
+
+* **blocks:** ensure id uniqueness ([#362](https://github.com/Automattic/newspack-ads/issues/362)) ([07870aa](https://github.com/Automattic/newspack-ads/commit/07870aa200721f8e17497ac91e6e1c34f89b4a75))
+
 # [1.30.0](https://github.com/Automattic/newspack-ads/compare/v1.29.0...v1.30.0) (2022-04-05)
 
 
