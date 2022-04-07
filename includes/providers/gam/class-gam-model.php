@@ -621,9 +621,9 @@ final class GAM_Model {
 	 * we can display [[640,320], [960,540]] on viewports >= 960px even though
 	 * the ratio difference is higher than the default 30%.
 	 *
-	 * @param array[] $sizes            Array of sizes.
-	 * @param float   $width_diff_ratio Minimum width ratio difference for sizes to share same viewport.
-	 * @param int     $width_threshold  Width threshold to ignore ratio difference.
+	 * @param array[]   $sizes            Array of sizes.
+	 * @param float     $width_diff_ratio Minimum width ratio difference for sizes to share same viewport.
+	 * @param int|false $width_threshold  Width threshold to ignore ratio difference. False disables threshold.
 	 *
 	 * @return array[] Size map keyed by the viewport width.
 	 */
@@ -638,7 +638,7 @@ final class GAM_Model {
 		foreach ( $viewports as $viewport_width ) {
 			foreach ( $sizes as $size ) {
 				$is_in_viewport     = $size[0] <= $viewport_width;
-				$is_above_threshold = $width_threshold <= $size[0];
+				$is_above_threshold = false !== $width_threshold && $width_threshold <= $size[0];
 				$diff               = min( $viewport_width, $size[0] ) / max( $viewport_width, $size[0] );
 				$is_within_ratio    = ( 1 - $width_diff_ratio ) <= $diff;
 				if ( $is_in_viewport && ( $is_within_ratio || $is_above_threshold ) ) {
