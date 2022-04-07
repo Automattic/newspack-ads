@@ -628,7 +628,6 @@ final class Placements {
 					width="<?php echo esc_attr( $width ); ?>"
 					height="<?php echo esc_attr( $height ); ?>"
 					strokeDasharray="2"
-					fill="transparent"
 				/>
 				<line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="2" />
 			</svg>
