@@ -218,7 +218,19 @@ class ModelTest extends WP_UnitTestCase {
 				'90'  => [ [ 60, 60 ], [ 90, 90 ] ],
 				'100' => [ [ 60, 60 ], [ 90, 90 ], [ 100, 100 ] ],
 			],
-			GAM_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ], 0.5 )
+			GAM_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ], 0.5 ),
+			'The size map groups sizes with a custom difference ratio.'
+		);
+
+		self::assertEquals(
+			[
+				'300' => [ [ 300, 200 ], [ 300, 250 ] ],
+				'350' => [ [ 350, 200 ] ],
+				'640' => [ [ 640, 360 ] ],
+				'960' => [ [ 640, 360 ], [ 960, 540 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 300, 200 ], [ 300, 250 ], [ 350, 200 ], [ 640, 360 ], [ 960, 540 ] ], 0 ),
+			'The size map groups sizes above the default width threshold of 600 regardless of their ratio difference.'
 		);
 	}
 }

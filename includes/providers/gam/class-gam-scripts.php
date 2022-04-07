@@ -93,7 +93,7 @@ final class GAM_Scripts {
 				'fluid'     => (bool) $ad_unit['fluid'],
 				'targeting' => $ad_targeting,
 				'sticky'    => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'  => GAM_Model::get_responsive_size_map( $sizes ),
+				'size_map'  => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
 			];
 		}
 

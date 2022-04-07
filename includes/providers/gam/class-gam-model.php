@@ -540,7 +540,12 @@ final class GAM_Model {
 			);
 		}
 
-		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', self::get_responsive_size_map( $sizes ), $ad_unit );
+		$size_map = self::get_ad_unit_size_map( $ad_unit, $sizes );
+
+		/**
+		 * Legacy filter for custom size map.
+		 */
+		$size_map = apply_filters( 'newspack_ads_multisize_ad_sizes', $size_map, $ad_unit );
 
 		// Do not use responsive strategy if the size map only results in one viewport or the ad unit is fluid.
 		if ( 1 < count( $size_map ) && false === $ad_unit['fluid'] ) {
@@ -606,29 +611,90 @@ final class GAM_Model {
 	 * 
 	 * Gather up all of the ad sizes which should be displayed on the same
 	 * viewports. As a heuristic, each ad slot can safely display ads with a 30%
-	 * difference from slot's width. e.g. for the following setup: [[900,200],
-	 * [750,200]], we can display [[900,200], [750,200]] on viewports >= 900px
-	 * and [[750,200]] on viewports < 900px.
+	 * difference from slot's width. e.g. for the following setup: [[300,200],
+	 * [350,200]], we can display [[300,200], [350,200]] on viewports >= 350px
+	 * and [[300,200]] on viewports <= 300px.
+	 *
+	 * Sizes above the determined width threshold (default to 600) will not have
+	 * their ratio difference considered and will always share viewport with the
+	 * next largest size. e.g. for the following setup: [[640,320], [960,540]],
+	 * we can display [[640,320], [960,540]] on viewports >= 960px even though
+	 * the ratio difference is higher than the default 30%.
 	 *
 	 * @param array[] $sizes            Array of sizes.
 	 * @param float   $width_diff_ratio Minimum width ratio difference for sizes to share same viewport.
+	 * @param int     $width_threshold  Width threshold to ignore ratio difference.
 	 *
 	 * @return array[] Size map keyed by the viewport width.
 	 */
-	public static function get_responsive_size_map( $sizes, $width_diff_ratio = 0.3 ) {
+	public static function get_responsive_size_map( $sizes, $width_diff_ratio = 0.3, $width_threshold = 600 ) {
 
 		array_multisort( $sizes );
-		$widths = array_unique( array_column( $sizes, 0 ) );
+	
+		// Each existing size's width is size map viewport.
+		$viewports = array_unique( array_column( $sizes, 0 ) );
 
 		$size_map = [];
-		foreach ( $widths as $ad_width ) {
+		foreach ( $viewports as $viewport_width ) {
 			foreach ( $sizes as $size ) {
-				$diff = min( $ad_width, $size[0] ) / max( $ad_width, $size[0] );
-				if ( $size[0] <= $ad_width && ( 1 - $width_diff_ratio ) <= $diff ) {
-					$size_map[ $ad_width ][] = $size;
+				$is_in_viewport     = $size[0] <= $viewport_width;
+				$is_above_threshold = $width_threshold <= $size[0];
+				$diff               = min( $viewport_width, $size[0] ) / max( $viewport_width, $size[0] );
+				$is_within_ratio    = ( 1 - $width_diff_ratio ) <= $diff;
+				if ( $is_in_viewport && ( $is_within_ratio || $is_above_threshold ) ) {
+					$size_map[ $viewport_width ][] = $size;
 				}
 			}
 		}
+		return $size_map;
+	}
+
+	/**
+	 * Get the size map for an ad unit.
+	 *
+	 * @param array $ad_unit Ad unit.
+	 * @param array $sizes   Optional array of sizes to use.
+	 *
+	 * @return array Size map keyed by the viewport width.
+	 */
+	public static function get_ad_unit_size_map( $ad_unit, $sizes = [] ) {
+
+		if ( empty( $sizes ) ) {
+			$sizes = $ad_unit['sizes'];
+		}
+
+		/**
+		 * Filters the ad unit size map difference ratio.
+		 *
+		 * @param float   $width_diff_ratio The width diff ratio.
+		 * @param array   $ad_unit          The ad unit config.
+		 * @param array[] $sizes            The sizes being used.
+		 */
+		$width_diff_ratio = apply_filters( 'newspack_ads_gam_size_map_diff_ratio', 0.3, $ad_unit, $sizes );
+
+		/**
+		 * Filters the ad unit size map width threshold.
+		 *
+		 * @param int     $width_threshold The width threshold.
+		 * @param array   $ad_unit         The ad unit config.
+		 * @param array[] $sizes           The sizes being used.
+		 */
+		$width_threshold = apply_filters( 'newspack_ads_gam_size_map_width_threshold', 600, $ad_unit, $sizes );
+
+		/**
+		 * Filters the ad unit size map rules.
+		 *
+		 * @param array[] $size_map The size map array.
+		 * @param array   $ad_unit  The ad unit config.
+		 * @param array[] $sizes    The sizes being used.
+		 */
+		$size_map = apply_filters(
+			'newspack_ads_gam_size_map',
+			self::get_responsive_size_map( $sizes, $width_diff_ratio, $width_threshold ),
+			$ad_unit,
+			$sizes
+		);
+
 		return $size_map;
 	}
 
