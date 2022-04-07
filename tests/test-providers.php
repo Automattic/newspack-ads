@@ -36,12 +36,12 @@ class ProvidersTest extends WP_UnitTestCase {
 	public function test_serialised_provider() {
 		$serialised_provider = Providers::get_serialised_provider( self::$provider );
 		self::assertEquals(
-			$serialised_provider,
 			[
 				'id'     => self::$provider->get_provider_id(),
 				'name'   => self::$provider->get_provider_name(),
 				'active' => self::$provider->is_active(),
-			]
+			],
+			$serialised_provider
 		);
 	}
 
@@ -54,8 +54,8 @@ class ProvidersTest extends WP_UnitTestCase {
 			$provider instanceof Provider
 		);
 		self::assertEquals(
-			$provider->get_provider_id(),
-			self::$provider->get_provider_id()
+			self::$provider->get_provider_id(),
+			$provider->get_provider_id()
 		);
 	}
 
@@ -73,8 +73,51 @@ class ProvidersTest extends WP_UnitTestCase {
 		);
 		$code = ob_get_clean();
 		self::assertEquals(
-			$code,
-			'test_ad_unit test_placement_id test_hook_key'
+			'test_ad_unit test_placement_id test_hook_key',
+			$code
+		);
+	}
+
+	/**
+	 * Test method to get a provider data.
+	 */
+	public function test_provider_data() {
+		self::assertEquals(
+			[
+				'id'     => 'test_provider',
+				'name'   => 'Test Provider',
+				'active' => true,
+				'units'  => [
+					[
+						'name'  => 'Test Ad Unit',
+						'value' => 'test_ad_unit',
+						'sizes' => [
+							[ 300, 250 ],
+						],
+					],
+				],
+			],
+			Providers::get_provider_data( 'test_provider' )
+		);
+	}
+
+	/**
+	 * Test method to get a provider unit data.
+	 */
+	public function test_provider_unit_data() {
+		self::assertEquals(
+			[
+				'name'  => 'Test Ad Unit',
+				'value' => 'test_ad_unit',
+				'sizes' => [
+					[ 300, 250 ],
+				],
+			],
+			Providers::get_provider_unit_data( 'test_provider', 'test_ad_unit' )
+		);
+		self::assertEquals(
+			null,
+			Providers::get_provider_unit_data( 'test_provider', 'not_an_ad_unit' )
 		);
 	}
 }
