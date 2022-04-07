@@ -115,9 +115,6 @@ class ProvidersTest extends WP_UnitTestCase {
 			],
 			Providers::get_provider_unit_data( 'test_provider', 'test_ad_unit' )
 		);
-		self::assertEquals(
-			null,
-			Providers::get_provider_unit_data( 'test_provider', 'not_an_ad_unit' )
-		);
+		self::assertNull( Providers::get_provider_unit_data( 'test_provider', 'not_an_ad_unit' ) );
 	}
 }
