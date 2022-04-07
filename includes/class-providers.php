@@ -33,6 +33,13 @@ final class Providers {
 	protected static $providers = [];
 
 	/**
+	 * Cache of active providers data.
+	 *
+	 * @var array[] Serialised providers with their units.
+	 */
+	protected static $active_providers_data = null;
+
+	/**
 	 * Initialize providers.
 	 */
 	public static function init() {
