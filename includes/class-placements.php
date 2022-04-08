@@ -124,6 +124,10 @@ final class Placements {
 			$sanitized_data['enabled'] = rest_sanitize_boolean( $data['enabled'] );
 		}
 
+		if ( isset( $data['provider'] ) ) {
+			$sanitized_data['provider'] = sanitize_text_field( $data['provider'] );
+		}
+
 		if ( isset( $data['ad_unit'] ) ) {
 			$sanitized_data['ad_unit'] = sanitize_text_field( $data['ad_unit'] );
 		}
@@ -650,6 +654,9 @@ final class Placements {
 	public static function render_ad_unit_mock( $provider_id, $ad_unit, $classes = [] ) {
 		$provider     = Providers::get_provider( $provider_id );
 		$ad_unit_data = Providers::get_provider_unit_data( $provider_id, $ad_unit );
+		if ( ! $ad_unit_data ) {
+			return;
+		}
 		/**
 		 * Default to a 300x200 size if no sizes are provided.
 		 */

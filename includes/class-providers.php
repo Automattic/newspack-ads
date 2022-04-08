@@ -173,7 +173,7 @@ final class Providers {
 			return null;
 		}
 		$ad_unit_idx = array_search( $unit_value, array_column( $provider['units'], 'value' ) );
-		if ( false === $unit_value ) {
+		if ( false === $ad_unit_idx ) {
 			return null;
 		}
 		return $provider['units'][ $ad_unit_idx ];

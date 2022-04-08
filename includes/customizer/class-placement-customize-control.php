@@ -30,7 +30,14 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	 *
 	 * @var array[]
 	 */
-	private $providers = null;
+	private $providers = [];
+
+	/**
+	 * Enabled bidders.
+	 *
+	 * @var array[]
+	 */
+	private $bidders = [];
 
 	/**
 	 * Placement configuration.
@@ -49,6 +56,7 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	public function __construct( $manager, $id, $args = [] ) {
 		// Available ad units.
 		$this->providers = Providers::get_active_providers_data();
+		$this->bidders   = \Newspack_Ads\get_bidders();
 
 		// Placement configuration.
 		if ( isset( $args['placement'] ) ) {
@@ -92,10 +100,11 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	private function get_provider_value( $hook_key = '' ) {
 		$value   = json_decode( $this->value(), true );
 		$default = Providers::DEFAULT_PROVIDER;
-		if ( ! $hook_key ) {
-			return $value['provider'] ?? $default;
+		$data    = $value;
+		if ( ! empty( $hook_key ) && isset( $value['hooks'], $value['hooks'][ $hook_key ] ) ) {
+			$data = $value['hooks'][ $hook_key ];
 		}
-		return isset( $value['hooks'][ $hook_key ]['provider'] ) ? $value['hooks'][ $hook_key ]['provider'] : $default;
+		return isset( $data['provider'] ) ? $data['provider'] : $default;
 	}
 
 	/**
@@ -107,10 +116,31 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	 */
 	private function get_ad_unit_value( $hook_key = '' ) {
 		$value = json_decode( $this->value(), true );
-		if ( ! $hook_key ) {
-			return $value['ad_unit'] ?? '';
+		$data  = $value;
+		if ( ! empty( $hook_key ) && isset( $value['hooks'], $value['hooks'][ $hook_key ] ) ) {
+			$data = $value['hooks'][ $hook_key ];
 		}
-		return isset( $value['hooks'][ $hook_key ]['ad_unit'] ) ? $value['hooks'][ $hook_key ]['ad_unit'] : '';
+		return isset( $data['ad_unit'] ) ? $data['ad_unit'] : '';
+	}
+
+	/**
+	 * Get the value of a bidder given its hook key.
+	 *
+	 * @param string $bidder_id The bidder ID.
+	 * @param string $hook_key  Optional hook key, will look root placement otherwise.
+	 *
+	 * @return string Ad unit ID or empty string if not found.
+	 */
+	private function get_bidder_value( $bidder_id, $hook_key = '' ) {
+		$value = json_decode( $this->value(), true );
+		$data  = $value;
+		if ( ! empty( $hook_key ) && isset( $value['hooks'], $value['hooks'][ $hook_key ] ) ) {
+			$data = $value['hooks'][ $hook_key ];
+		}
+		if ( ! isset( $data['bidders_ids'], $data['bidders_ids'][ $bidder_id ] ) ) {
+			return '';
+		}
+		return $data['bidders_ids'][ $bidder_id ];
 	}
 
 	/**
@@ -145,7 +175,7 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
 			<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo esc_html( $description ); ?></span>
 			<select id="<?php echo esc_attr( $input_id ); ?>" aria-describedby="<?php echo esc_attr( $description_id ); ?>" data-hook="<?php echo esc_attr( $hook_key ); ?>">
-				<option <?php selected( $value, '' ); ?>><?php esc_html_e( '&mdash; Select a provider &mdash;', 'newspack-ads' ); ?></option>
+				<option <?php selected( $value, '' ); ?> value=""><?php esc_html_e( '&mdash; Select a provider &mdash;', 'newspack-ads' ); ?></option>
 				<?php
 				foreach ( $this->providers as $provider ) {
 						echo '<option value="' . esc_attr( $provider['id'] ) . '"' . selected( $value, $provider['id'], false ) . '>' . esc_html( $provider['name'] ) . '</option>';
@@ -177,14 +207,41 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 		<span class="customize-control ad-unit-select" data-provider="<?php echo esc_attr( $provider ); ?>">
 			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
 			<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo esc_html( $description ); ?></span>
-			<select id="<?php echo esc_attr( $input_id ); ?>" aria-describedby="<?php echo esc_attr( $description_id ); ?>" data-hook="<?php echo esc_attr( $hook_key ); ?>">
-				<option <?php selected( $value, '' ); ?>><?php esc_html_e( '&mdash; Select an ad unit &mdash;', 'newspack-ads' ); ?></option>
+			<select id="<?php echo esc_attr( $input_id ); ?>" aria-describedby="<?php echo esc_attr( $description_id ); ?>">
+				<option <?php selected( $value, '' ); ?> value=""><?php esc_html_e( '&mdash; Select an ad unit &mdash;', 'newspack-ads' ); ?></option>
 				<?php
 				foreach ( $ad_units as $ad_unit ) {
 						echo '<option value="' . esc_attr( $ad_unit['value'] ) . '"' . selected( $value, $ad_unit['value'], false ) . '>' . esc_html( $ad_unit['name'] ) . '</option>';
 				}
 				?>
 			</select>
+		</span>
+		<?php
+	}
+
+	/**
+	 * Render the control's ad unit select given its provider, value and hook key.
+	 *
+	 * @param string $bidder_id The bidder ID.
+	 * @param string $value     The current value of the control.
+	 * @param string $hook_key  The hook key.
+	 */
+	private function render_bidder_input( $bidder_id, $value, $hook_key = '' ) {
+		$bidder  = $this->bidders[ $bidder_id ];
+		$id_args = [ 'bidder', $bidder_id ];
+		if ( $hook_key ) {
+			$id_args[] = $hook_key;
+		}
+		$input_id       = $this->get_element_id( 'input', $id_args );
+		$description_id = $this->get_element_id( 'description', $id_args );
+		/* translators: %s is the bidder name */
+		$label       = sprintf( __( '%s Placement ID', 'newspack-ads' ), $bidder['name'] );
+		$description = __( 'Enter the bidder ID for this placement.', 'newspack-ads' );
+		?>
+		<span class="customize-control bidder-id-input" data-provider="gam">
+			<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $label ); ?></label>
+			<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo esc_html( $description ); ?></span>
+			<input id="<?php echo esc_attr( $input_id ); ?>" type="text" value="<?php echo esc_attr( $value ); ?>" data-bidder-id="<?php echo esc_attr( $bidder_id ); ?>" />
 		</span>
 		<?php
 	}
@@ -207,6 +264,9 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 			$this->render_provider_select( $this->get_provider_value( $hook_key ), $hook_key );
 			foreach ( $this->providers as $provider ) {
 				$this->render_ad_unit_select( $provider['id'], $provider['units'], $this->get_ad_unit_value( $hook_key ), $hook_key );
+			}
+			foreach ( array_keys( $this->bidders ) as $bidder_id ) {
+				$this->render_bidder_input( $bidder_id, $this->get_bidder_value( $bidder_id, $hook_key ), $hook_key );
 			}
 			?>
 		</div>
