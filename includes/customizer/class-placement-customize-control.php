@@ -124,6 +124,22 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	}
 
 	/**
+	 * Get the value of "stick to top" feature given its hook key.
+	 *
+	 * @param string $hook_key Optional hook key, will look root placement otherwise.
+	 *
+	 * @return string Ad unit ID or empty string if not found.
+	 */
+	private function get_stick_to_top_value( $hook_key = '' ) {
+		$value = json_decode( $this->value(), true );
+		$data  = $value;
+		if ( ! empty( $hook_key ) && isset( $value['hooks'], $value['hooks'][ $hook_key ] ) ) {
+			$data = $value['hooks'][ $hook_key ];
+		}
+		return isset( $data['stick_to_top'] ) ? (bool) $data['stick_to_top'] : false;
+	}
+
+	/**
 	 * Get the value of a bidder given its hook key.
 	 *
 	 * @param string $bidder_id The bidder ID.
@@ -247,13 +263,34 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 	}
 
 	/**
+	 * Render the control's "stick to top" checkbox.
+	 *
+	 * @param bool   $value    The current value of the control.
+	 * @param string $hook_key The hook key.
+	 */
+	private function render_stick_to_top_checkbox( $value = false, $hook_key = '' ) {
+		$id_args = [ 'stick-to-top' ];
+		if ( $hook_key ) {
+			$id_args[] = $hook_key;
+		}
+		$input_id = $this->get_element_id( 'input', $id_args );
+		$label    = __( 'Stick to top', 'newspack-ads' );
+		?>
+		<span class="customize-control stick-to-top-checkbox">
+			<input id="<?php echo esc_attr( $input_id ); ?>" type="checkbox" value="1" <?php checked( $value, '1' ); ?> />
+			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $label ); ?></label>
+		</span>
+		<?php
+	}
+
+	/**
 	 * Render a placement hook control.
 	 *
 	 * @param string $hook_key Optional hook_key key, will treat as root placement otherwise.
 	 */
 	private function render_placement_hook_control( $hook_key = '' ) {
 		?>
-		<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
+		<div class="placement-hook-control" config-hook="<?php echo esc_attr( $hook_key ); ?>">
 			<?php
 			if ( $hook_key ) :
 				$hook_name = $this->placement['hooks'][ $hook_key ]['name'];
@@ -297,12 +334,15 @@ class Placement_Customize_Control extends \WP_Customize_Control {
 			</span>
 			<?php
 			if ( isset( $this->placement['hook_name'] ) && $this->placement['hook_name'] ) {
-				$this->render_placement_hook_control();
+				$this->render_placement_hook_control( '', $this->placement );
 			}
 			if ( isset( $this->placement['hooks'] ) && count( $this->placement['hooks'] ) ) {
 				foreach ( array_keys( $this->placement['hooks'] ) as $hook_key ) {
-					$this->render_placement_hook_control( $hook_key );
+					$this->render_placement_hook_control( $hook_key, $this->placement );
 				}
+			}
+			if ( in_array( 'stick_to_top', $this->placement['supports'], true ) ) {
+				$this->render_stick_to_top_checkbox( $this->get_stick_to_top_value() );
 			}
 			?>
 		</div>

@@ -32,8 +32,11 @@ import { set, debounce } from 'lodash';
 				value = set( value, path, val );
 				_update();
 			};
-			control.container.on( 'change', 'input[type=checkbox]', function () {
+			control.container.on( 'change', '.placement-toggle input[type=checkbox]', function () {
 				updateValue( '', 'enabled', $( this ).is( ':checked' ) );
+			} );
+			control.container.on( 'change', '.stick-to-top-checkbox input[type=checkbox]', function () {
+				updateValue( '', 'stick_to_top', $( this ).is( ':checked' ) );
 			} );
 			control.container.find( '.placement-hook-control' ).each( function () {
 				const $container = $( this );
