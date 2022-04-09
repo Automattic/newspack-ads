@@ -25,7 +25,7 @@ final class GAM_Scripts {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ] );
+		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ], 1 );
 		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
 	}
 
@@ -44,6 +44,9 @@ final class GAM_Scripts {
 		}
 		?>
 		<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" data-amp-plus-allowed></script>
+		<script data-amp-plus-allowed>
+			window.googletag = window.googletag || { cmd: [] };
+		</script>
 		<?php
 	}
 
@@ -138,7 +141,6 @@ final class GAM_Scripts {
 		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
 		?>
 		<script data-amp-plus-allowed>
-			window.googletag = window.googletag || { cmd: [] };
 			googletag.cmd.push(function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
