@@ -1,13 +1,14 @@
 import { set, debounce } from 'lodash';
 
-( function ( $ ) {
-	wp.customize.bind( 'ready', function () {
+( function ( api, $ ) {
+	api.bind( 'ready', function () {
 		let controls = [];
-		const sections = wp.customize.panel( 'newspack-ads' ).sections();
+		const sections = api.panel( 'newspack-ads' ).sections();
 		sections.forEach( function ( section ) {
 			controls = controls.concat( section.controls() );
 		} );
 		controls.forEach( function ( control ) {
+			const container = control.container;
 			if ( control.params.type !== 'newspack_ads_placement' ) {
 				return;
 			}
@@ -17,8 +18,8 @@ import { set, debounce } from 'lodash';
 			} catch ( e ) {
 				value = { enabled: false, provider: 'gam' };
 			}
-			control.container.find( `[data-provider]` ).hide();
-			control.container.find( `[data-provider="${ value.provider || 'gam' }"]` ).show();
+			container.find( '[data-provider]' ).hide();
+			container.find( `[data-provider="${ value.provider || 'gam' }"]` ).show();
 			const _update = debounce( function () {
 				control.setting.set( JSON.stringify( value ) );
 			}, 300 );
@@ -32,17 +33,17 @@ import { set, debounce } from 'lodash';
 				value = set( value, path, val );
 				_update();
 			};
-			control.container.on( 'change', '.placement-toggle input[type=checkbox]', function () {
+			container.on( 'change', '.placement-toggle input[type=checkbox]', function () {
 				updateValue( '', 'enabled', $( this ).is( ':checked' ) );
 			} );
-			control.container.on( 'change', '.stick-to-top-checkbox input[type=checkbox]', function () {
+			container.on( 'change', '.stick-to-top-checkbox input[type=checkbox]', function () {
 				updateValue( '', 'stick_to_top', $( this ).is( ':checked' ) );
 			} );
-			control.container.find( '.placement-hook-control' ).each( function () {
+			container.find( '.placement-hook-control' ).each( function () {
 				const $container = $( this );
 				const $provider = $container.find( '.provider-select select' );
 				const $adUnit = $container.find( '.ad-unit-select select' );
-				const $bidders_ids = $container.find( '.bidder-id-input input' );
+				const $biddersIds = $container.find( '.bidder-id-input input' );
 				const hook = $container.data( 'hook' ) || '';
 				$provider.on( 'change', function () {
 					const val = $( this ).val();
@@ -56,11 +57,11 @@ import { set, debounce } from 'lodash';
 				$adUnit.on( 'change', function () {
 					updateValue( hook, 'ad_unit', $( this ).val() );
 				} );
-				$bidders_ids.on( 'change', function () {
+				$biddersIds.on( 'change', function () {
 					const bidderId = $( this ).data( 'bidder-id' );
 					updateValue( hook, [ 'bidders_ids', bidderId ], $( this ).val() );
 				} );
 			} );
 		} );
 	} );
-} )( window.jQuery );
+} )( window.wp.customize, window.jQuery );
