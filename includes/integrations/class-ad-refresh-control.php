@@ -28,7 +28,7 @@ class Ad_Refresh_Control {
 	];
 
 	/**
-	 * Initialize SCAIP Hooks.
+	 * Initialize hooks.
 	 */
 	public static function init() {
 		\add_filter( 'newspack_amp_plus_sanitized', [ __CLASS__, 'allow_amp_plus' ], 10, 2 );
