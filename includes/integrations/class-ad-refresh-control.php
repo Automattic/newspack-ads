@@ -32,6 +32,7 @@ class Ad_Refresh_Control {
 	 */
 	public static function init() {
 		\add_filter( 'newspack_amp_plus_sanitized', [ __CLASS__, 'allow_amp_plus' ], 10, 2 );
+		\add_filter( 'avc_advertiser_ids', [ __CLASS__, 'default_advertiser_ids' ] );
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
 
@@ -51,6 +52,21 @@ class Ad_Refresh_Control {
 			}
 		}
 		return $is_sanitized;
+	}
+
+	/**
+	 * Default advertisers IDs to exclude.
+	 *
+	 * Excludes when the advertiser ID is 0, representing AdSense, which does not
+	 * allow refreshing.
+	 *
+	 * @param array $advertiser_ids Advertiser IDs to exclude.
+	 *
+	 * @return array Advertiser IDs to exclude.
+	 */
+	public static function default_advertiser_ids( $advertiser_ids ) {
+		$advertiser_ids[] = 0;
+		return $advertiser_ids;
 	}
 
 	/**
