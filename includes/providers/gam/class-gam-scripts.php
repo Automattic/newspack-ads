@@ -88,15 +88,26 @@ final class GAM_Scripts {
 				$sizes = array_values( $sizes );
 			}
 
+			/**
+			 * Filters whether the script should consider the container offset width
+			 * to filter out ad sizes that are too wide for the slot.
+			 *
+			 * @param bool  $strict_container_bounds Whether to consider the container offset width.
+			 * @param array $ad_unit                 Ad unit data.
+			 * @param array $sizes                   Ad unit sizes.
+			 */
+			$strict_container_bounds = apply_filters( 'newspack_ads_gam_strict_container_bounds', true, $ad_unit, $sizes );
+
 			$prepared_unit_data[ $container_id ] = [
-				'unique_id' => $unique_id,
-				'name'      => esc_attr( $ad_unit['name'] ),
-				'code'      => esc_attr( $ad_unit['code'] ),
-				'sizes'     => $sizes,
-				'fluid'     => (bool) $ad_unit['fluid'],
-				'targeting' => $ad_targeting,
-				'sticky'    => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'  => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'unique_id'               => $unique_id,
+				'name'                    => esc_attr( $ad_unit['name'] ),
+				'code'                    => esc_attr( $ad_unit['code'] ),
+				'sizes'                   => $sizes,
+				'fluid'                   => (bool) $ad_unit['fluid'],
+				'targeting'               => $ad_targeting,
+				'sticky'                  => GAM_Model::is_sticky( $ad_unit ),
+				'size_map'                => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'strict_container_bounds' => (bool) $strict_container_bounds,
 			];
 		}
 
@@ -150,11 +161,12 @@ final class GAM_Scripts {
 
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
+					var container = document.querySelector( '#' + container_id );
 
 					<?php
 					// Only set up ad units that are present on the page.
 					?>
-					if ( ! document.querySelector( '#' + container_id ) ) {
+					if ( ! container ) {
 						continue;
 					}
 
@@ -195,11 +207,18 @@ final class GAM_Scripts {
 						baseSizes = baseSizes.concat( 'fluid' );
 					}
 					<?php
-					// Iterate through size map.
+					/**
+					 * Iterate and apply size map skipping viewports larger than the ad
+					 * container offset width.
+					 */
 					?>
+					var availableWidth = container.parentNode.offsetWidth;
 					for ( viewportWidth in ad_unit['size_map'] ) {
-						var mappedSizes = ad_unit['size_map'][ viewportWidth ];
-						mapping.addSize( [ parseInt( viewportWidth ), 0 ], baseSizes.concat( mappedSizes ) );
+						var width = parseInt( viewportWidth );
+						if ( ad_unit['strict_container_bounds'] && width <= availableWidth ) {
+							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
+							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
+						}
 					}
 					<?php
 					// Sticky ads should only be shown on mobile (screen width <=600px).
