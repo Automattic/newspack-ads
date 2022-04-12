@@ -93,8 +93,8 @@ final class GAM_Scripts {
 			 * to filter out ad sizes that are too wide for the slot.
 			 *
 			 * @param bool  $strict_bounds Whether to consider the container offset width.
-			 * @param array $ad_unit                 Ad unit data.
-			 * @param array $sizes                   Ad unit sizes.
+			 * @param array $ad_unit       Ad unit data.
+			 * @param array $sizes         Ad unit sizes.
 			 */
 			$strict_bounds = apply_filters( 'newspack_ads_gam_strict_container_bounds', true, $ad_unit, $sizes );
 
@@ -103,8 +103,8 @@ final class GAM_Scripts {
 			 * case the bounds are strict.
 			 *
 			 * @param int   $container_bleed The amount of bleed allowed.
-			 * @param array $ad_unit                Ad unit data.
-			 * @param array $sizes                  Ad unit sizes.
+			 * @param array $ad_unit         Ad unit data.
+			 * @param array $sizes           Ad unit sizes.
 			 */
 			$container_bleed = apply_filters( 'newspack_ads_gam_container_bounds_bleed', 40, $ad_unit, $sizes );
 
