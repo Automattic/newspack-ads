@@ -30,6 +30,6 @@
 		}
 	},
 	"require": {
-		"googleads/googleads-php-lib": "^55.0"
+		"googleads/googleads-php-lib": "^56.0"
 	}
 }
