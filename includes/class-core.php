@@ -71,6 +71,7 @@ final class Core {
 	 * e.g. include_once NEWSPACK_ADS_ABSPATH . 'includes/foo.php';
 	 */
 	private function includes() {
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/utils.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/interface-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/class-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-api.php';
