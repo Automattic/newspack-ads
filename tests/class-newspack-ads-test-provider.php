@@ -35,10 +35,7 @@ class Newspack_Ads_Test_Provider extends Provider {
 				'name'  => 'Test Ad Unit',
 				'value' => 'test_ad_unit',
 				'sizes' => [
-					[
-						'width'  => 300,
-						'height' => 250,
-					],
+					[ 300, 250 ],
 				],
 			],
 		];
