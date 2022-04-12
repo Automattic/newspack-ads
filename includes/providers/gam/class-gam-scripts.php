@@ -92,22 +92,33 @@ final class GAM_Scripts {
 			 * Filters whether the script should consider the container offset width
 			 * to filter out ad sizes that are too wide for the slot.
 			 *
-			 * @param bool  $strict_container_bounds Whether to consider the container offset width.
+			 * @param bool  $strict_bounds Whether to consider the container offset width.
 			 * @param array $ad_unit                 Ad unit data.
 			 * @param array $sizes                   Ad unit sizes.
 			 */
-			$strict_container_bounds = apply_filters( 'newspack_ads_gam_strict_container_bounds', true, $ad_unit, $sizes );
+			$strict_bounds = apply_filters( 'newspack_ads_gam_strict_container_bounds', true, $ad_unit, $sizes );
+
+			/**
+			 * Filters the bleed allowed to extrapolate the ad container bounds in
+			 * case the bounds are strict.
+			 *
+			 * @param int   $container_bleed The amount of bleed allowed.
+			 * @param array $ad_unit                Ad unit data.
+			 * @param array $sizes                  Ad unit sizes.
+			 */
+			$container_bleed = apply_filters( 'newspack_ads_gam_container_bounds_bleed', 40, $ad_unit, $sizes );
 
 			$prepared_unit_data[ $container_id ] = [
-				'unique_id'               => $unique_id,
-				'name'                    => esc_attr( $ad_unit['name'] ),
-				'code'                    => esc_attr( $ad_unit['code'] ),
-				'sizes'                   => $sizes,
-				'fluid'                   => (bool) $ad_unit['fluid'],
-				'targeting'               => $ad_targeting,
-				'sticky'                  => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'                => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
-				'strict_container_bounds' => (bool) $strict_container_bounds,
+				'unique_id'       => $unique_id,
+				'name'            => esc_attr( $ad_unit['name'] ),
+				'code'            => esc_attr( $ad_unit['code'] ),
+				'sizes'           => $sizes,
+				'fluid'           => (bool) $ad_unit['fluid'],
+				'targeting'       => $ad_targeting,
+				'sticky'          => GAM_Model::is_sticky( $ad_unit ),
+				'size_map'        => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'strict_bounds'   => (bool) $strict_bounds,
+				'container_bleed' => (int) $container_bleed ?? 0,
 			];
 		}
 
@@ -212,10 +223,10 @@ final class GAM_Scripts {
 					 * container offset width.
 					 */
 					?>
-					var availableWidth = container.parentNode.offsetWidth;
+					var availableWidth = container.parentNode.offsetWidth + parseInt( ad_unit['container_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var width = parseInt( viewportWidth );
-						if ( ad_unit['strict_container_bounds'] && width <= availableWidth ) {
+						if ( ad_unit['strict_bounds'] && width <= availableWidth ) {
 							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
