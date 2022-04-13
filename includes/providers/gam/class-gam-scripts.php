@@ -254,11 +254,11 @@ final class GAM_Scripts {
 					}
 					<?php
 					/**
-					 * Iterate and apply size map skipping viewports larger than the ad
-					 * identified container width, if a bounds container is identified.
+					 * Iterate and apply size map skipping viewports larger than the
+					 * container width, if a bounds container is identified.
 					 *
-					 * The available width is the bigger of the bounds width or the direct
-					 * parent offset width.
+					 * The available width is the bigger of the bounds container width or
+					 * the direct parent offset width.
 					 */
 					?>
 					var shouldUseBounds = !! boundsWidth;
