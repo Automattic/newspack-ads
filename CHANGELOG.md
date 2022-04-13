@@ -1,3 +1,13 @@
+# [1.31.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.30.1...v1.31.0-alpha.1) (2022-04-13)
+
+
+### Features
+
+* **gam:** size map filters and width threshold ([#366](https://github.com/Automattic/newspack-ads/issues/366)) ([4b012d1](https://github.com/Automattic/newspack-ads/commit/4b012d1274d7891913fafa8ae74e2e554a161680))
+* **gam:** strict container bounds for ad slot ([#375](https://github.com/Automattic/newspack-ads/issues/375)) ([69103ad](https://github.com/Automattic/newspack-ads/commit/69103ad2d733732e1a6758c62a39700c104a8a3c))
+* **integrations:** disable refresh control for adsense ([#373](https://github.com/Automattic/newspack-ads/issues/373)) ([c7e184f](https://github.com/Automattic/newspack-ads/commit/c7e184f63cb6f5b027f734fb265dd4179a52758e))
+* **placements:** ad unit preview ([#367](https://github.com/Automattic/newspack-ads/issues/367)) ([aab1265](https://github.com/Automattic/newspack-ads/commit/aab126589554da789f444c16ad270f56c31867dd))
+
 ## [1.30.1](https://github.com/Automattic/newspack-ads/compare/v1.30.0...v1.30.1) (2022-04-06)
 
 
