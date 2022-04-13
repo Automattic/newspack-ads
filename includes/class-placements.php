@@ -106,7 +106,7 @@ final class Placements {
 	}
 
 	/**
-	 * Sanitize placement data given it's key.
+	 * Sanitize placement data.
 	 *
 	 * @param array $data Placement data.
 	 *
