@@ -89,9 +89,10 @@ final class GAM_Scripts {
 			}
 
 			/**
-			 * Filters which container elements should restrict the bounds of the ad.
+			 * Filters which container elements should restrict the bounds of its
+			 * inner ads.
 			 *
-			 * @param string[] $bounds_selectors The selectors to restrict the bounds of the ad.
+			 * @param string[] $bounds_selectors The selectors to restrict bounds.
 			 * @param array    $ad_unit          Ad unit data.
 			 * @param array    $sizes            Ad unit sizes.
 			 */
@@ -230,11 +231,11 @@ final class GAM_Scripts {
 
 					<?php
 					/**
-					 * Identify the bound container for this slot and use its offset
-					 * width as bound width.
+					 * Identify the bounds container for this slot and use its offset
+					 * width as bounds width.
 					 */
 					?>
-					var boundWidth = 0;
+					var boundsWidth = 0;
 					findContainer:
 					for ( var i = 0; i < ad_unit['bounds_selectors'].length; i++ ) {
 						var selector = ad_unit['bounds_selectors'][ i ];
@@ -243,9 +244,9 @@ final class GAM_Scripts {
 						}
 						if ( boundsContainers[ selector ].length ) {
 							for( var j = 0; j < boundsContainers[ selector ].length; j++ ) {
-								var boundContainer = boundsContainers[ selector ][ j ];
-								if ( boundContainer.contains( container ) ) {
-									boundWidth = boundContainer.offsetWidth;
+								var boundsContainer = boundsContainers[ selector ][ j ];
+								if ( boundsContainer.contains( container ) ) {
+									boundsWidth = boundsContainer.offsetWidth;
 									break findContainer;
 								}
 							}
@@ -254,17 +255,15 @@ final class GAM_Scripts {
 					<?php
 					/**
 					 * Iterate and apply size map skipping viewports larger than the ad
-					 * identified bound.
+					 * identified container width, if a bounds container is identified.
 					 *
-					 * It should use bounds if the ad is located inside a bound container.
-					 *
-					 * The available width is the bigger of the bound width or the direct
+					 * The available width is the bigger of the bounds width or the direct
 					 * parent offset width.
 					 */
 					?>
-					var shouldUseBounds = !! boundWidth;
+					var shouldUseBounds = !! boundsWidth;
 					var containerWidth = container.parentNode.offsetWidth;
-					var availableWidth = Math.max( boundWidth, containerWidth ) + parseInt( ad_unit['container_bleed'] );
+					var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['container_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var width = parseInt( viewportWidth );
 						if ( ! shouldUseBounds || width <= availableWidth ) {
