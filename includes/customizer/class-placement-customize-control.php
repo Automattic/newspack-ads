@@ -16,7 +16,7 @@ require_once ABSPATH . 'wp-includes/class-wp-customize-control.php';
 /**
  * Newspack Ads Placement Customize Control Class.
  */
-class Placement_Customize_Control extends \WP_Customize_Control {
+final class Placement_Customize_Control extends \WP_Customize_Control {
 
 	/**
 	 * Customize control type.

@@ -14,7 +14,7 @@ use Newspack_Ads\Placement_Customize_Control;
 /**
  * Newspack Ads Customizer Class.
  */
-class Customizer {
+final class Customizer {
 
 	/**
 	 * Initialize hooks.
