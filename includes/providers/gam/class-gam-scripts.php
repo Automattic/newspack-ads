@@ -89,14 +89,23 @@ final class GAM_Scripts {
 			}
 
 			/**
-			 * Filters whether the script should consider the container offset width
-			 * to filter out ad sizes that are too wide for the slot.
+			 * Filters which container elements should restrict the bounds of the ad.
 			 *
-			 * @param bool  $strict_bounds Whether to consider the container offset width.
-			 * @param array $ad_unit       Ad unit data.
-			 * @param array $sizes         Ad unit sizes.
+			 * @param string[] $bounds_selectors The selectors to restrict the bounds of the ad.
+			 * @param array    $ad_unit          Ad unit data.
+			 * @param array    $sizes            Ad unit sizes.
 			 */
-			$strict_bounds = apply_filters( 'newspack_ads_gam_strict_container_bounds', true, $ad_unit, $sizes );
+
+			$bounds_selectors = apply_filters(
+				'newspack_ads_gam_bounds_selectors',
+				[
+					'.entry-content',
+					'.sidebar',
+					'.widget-area',
+				],
+				$ad_unit,
+				$sizes
+			);
 
 			/**
 			 * Filters the bleed allowed to extrapolate the ad container bounds in
@@ -109,16 +118,16 @@ final class GAM_Scripts {
 			$container_bleed = apply_filters( 'newspack_ads_gam_container_bounds_bleed', 40, $ad_unit, $sizes );
 
 			$prepared_unit_data[ $container_id ] = [
-				'unique_id'       => $unique_id,
-				'name'            => esc_attr( $ad_unit['name'] ),
-				'code'            => esc_attr( $ad_unit['code'] ),
-				'sizes'           => $sizes,
-				'fluid'           => (bool) $ad_unit['fluid'],
-				'targeting'       => $ad_targeting,
-				'sticky'          => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'        => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
-				'strict_bounds'   => (bool) $strict_bounds,
-				'container_bleed' => (int) $container_bleed ?? 0,
+				'unique_id'        => $unique_id,
+				'name'             => esc_attr( $ad_unit['name'] ),
+				'code'             => esc_attr( $ad_unit['code'] ),
+				'sizes'            => $sizes,
+				'fluid'            => (bool) $ad_unit['fluid'],
+				'targeting'        => $ad_targeting,
+				'sticky'           => GAM_Model::is_sticky( $ad_unit ),
+				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'bounds_selectors' => $bounds_selectors,
+				'container_bleed'  => (int) $container_bleed ?? 0,
 			];
 		}
 
@@ -164,11 +173,12 @@ final class GAM_Scripts {
 		?>
 		<script data-amp-plus-allowed>
 			googletag.cmd.push(function() {
-				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
-				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
-				var lazy_load        = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
-				var common_targeting = <?php echo wp_json_encode( $common_targeting, JSON_FORCE_OBJECT ); ?>;
-				var defined_ad_units = {};
+				var ad_config         = <?php echo wp_json_encode( $ad_config ); ?>;
+				var all_ad_units      = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
+				var lazy_load         = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
+				var common_targeting  = <?php echo wp_json_encode( $common_targeting, JSON_FORCE_OBJECT ); ?>;
+				var defined_ad_units  = {};
+				var boundsContainers = {};
 
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
@@ -217,16 +227,48 @@ final class GAM_Scripts {
 					if( ad_unit['fluid'] ) {
 						baseSizes = baseSizes.concat( 'fluid' );
 					}
+
+					<?php
+					/**
+					 * Identify the bound container for this slot and use its offset
+					 * width as bound width.
+					 */
+					?>
+					var boundWidth = 0;
+					for ( var selector of ad_unit['bounds_selectors'] ) {
+						if ( boundWidth ) {
+							break;
+						}
+						if ( typeof boundsContainers[ selector ] === 'undefined' ) {
+							boundsContainers[ selector ] = document.querySelectorAll( selector );
+						}
+						if ( boundsContainers[ selector ].length ) {
+							for( var i = 0; i < boundsContainers[ selector ].length; i++ ) {
+								var boundContainer = boundsContainers[ selector ][ i ];
+								if ( boundContainer.contains( container ) ) {
+									boundWidth = boundContainer.offsetWidth;
+									break;
+								}
+							}
+						}
+					}
 					<?php
 					/**
 					 * Iterate and apply size map skipping viewports larger than the ad
-					 * container offset width.
+					 * identified bound.
+					 *
+					 * It should use bounds if the ad is located inside a bound container.
+					 *
+					 * The available width is the bigger of the bound width or the direct
+					 * parent offset width.
 					 */
 					?>
-					var availableWidth = container.parentNode.offsetWidth + parseInt( ad_unit['container_bleed'] );
+					var shouldUseBounds = !! boundWidth;
+					var containerWidth = container.parentNode.offsetWidth;
+					var availableWidth = Math.max( boundWidth, containerWidth ) + parseInt( ad_unit['container_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var width = parseInt( viewportWidth );
-						if ( ad_unit['strict_bounds'] && width <= availableWidth ) {
+						if ( shouldUseBounds && width <= availableWidth ) {
 							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
