@@ -235,11 +235,9 @@ final class GAM_Scripts {
 					 */
 					?>
 					var boundWidth = 0;
+					findContainer:
 					for ( var i = 0; i < ad_unit['bounds_selectors'].length; i++ ) {
 						var selector = ad_unit['bounds_selectors'][ i ];
-						if ( boundWidth ) {
-							break;
-						}
 						if ( typeof boundsContainers[ selector ] === 'undefined' ) {
 							boundsContainers[ selector ] = document.querySelectorAll( selector );
 						}
@@ -248,7 +246,7 @@ final class GAM_Scripts {
 								var boundContainer = boundsContainers[ selector ][ j ];
 								if ( boundContainer.contains( container ) ) {
 									boundWidth = boundContainer.offsetWidth;
-									break;
+									break findContainer;
 								}
 							}
 						}
