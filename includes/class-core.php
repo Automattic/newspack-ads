@@ -71,6 +71,7 @@ final class Core {
 	 * e.g. include_once NEWSPACK_ADS_ABSPATH . 'includes/foo.php';
 	 */
 	private function includes() {
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/utils.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/interface-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/class-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-api.php';
@@ -93,7 +94,8 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/integrations/class-ad-refresh-control.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-blocks.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-widget.php';
-		include_once NEWSPACK_ADS_ABSPATH . '/includes/suppress-ads.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-suppression.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/functions.php';
 	}
 
 	/**
