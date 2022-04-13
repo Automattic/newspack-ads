@@ -110,6 +110,9 @@ final class Customizer {
 			]
 		);
 		foreach ( $placements as $placement_key => $placement ) {
+			if ( false === $placement['show_ui'] ) {
+				continue;
+			}
 			$section_id = self::get_section_id( $placement_key );
 			$setting_id = Placements::get_option_name( $placement_key );
 			$wp_customize->add_section(
