@@ -111,11 +111,11 @@ final class GAM_Scripts {
 			 * Filters the bleed allowed to extrapolate the ad container bounds in
 			 * case the bounds are strict.
 			 *
-			 * @param int   $container_bleed The amount of bleed allowed.
-			 * @param array $ad_unit         Ad unit data.
-			 * @param array $sizes           Ad unit sizes.
+			 * @param int   $bounds_bleed The amount of bleed allowed.
+			 * @param array $ad_unit      Ad unit data.
+			 * @param array $sizes        Ad unit sizes.
 			 */
-			$container_bleed = apply_filters( 'newspack_ads_gam_container_bounds_bleed', 40, $ad_unit, $sizes );
+			$bounds_bleed = apply_filters( 'newspack_ads_gam_bounds_bleed', 40, $ad_unit, $sizes );
 
 			$prepared_unit_data[ $container_id ] = [
 				'unique_id'        => $unique_id,
@@ -127,7 +127,7 @@ final class GAM_Scripts {
 				'sticky'           => GAM_Model::is_sticky( $ad_unit ),
 				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
 				'bounds_selectors' => $bounds_selectors,
-				'container_bleed'  => (int) $container_bleed ?? 0,
+				'bounds_bleed'     => (int) $bounds_bleed ?? 0,
 			];
 		}
 
@@ -263,7 +263,7 @@ final class GAM_Scripts {
 					?>
 					var shouldUseBounds = !! boundsWidth;
 					var containerWidth = container.parentNode.offsetWidth;
-					var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['container_bleed'] );
+					var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var width = parseInt( viewportWidth );
 						if ( ! shouldUseBounds || width <= availableWidth ) {
