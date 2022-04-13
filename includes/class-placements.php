@@ -699,8 +699,6 @@ final class Placements {
 	 */
 	public static function inject_placement_ad( $placement_key, $hook_key = '' ) {
 
-		do_action( 'newspack_ads_placement_ad', $placement_key, $hook_key );
-
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
