@@ -268,7 +268,7 @@ final class GAM_Scripts {
 					var availableWidth = Math.max( boundWidth, containerWidth ) + parseInt( ad_unit['container_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
 						var width = parseInt( viewportWidth );
-						if ( shouldUseBounds && width <= availableWidth ) {
+						if ( ! shouldUseBounds || width <= availableWidth ) {
 							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
