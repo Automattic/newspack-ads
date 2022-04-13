@@ -95,7 +95,6 @@ final class GAM_Scripts {
 			 * @param array    $ad_unit          Ad unit data.
 			 * @param array    $sizes            Ad unit sizes.
 			 */
-
 			$bounds_selectors = apply_filters(
 				'newspack_ads_gam_bounds_selectors',
 				[
