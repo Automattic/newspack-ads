@@ -234,7 +234,8 @@ final class GAM_Scripts {
 					 */
 					?>
 					var boundWidth = 0;
-					for ( var selector of ad_unit['bounds_selectors'] ) {
+					for ( var i = 0; i < ad_unit['bounds_selectors'].length; i++ ) {
+						var selector = ad_unit['bounds_selectors'][ i ];
 						if ( boundWidth ) {
 							break;
 						}
@@ -242,8 +243,8 @@ final class GAM_Scripts {
 							boundsContainers[ selector ] = document.querySelectorAll( selector );
 						}
 						if ( boundsContainers[ selector ].length ) {
-							for( var i = 0; i < boundsContainers[ selector ].length; i++ ) {
-								var boundContainer = boundsContainers[ selector ][ i ];
+							for( var j = 0; j < boundsContainers[ selector ].length; j++ ) {
+								var boundContainer = boundsContainers[ selector ][ j ];
 								if ( boundContainer.contains( container ) ) {
 									boundWidth = boundContainer.offsetWidth;
 									break;
