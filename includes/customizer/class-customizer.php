@@ -105,7 +105,7 @@ final class Customizer {
 			'newspack-ads',
 			[
 				'title'       => __( 'Ad Placements', 'newspack-ads' ),
-				'description' => __( 'Customize your ads placements.', 'newspack-ads' ),
+				'description' => __( 'Customize your ad placements.', 'newspack-ads' ),
 				'priority'    => 110,
 			]
 		);
