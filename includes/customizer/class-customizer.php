@@ -104,7 +104,7 @@ final class Customizer {
 		$wp_customize->add_panel(
 			'newspack-ads',
 			[
-				'title'       => __( 'Ads Placements', 'newspack-ads' ),
+				'title'       => __( 'Ad Placements', 'newspack-ads' ),
 				'description' => __( 'Customize your ads placements.', 'newspack-ads' ),
 				'priority'    => 110,
 			]
