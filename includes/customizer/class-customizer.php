@@ -36,14 +36,6 @@ final class Customizer {
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-preview.js' ),
 			true
 		);
-		$settings_ids = array_map( [ 'Newspack_Ads\Placements', 'get_option_name' ], array_keys( Placements::get_placements() ) );
-		\wp_localize_script(
-			'newspack-ads-customizer-preview',
-			'newspackAdsCustomizer',
-			[
-				'settingsIds' => $settings_ids,
-			]
-		);
 		\wp_register_style(
 			'newspack-ads-customizer-preview-style',
 			plugins_url( '../../dist/customizer-preview.css', __FILE__ ),
