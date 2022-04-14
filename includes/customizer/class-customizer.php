@@ -20,24 +20,24 @@ final class Customizer {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		add_action( 'customize_register', [ __CLASS__, 'register_customizer_controls' ] );
-		add_action( 'customize_preview_init', [ __CLASS__, 'enqueue_preview_scripts' ] );
-		add_action( 'customize_controls_enqueue_scripts', [ __CLASS__, 'enqueue_control_scripts' ] );
+		\add_action( 'customize_register', [ __CLASS__, 'register_customizer_controls' ] );
+		\add_action( 'customize_preview_init', [ __CLASS__, 'enqueue_preview_scripts' ] );
+		\add_action( 'customize_controls_enqueue_scripts', [ __CLASS__, 'enqueue_control_scripts' ] );
 	}
 
 	/**
 	 * Enqueue customizer preview script.
 	 */
 	public static function enqueue_preview_scripts() {
-		wp_enqueue_script(
+		\wp_enqueue_script(
 			'newspack-ads-customizer-preview',
-			plugins_url( '../../dist/customizer-preview.js', __FILE__ ),
+			\plugins_url( '../../dist/customizer-preview.js', __FILE__ ),
 			[ 'customize-preview', 'jquery' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-preview.js' ),
 			true
 		);
 		$settings_ids = array_map( [ 'Newspack_Ads\Placements', 'get_option_name' ], array_keys( Placements::get_placements() ) );
-		wp_localize_script(
+		\wp_localize_script(
 			'newspack-ads-customizer-preview',
 			'newspackAdsCustomizer',
 			[
@@ -58,9 +58,9 @@ final class Customizer {
 	 * Enqueue customizer control script.
 	 */
 	public static function enqueue_control_scripts() {
-		wp_enqueue_script(
+		\wp_enqueue_script(
 			'newspack-ads-customizer-control',
-			plugins_url( '../../dist/customizer-control.js', __FILE__ ),
+			\plugins_url( '../../dist/customizer-control.js', __FILE__ ),
 			[ 'customize-controls', 'jquery' ],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/customizer-control.js' ),
 			true
@@ -86,7 +86,7 @@ final class Customizer {
 	 * @return array[] Sanitized placement value.
 	 */
 	public static function sanitize( $value ) {
-		return wp_json_encode( Placements::sanitize_placement( json_decode( $value, true ) ) );
+		return \wp_json_encode( Placements::sanitize_placement( json_decode( $value, true ) ) );
 	}
 
 	/**
