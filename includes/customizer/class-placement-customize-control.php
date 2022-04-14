@@ -290,7 +290,7 @@ final class Placement_Customize_Control extends \WP_Customize_Control {
 	 */
 	private function render_placement_hook_control( $hook_key = '' ) {
 		?>
-		<div class="placement-hook-control" config-hook="<?php echo esc_attr( $hook_key ); ?>">
+		<div class="placement-hook-control" data-hook="<?php echo esc_attr( $hook_key ); ?>">
 			<?php
 			if ( $hook_key ) :
 				$hook_name = $this->placement['hooks'][ $hook_key ]['name'];
