@@ -88,15 +88,46 @@ final class GAM_Scripts {
 				$sizes = array_values( $sizes );
 			}
 
+			/**
+			 * Filters which container elements should restrict the bounds of its
+			 * inner ads.
+			 *
+			 * @param string[] $bounds_selectors The selectors to restrict bounds.
+			 * @param array    $ad_unit          Ad unit data.
+			 * @param array    $sizes            Ad unit sizes.
+			 */
+			$bounds_selectors = apply_filters(
+				'newspack_ads_gam_bounds_selectors',
+				[
+					'.entry-content',
+					'.sidebar',
+					'.widget-area',
+				],
+				$ad_unit,
+				$sizes
+			);
+
+			/**
+			 * Filters the bleed allowed to extrapolate the ad container bounds in
+			 * case the bounds are strict.
+			 *
+			 * @param int   $bounds_bleed The amount of bleed allowed.
+			 * @param array $ad_unit      Ad unit data.
+			 * @param array $sizes        Ad unit sizes.
+			 */
+			$bounds_bleed = apply_filters( 'newspack_ads_gam_bounds_bleed', 40, $ad_unit, $sizes );
+
 			$prepared_unit_data[ $container_id ] = [
-				'unique_id' => $unique_id,
-				'name'      => esc_attr( $ad_unit['name'] ),
-				'code'      => esc_attr( $ad_unit['code'] ),
-				'sizes'     => $sizes,
-				'fluid'     => (bool) $ad_unit['fluid'],
-				'targeting' => $ad_targeting,
-				'sticky'    => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'  => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'unique_id'        => $unique_id,
+				'name'             => esc_attr( $ad_unit['name'] ),
+				'code'             => esc_attr( $ad_unit['code'] ),
+				'sizes'            => $sizes,
+				'fluid'            => (bool) $ad_unit['fluid'],
+				'targeting'        => $ad_targeting,
+				'sticky'           => GAM_Model::is_sticky( $ad_unit ),
+				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'bounds_selectors' => $bounds_selectors,
+				'bounds_bleed'     => (int) $bounds_bleed ?? 0,
 			];
 		}
 
@@ -148,13 +179,16 @@ final class GAM_Scripts {
 				var common_targeting = <?php echo wp_json_encode( $common_targeting, JSON_FORCE_OBJECT ); ?>;
 				var defined_ad_units = {};
 
+				var boundsContainers = {};
+
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
+					var container = document.querySelector( '#' + container_id );
 
 					<?php
 					// Only set up ad units that are present on the page.
 					?>
-					if ( ! document.querySelector( '#' + container_id ) ) {
+					if ( ! container ) {
 						continue;
 					}
 
@@ -194,12 +228,48 @@ final class GAM_Scripts {
 					if( ad_unit['fluid'] ) {
 						baseSizes = baseSizes.concat( 'fluid' );
 					}
+
 					<?php
-					// Iterate through size map.
+					/**
+					 * Identify the bounds container for this slot and use its offset
+					 * width as bounds width.
+					 */
 					?>
+					var boundsWidth = 0;
+					findContainer:
+					for ( var i = 0; i < ad_unit['bounds_selectors'].length; i++ ) {
+						var selector = ad_unit['bounds_selectors'][ i ];
+						if ( typeof boundsContainers[ selector ] === 'undefined' ) {
+							boundsContainers[ selector ] = document.querySelectorAll( selector );
+						}
+						if ( boundsContainers[ selector ].length ) {
+							for( var j = 0; j < boundsContainers[ selector ].length; j++ ) {
+								var boundsContainer = boundsContainers[ selector ][ j ];
+								if ( boundsContainer.contains( container ) ) {
+									boundsWidth = boundsContainer.offsetWidth;
+									break findContainer;
+								}
+							}
+						}
+					}
+					<?php
+					/**
+					 * Iterate and apply size map skipping viewports larger than the
+					 * container width, if a bounds container is identified.
+					 *
+					 * The available width is the bigger of the bounds container width or
+					 * the direct parent offset width.
+					 */
+					?>
+					var shouldUseBounds = !! boundsWidth;
+					var containerWidth = container.parentNode.offsetWidth;
+					var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
 					for ( viewportWidth in ad_unit['size_map'] ) {
-						var mappedSizes = ad_unit['size_map'][ viewportWidth ];
-						mapping.addSize( [ parseInt( viewportWidth ), 0 ], baseSizes.concat( mappedSizes ) );
+						var width = parseInt( viewportWidth );
+						if ( ! shouldUseBounds || width <= availableWidth ) {
+							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
+							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
+						}
 					}
 					<?php
 					// Sticky ads should only be shown on mobile (screen width <=600px).
