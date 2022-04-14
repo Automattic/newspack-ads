@@ -33,11 +33,11 @@ final class Providers {
 	protected static $providers = [];
 
 	/**
-	 * Cache of active providers data.
+	 * Cache of providers data.
 	 *
-	 * @var array[] Serialised providers with their units.
+	 * @var array[] Associative array of serialised providers with their units, keyed by their ID.
 	 */
-	protected static $active_providers_data = null;
+	protected static $providers_data = [];
 
 	/**
 	 * Initialize providers.
@@ -132,16 +132,13 @@ final class Providers {
 	 * @return array[] Serialised providers with their units.
 	 */
 	public static function get_active_providers_data() {
-		if ( empty( self::$active_providers_data ) ) {
-			$active_providers            = self::get_active_providers();
-			self::$active_providers_data = array_map(
-				function( Provider $provider ) {
-					return self::get_provider_data( $provider->get_provider_id() );
-				},
-				array_values( $active_providers )
-			);
-		}
-		return self::$active_providers_data;
+		$active_providers = self::get_active_providers();
+		return array_map(
+			function( Provider $provider ) {
+				return self::get_provider_data( $provider->get_provider_id() );
+			},
+			array_values( $active_providers )
+		);
 	}
 
 	/**
@@ -152,11 +149,18 @@ final class Providers {
 	 * @return array|null Associative array of provider data or null if not found.
 	 */
 	public static function get_provider_data( $provider_id ) {
-		$provider = self::get_provider( $provider_id );
-		if ( ! $provider ) {
-			return null;
+		if ( ! isset( self::$providers_data[ $provider_id ] ) ) {
+			$provider = self::get_provider( $provider_id );
+			if ( $provider ) {
+				self::$providers_data[ $provider_id ] = array_merge(
+					self::get_serialised_provider( $provider ),
+					[ 'units' => $provider->get_units() ]
+				);
+			} else {
+				self::$providers_data[ $provider_id ] = null;
+			}
 		}
-		return array_merge( self::get_serialised_provider( $provider ), [ 'units' => $provider->get_units() ] );  
+		return self::$providers_data[ $provider_id ];
 	}
 
 	/**
