@@ -146,7 +146,7 @@ final class Customizer {
 							return;
 						}
 						if ( isset( $data['ad_unit'] ) && ! empty( $data['ad_unit'] ) ) {
-							Placements::render_ad_unit_mock( $data['provider'], $data['ad_unit'] );
+							Placements::render_ad_unit_mock( $data['provider'], $data['ad_unit'], $data );
 						}
 						if ( isset( $data['hooks'] ) && ! empty( $data['hooks'] ) ) {
 							foreach ( $data['hooks'] as $hook_key => $hook ) {
@@ -154,6 +154,7 @@ final class Customizer {
 									Placements::render_ad_unit_mock(
 										$hook['provider'],
 										$hook['ad_unit'],
+										$data,
 										[ sprintf( 'hook-%s', $hook_key ) ]
 									);
 								}

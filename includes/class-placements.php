@@ -647,11 +647,12 @@ final class Placements {
 	/**
 	 * Render ad unit mock with dimensions.
 	 *
-	 * @param string   $provider_id Provider.
-	 * @param string   $ad_unit     Ad unit.
-	 * @param string[] $classes     List of additional classes. Optional.
+	 * @param string   $provider_id    Provider.
+	 * @param string   $ad_unit        Ad unit.
+	 * @param array    $placement_data Optional placement data to be serialized into the element.
+	 * @param string[] $classes        Optional list of additional classes.
 	 */
-	public static function render_ad_unit_mock( $provider_id, $ad_unit, $classes = [] ) {
+	public static function render_ad_unit_mock( $provider_id, $ad_unit, $placement_data = [], $classes = [] ) {
 		$provider     = Providers::get_provider( $provider_id );
 		$ad_unit_data = Providers::get_provider_unit_data( $provider_id, $ad_unit );
 		if ( ! $ad_unit_data ) {
@@ -664,7 +665,10 @@ final class Placements {
 		$width  = count( $sizes ) ? max( array_column( $sizes, 0 ) ) : 300;
 		$height = count( $sizes ) ? max( array_column( $sizes, 1 ) ) : 200;
 		?>
-		<div class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+		<div
+			class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+			<?php ( ! empty( $placement_data ) ) ? printf( 'data-placement="%s"', esc_attr( wp_json_encode( $placement_data ) ) ) : ''; ?>
+		>
 			<div
 				class="newspack-ads__ad-placement-mock__content"
 				style="width:<?php echo esc_attr( $width ); ?>px;height:<?php echo esc_attr( $height ); ?>px;"
@@ -764,7 +768,7 @@ final class Placements {
 			 * Render ad unit mock when in WordPress Customizer.
 			 */
 			if ( ! empty( $GLOBALS['wp_customize'] ) ) {
-				self::render_ad_unit_mock( $provider_id, $ad_unit );
+				self::render_ad_unit_mock( $provider_id, $ad_unit, $placement['data'] );
 			} else {
 				Providers::render_placement_ad_code(
 					$ad_unit,
