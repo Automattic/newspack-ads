@@ -33,7 +33,8 @@ import { set, debounce } from 'lodash';
 				value = set( value, path, val );
 				_update();
 			};
-			container.on( 'change', '.placement-toggle input[type=checkbox]', function () {
+			const $toggle = container.find( '.placement-toggle input[type=checkbox]' );
+			$toggle.on( 'change', function () {
 				updateValue( '', 'enabled', $( this ).is( ':checked' ) );
 			} );
 			container.on( 'change', '.stick-to-top-checkbox input[type=checkbox]', function () {
@@ -55,6 +56,7 @@ import { set, debounce } from 'lodash';
 					$container.find( `[data-provider="${ val }"]` ).show();
 				} );
 				$adUnit.on( 'change', function () {
+					$toggle.attr( 'checked', true ).change();
 					updateValue( hook, 'ad_unit', $( this ).val() );
 				} );
 				$biddersIds.on( 'change', function () {
