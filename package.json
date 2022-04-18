@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "newspack-components": "^2.0.3",
-    "prebid.js": "^6.19.0",
+    "prebid.js": "^6.20.0",
     "uuid": "^8.3.2"
   }
 }
