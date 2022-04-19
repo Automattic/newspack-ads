@@ -33,6 +33,13 @@ final class Providers {
 	protected static $providers = [];
 
 	/**
+	 * Cache of providers data.
+	 *
+	 * @var array[] Associative array of serialised providers with their units, keyed by their ID.
+	 */
+	protected static $providers_data = [];
+
+	/**
 	 * Initialize providers.
 	 */
 	public static function init() {
@@ -62,14 +69,7 @@ final class Providers {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_get_providers() {
-		$active_providers = self::get_active_providers();
-		$data             = array_map(
-			function( $provider ) {
-				return array_merge( self::get_serialised_provider( $provider ), [ 'units' => $provider->get_units() ] );
-			},
-			array_values( $active_providers )
-		);
-		return rest_ensure_response( $data );
+		return rest_ensure_response( self::get_active_providers_data() );
 	}
 
 	/**
@@ -90,7 +90,7 @@ final class Providers {
 	/**
 	 * Get registered providers.
 	 *
-	 * @return Newspack_Ads_Provider[] Associative array of registered providers keyed by their ID.
+	 * @return Provider[] Associative array of registered providers keyed by their ID.
 	 */
 	public static function get_providers() {
 		return self::$providers;
@@ -99,7 +99,7 @@ final class Providers {
 	/**
 	 * Get a serialised provider data.
 	 *
-	 * @param Newspack_Ads_Provider $provider The provider to serialise.
+	 * @param Provider $provider The provider to serialise.
 	 *
 	 * @return array Associative array with provider data.
 	 */
@@ -114,7 +114,7 @@ final class Providers {
 	/**
 	 * Get active providers.
 	 *
-	 * @return Newspack_Ads_Provider[] Associative array of active providers keyed by their ID.
+	 * @return Provider[] Associative array of active providers keyed by their ID.
 	 */
 	public static function get_active_providers() {
 		$active_providers = [];
@@ -127,11 +127,68 @@ final class Providers {
 	}
 
 	/**
+	 * Get active providers with their units.
+	 *
+	 * @return array[] Serialised providers with their units.
+	 */
+	public static function get_active_providers_data() {
+		$active_providers = self::get_active_providers();
+		return array_map(
+			function( Provider $provider ) {
+				return self::get_provider_data( $provider->get_provider_id() );
+			},
+			array_values( $active_providers )
+		);
+	}
+
+	/**
+	 * Get provider data by its ID.
+	 *
+	 * @param string $provider_id The provider ID.
+	 *
+	 * @return array|null Associative array of provider data or null if not found.
+	 */
+	public static function get_provider_data( $provider_id ) {
+		if ( ! isset( self::$providers_data[ $provider_id ] ) ) {
+			$provider = self::get_provider( $provider_id );
+			if ( $provider ) {
+				self::$providers_data[ $provider_id ] = array_merge(
+					self::get_serialised_provider( $provider ),
+					[ 'units' => $provider->get_units() ]
+				);
+			} else {
+				self::$providers_data[ $provider_id ] = null;
+			}
+		}
+		return self::$providers_data[ $provider_id ];
+	}
+
+	/**
+	 * Get a provider unit data.
+	 *
+	 * @param string $provider_id The provider ID.
+	 * @param string $unit_value The unit value.
+	 *
+	 * @return array|null Unit data or null if not found.
+	 */
+	public static function get_provider_unit_data( $provider_id, $unit_value ) {
+		$provider = self::get_provider_data( $provider_id );
+		if ( empty( $provider ) ) {
+			return null;
+		}
+		$ad_unit_idx = array_search( $unit_value, array_column( $provider['units'], 'value' ) );
+		if ( false === $ad_unit_idx ) {
+			return null;
+		}
+		return $provider['units'][ $ad_unit_idx ];
+	}
+
+	/**
 	 * Get a provider given its ID.
 	 *
 	 * @param string $provider_id The provider ID.
 	 *
-	 * @return Newspack_Ads_Provider|false The provider or false if not found.
+	 * @return Provider|false The provider or false if not found.
 	 */
 	public static function get_provider( $provider_id ) {
 		$providers = self::get_providers();

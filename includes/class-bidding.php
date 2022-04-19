@@ -221,28 +221,6 @@ final class Bidding {
 	}
 
 	/**
-	 * Return a string from a size array.
-	 *
-	 * @param array $size Size array.
-	 *
-	 * @return string Size string.
-	 */
-	private static function get_size_string( $size ) {
-		return $size[0] . 'x' . $size[1];
-	}
-
-	/**
-	 * Return an array from a size string.
-	 *
-	 * @param string $size Size string.
-	 *
-	 * @return array Size array.
-	 */
-	private static function get_size_array( $size ) {
-		return array_map( 'intval', explode( 'x', $size ) );
-	}
-
-	/**
 	 * Sanitize an array of price buckets.
 	 *
 	 * @param array[] $price_buckets Array of price buckets.
@@ -321,15 +299,15 @@ final class Bidding {
 
 				// Detect sizes supported by available bidders.
 				$sizes = array_intersect(
-					array_map( [ __CLASS__, 'get_size_string' ], $ad_data['sizes'] ),
-					array_map( [ __CLASS__, 'get_size_string' ], $this->get_all_sizes() )
+					array_map( 'Newspack_Ads\get_size_string', $ad_data['sizes'] ),
+					array_map( 'Newspack_Ads\get_size_string', $this->get_all_sizes() )
 				);
 				// Reindex filtered array.
 				$sizes = array_values( $sizes );
 				if ( ! count( $sizes ) ) {
 					continue;
 				}
-				$sizes = array_map( [ __CLASS__, 'get_size_array' ], $sizes );
+				$sizes = array_map( 'Newspack_Ads\get_size_array', $sizes );
 
 				$bids = [];
 
