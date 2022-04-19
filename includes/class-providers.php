@@ -69,14 +69,7 @@ final class Providers {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_get_providers() {
-		$active_providers = self::get_active_providers();
-		$data             = array_map(
-			function( $provider ) {
-				return array_merge( self::get_serialised_provider( $provider ), [ 'units' => $provider->get_units() ] );
-			},
-			array_values( $active_providers )
-		);
-		return rest_ensure_response( $data );
+		return rest_ensure_response( self::get_active_providers_data() );
 	}
 
 	/**
