@@ -23,7 +23,12 @@ final class Bidding {
 
 	const PREBID_SCRIPT_HANDLE = 'newspack-ads-prebid';
 
-	// Standard sizes accepted by partners.
+	/**
+	 * Standard sizes accepted by partners.
+	 *
+	 * This is a subset of \Newspack_Ads\get_iab_sizes(). Not all IAB sizes are
+	 * accepted by partners.
+	 */
 	const ACCEPTED_AD_SIZES = [
 		[ 728, 90 ],
 		[ 970, 90 ],
