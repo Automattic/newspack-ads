@@ -68,10 +68,5 @@ function get_iab_sizes() {
  * @return array[] Array of ad sizes.
  */
 function get_iab_size_array() {
-	return array_map(
-		function ( $size ) {
-			return array_map( 'intval', explode( 'x', $size ) );
-		},
-		array_keys( get_iab_sizes() )
-	);
+	return array_map( '\Newspack_Ads\get_size_array', array_keys( get_iab_sizes() ) );
 }
