@@ -2,6 +2,7 @@
  **** WARNING: No ES6 modules here. Not transpiled! ****
  */
 /* eslint-disable import/no-nodejs-modules */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 /**
  * External dependencies
@@ -16,6 +17,8 @@ const path = require( 'path' );
 const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 const frontend = path.join( __dirname, 'src', 'frontend' );
+const customizerPreview = path.join( __dirname, 'src', 'customizer', 'preview' );
+const customizerControl = path.join( __dirname, 'src', 'customizer', 'control' );
 const headerBiddingGAM = path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' );
 const prebid = path.join( __dirname, 'src', 'prebid' );
 
@@ -55,6 +58,8 @@ const webpackConfig = getBaseWebpackConfig(
 			...viewBlocksScripts,
 			'suppress-ads': suppressAdsScript,
 			frontend,
+			'customizer-preview': customizerPreview,
+			'customizer-control': customizerControl,
 			'header-bidding-gam': headerBiddingGAM,
 			prebid,
 		},
