@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/Automattic/newspack-ads/compare/v1.32.0...v1.32.1) (2022-05-04)
+
+
+### Bug Fixes
+
+* **gam:** common targeting array ([#396](https://github.com/Automattic/newspack-ads/issues/396)) ([9633174](https://github.com/Automattic/newspack-ads/commit/96331748254e62ff407c2650c5757afb380b7403))
+
 ## [1.32.1-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.32.0...v1.32.1-hotfix.1) (2022-05-03)
 
 
