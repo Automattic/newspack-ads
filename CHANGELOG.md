@@ -1,3 +1,10 @@
+## [1.32.2-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.32.1...v1.32.2-hotfix.1) (2022-05-04)
+
+
+### Bug Fixes
+
+* **customizer:** enqueue lodash dependency ([54b735f](https://github.com/Automattic/newspack-ads/commit/54b735f98290b411edc92a3e081ed56b9052e6ff))
+
 ## [1.32.1](https://github.com/Automattic/newspack-ads/compare/v1.32.0...v1.32.1) (2022-05-04)
 
 
