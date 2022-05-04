@@ -5,7 +5,7 @@
  * Description:     Ad services integration.
  * Author:          Automattic
  * License:         GPL2
- * Version:         1.32.2-hotfix.1
+ * Version:         1.32.2
  *
  * @package         Newspack
  */
