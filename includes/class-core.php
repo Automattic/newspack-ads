@@ -119,7 +119,10 @@ final class Core {
 	 * @return bool AMP or not
 	 */
 	public static function is_amp() {
-		if ( class_exists( '\Newspack\AMP_Enhancements' ) && method_exists( '\Newspack\AMP_Enhancements', 'should_use_amp_plus' ) && \Newspack\AMP_Enhancements::should_use_amp_plus() ) {
+		if (
+			! ( defined( 'NEWSPACK_AMP_PLUS_ADS_DISABLED' ) && true === NEWSPACK_AMP_PLUS_ADS_DISABLED ) && // Ensure AMP Plus for Ads is not opted-out.
+			method_exists( '\Newspack\AMP_Enhancements', 'should_use_amp_plus' ) && \Newspack\AMP_Enhancements::should_use_amp_plus()
+		) {
 			return false;
 		}
 		if ( function_exists( 'is_amp_endpoint' ) && \is_amp_endpoint() ) {
@@ -133,7 +136,10 @@ final class Core {
 	 * @return bool Configured or not.
 	 */
 	public static function is_amp_plus_configured() {
-		return class_exists( '\Newspack\AMP_Enhancements' ) && method_exists( '\Newspack\AMP_Enhancements', 'is_amp_plus_configured' ) && \Newspack\AMP_Enhancements::is_amp_plus_configured();
+		return (
+			! ( defined( 'NEWSPACK_AMP_PLUS_ADS_DISABLED' ) && true === NEWSPACK_AMP_PLUS_ADS_DISABLED ) && // Ensure AMP Plus for Ads is not opted-out.
+			method_exists( '\Newspack\AMP_Enhancements', 'is_amp_plus_configured' ) && \Newspack\AMP_Enhancements::is_amp_plus_configured()
+		);
 	}
 }
 Core::instance();
