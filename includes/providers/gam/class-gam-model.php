@@ -92,7 +92,7 @@ final class GAM_Model {
 	/**
 	 * Get a single ad unit to display on the page.
 	 *
-	 * @param number $id     The id of the ad unit to retrieve.
+	 * @param string $id     The id of the ad unit to retrieve.
 	 * @param array  $config {
 	 *   Optional additional configuration parameters for the ad unit.
 	 *
@@ -104,7 +104,7 @@ final class GAM_Model {
 	 * @return object Prepared ad unit, with markup for injecting on a page.
 	 */
 	public static function get_ad_unit_for_display( $id, $config = array() ) {
-		if ( 0 === (int) $id ) {
+		if ( empty( $id ) ) {
 			return new \WP_Error(
 				'newspack_no_adspot_found',
 				\esc_html__( 'No such ad spot.', 'newspack' ),
@@ -118,42 +118,10 @@ final class GAM_Model {
 		$placement = $config['placement'] ?? '';
 		$context   = $config['context'] ?? '';
 
-		$ad_unit = \get_post( $id );
+		$ad_units = self::get_ad_units( true );
 
-		$prepared_ad_unit = [];
-
-		if ( is_a( $ad_unit, 'WP_Post' ) ) {
-			// Legacy ad units, saved as CPT. Ad unit ID is the post ID.
-			$prepared_ad_unit = [
-				'id'    => $ad_unit->ID,
-				'name'  => $ad_unit->post_title,
-				'code'  => \get_post_meta( $ad_unit->ID, self::CODE, true ),
-				'sizes' => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
-				'fluid' => (bool) \get_post_meta( $ad_unit->ID, self::FLUID, true ),
-			];
-		} else {
-			// Ad units saved in options table. Ad unit ID is the GAM Ad Unit ID.
-			$ad_units = self::get_synced_gam_ad_units();
-
-			foreach ( $ad_units as $unit ) {
-				if ( intval( $id ) === intval( $unit['id'] ) && 'ACTIVE' === $unit['status'] ) {
-					$ad_unit = $unit;
-					break;
-				}
-			}
-			if ( $ad_unit ) {
-				$prepared_ad_unit = [
-					'id'    => $ad_unit['id'],
-					'name'  => $ad_unit['name'],
-					'code'  => $ad_unit['code'],
-					'sizes' => self::sanitize_sizes( $ad_unit['sizes'] ),
-					'fluid' => isset( $ad_unit['fluid'] ) ? (bool) $ad_unit['fluid'] : false,
-				];
-			}
-		}
-
-		// Ad unit not found neither as the CPT nor in options table.
-		if ( ! isset( $prepared_ad_unit['id'] ) ) {
+		$index = array_search( $id, array_column( $ad_units, 'id' ) );
+		if ( false === $index ) {
 			return new \WP_Error(
 				'newspack_no_adspot_found',
 				\esc_html__( 'No such ad spot.', 'newspack' ),
@@ -162,13 +130,94 @@ final class GAM_Model {
 				)
 			);
 		}
+		$ad_unit = $ad_units[ $index ];
 
-		$prepared_ad_unit['placement'] = $placement;
-		$prepared_ad_unit['context']   = $context;
+		$ad_unit['placement'] = $placement;
+		$ad_unit['context']   = $context;
 
-		$prepared_ad_unit['ad_code']     = self::get_ad_unit_code( $prepared_ad_unit, $unique_id );
-		$prepared_ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $prepared_ad_unit, $unique_id );
-		return $prepared_ad_unit;
+		$ad_unit['ad_code']     = self::get_ad_unit_code( $ad_unit, $unique_id );
+		$ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $ad_unit, $unique_id );
+		return $ad_unit;
+	}
+
+	/**
+	 * Get default ad units.
+	 *
+	 * @return array Array of ad units.
+	 */
+	public static function get_default_ad_units() {
+		$ad_units = [
+			[
+				'name'  => \esc_html__( 'Newspack Below Header', 'newspack' ),
+				'sizes' => [
+					[ 320, 50 ],
+					[ 320, 100 ],
+					[ 728, 90 ],
+					[ 970, 90 ],
+					[ 970, 250 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack Sticky Footer', 'newspack' ),
+				'sizes' => [
+					[ 320, 50 ],
+					[ 320, 100 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack Sidebar 1', 'newspack' ),
+				'sizes' => [
+					[ 300, 250 ],
+					[ 300, 600 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack Sidebar 2', 'newspack' ),
+				'sizes' => [
+					[ 300, 250 ],
+					[ 300, 600 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack In-Article 1', 'newspack' ),
+				'sizes' => [
+					[ 728, 90 ],
+					[ 300, 250 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack In-Article 2', 'newspack' ),
+				'sizes' => [
+					[ 728, 90 ],
+					[ 300, 250 ],
+				],
+			],
+			[
+				'name'  => \esc_html__( 'Newspack In-Article 3', 'newspack' ),
+				'sizes' => [
+					[ 728, 90 ],
+					[ 300, 250 ],
+				],
+			],
+		];
+		/**
+		 * Filters the default ad units.
+		 *
+		 * @param array $ad_units Array of ad units.
+		 */
+		$ad_units = apply_filters( 'newspack_ads_default_ad_units', $ad_units );
+		return array_map(
+			function( $ad_unit ) {
+				$sanitized_title      = \sanitize_title( $ad_unit['name'] );
+				$ad_unit['id']        = $sanitized_title;
+				$ad_unit['code']      = $sanitized_title;
+				$ad_unit['fluid']     = false;
+				$ad_unit['status']    = 'ACTIVE';
+				$ad_unit['is_legacy'] = true;
+				return $ad_unit;
+			},
+			$ad_units 
+		);
 	}
 
 	/**
@@ -203,23 +252,32 @@ final class GAM_Model {
 
 	/**
 	 * Get the ad units.
+	 *
+	 * @param bool $synced Whether to only retrieve synced data.
+	 *
+	 * @return array Array of ad units.
 	 */
-	public static function get_ad_units() {
+	public static function get_ad_units( $synced = false ) {
 		if ( null !== self::$ad_units ) {
 			return self::$ad_units;
 		}
 		$ad_units = self::get_legacy_ad_units();
-		if ( self::is_gam_connected() ) {
-			$gam_ad_units = GAM_API::get_serialised_gam_ad_units();
-			if ( \is_wp_error( $gam_ad_units ) ) {
-				return $gam_ad_units;
+		if ( ! $synced ) {
+			if ( self::is_gam_connected() ) {
+				$gam_ad_units = GAM_API::get_serialised_gam_ad_units();
+				if ( \is_wp_error( $gam_ad_units ) ) {
+					return $gam_ad_units;
+				}
+				$sync_result = self::sync_gam_settings( $gam_ad_units );
+				if ( \is_wp_error( $sync_result ) ) {
+					return $sync_result;
+				}
+				$ad_units = array_merge( $ad_units, $gam_ad_units );
 			}
-			$sync_result = self::sync_gam_settings( $gam_ad_units );
-			if ( \is_wp_error( $sync_result ) ) {
-				return $sync_result;
-			}
-			$ad_units = array_merge( $ad_units, $gam_ad_units );
+		} else {
+			$ad_units = array_merge( $ad_units, self::get_synced_gam_ad_units() );
 		}
+		$ad_units       = array_merge( $ad_units, self::get_default_ad_units() );
 		self::$ad_units = $ad_units;
 		return self::$ad_units;
 	}
