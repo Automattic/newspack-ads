@@ -253,7 +253,6 @@ final class GAM_Scripts {
 							}
 						}
 					}
-					console.log( boundsWidth );
 					<?php
 					/**
 					 * Iterate and apply size map skipping viewports larger than the
