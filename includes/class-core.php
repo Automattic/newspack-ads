@@ -135,7 +135,7 @@ final class Core {
 	public static function is_amp_plus_configured() {
 		return (
 			! ( defined( 'NEWSPACK_AMP_PLUS_ADS_DISABLED' ) && true === NEWSPACK_AMP_PLUS_ADS_DISABLED ) && // Ensure AMP Plus for Ads is not opted-out.
-			method_exists( '\Newspack\AMP_Enhancements', 'is_amp_plus_configured' ) && \Newspack\AMP_Enhancements::is_amp_plus_configured()
+			method_exists( '\Newspack\AMP_Enhancements', 'should_use_amp_plus' ) && \Newspack\AMP_Enhancements::should_use_amp_plus()
 		);
 	}
 }
