@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/Automattic/newspack-ads/compare/v1.32.2...v1.33.0) (2022-05-10)
+
+
+### Features
+
+* constant to opt-out of AMP Plus ([#401](https://github.com/Automattic/newspack-ads/issues/401)) ([eae6f3f](https://github.com/Automattic/newspack-ads/commit/eae6f3f99ecfbcda5744e289ce45376b65b9451b))
+
 # [1.33.0-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.32.2...v1.33.0-hotfix.1) (2022-05-05)
 
 
