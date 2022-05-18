@@ -1,3 +1,17 @@
+# [1.34.0](https://github.com/Automattic/newspack-ads/compare/v1.33.0...v1.34.0) (2022-05-18)
+
+
+### Features
+
+* **gam:** targeting for tags and authors ([#398](https://github.com/Automattic/newspack-ads/issues/398)) ([383633a](https://github.com/Automattic/newspack-ads/commit/383633aa0697a1a77c51a5fbf91179f05d6383e9))
+
+# [1.34.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.33.0...v1.34.0-alpha.1) (2022-05-10)
+
+
+### Features
+
+* **gam:** targeting for tags and authors ([#398](https://github.com/Automattic/newspack-ads/issues/398)) ([383633a](https://github.com/Automattic/newspack-ads/commit/383633aa0697a1a77c51a5fbf91179f05d6383e9))
+
 # [1.33.0](https://github.com/Automattic/newspack-ads/compare/v1.32.2...v1.33.0) (2022-05-10)
 
 
