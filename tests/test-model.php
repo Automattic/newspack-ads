@@ -137,7 +137,7 @@ class ModelTest extends WP_UnitTestCase {
 		self::assertEquals(
 			count( $result ),
 			count( $default_ad_units ) + 1,
-			'The defalt ad units and the single legacy ad unit are returned, as there is no GAM connection.'
+			'The default ad units and the single legacy ad unit are returned, as there is no GAM connection.'
 		);
 		self::assertTrue(
 			$result[0]['is_legacy'],

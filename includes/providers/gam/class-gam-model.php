@@ -258,7 +258,7 @@ final class GAM_Model {
 	 * @return array Array of ad units.
 	 */
 	public static function get_ad_units( $synced = false ) {
-		if ( null !== self::$ad_units ) {
+		if ( null !== self::$ad_units && ! $synced ) {
 			return self::$ad_units;
 		}
 		$ad_units = self::get_legacy_ad_units();
