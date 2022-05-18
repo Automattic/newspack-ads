@@ -208,12 +208,12 @@ final class GAM_Model {
 		$ad_units = apply_filters( 'newspack_ads_default_ad_units', $ad_units );
 		return array_map(
 			function( $ad_unit ) {
-				$sanitized_title      = \sanitize_title( $ad_unit['name'] );
-				$ad_unit['id']        = $sanitized_title;
-				$ad_unit['code']      = $sanitized_title;
-				$ad_unit['fluid']     = false;
-				$ad_unit['status']    = 'ACTIVE';
-				$ad_unit['is_legacy'] = true;
+				$sanitized_title       = str_replace( '-', '_', \sanitize_title( $ad_unit['name'] ) );
+				$ad_unit['id']         = $sanitized_title;
+				$ad_unit['code']       = $sanitized_title;
+				$ad_unit['fluid']      = false;
+				$ad_unit['status']     = 'ACTIVE';
+				$ad_unit['is_default'] = true;
 				return $ad_unit;
 			},
 			$ad_units 
