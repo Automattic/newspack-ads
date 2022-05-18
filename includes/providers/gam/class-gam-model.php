@@ -613,7 +613,7 @@ final class GAM_Model {
 		$attrs      = [];
 		$multisizes = [];
 
-		if ( true === $ad_unit['fluid'] ) {
+		if ( isset( $ad_unit['fluid'] ) && true === $ad_unit['fluid'] ) {
 			$attrs['height'] = 'fluid';
 			$attrs['layout'] = 'fluid';
 			$multisizes[]    = 'fluid';
