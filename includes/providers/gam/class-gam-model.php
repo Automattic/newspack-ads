@@ -281,7 +281,7 @@ final class GAM_Model {
 		if ( ! $synced ) {
 			self::$ad_units = $ad_units;
 		}
-		return self::$ad_units;
+		return $ad_units;
 	}
 
 	/**
