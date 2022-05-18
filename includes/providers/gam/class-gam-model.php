@@ -147,7 +147,7 @@ final class GAM_Model {
 	 */
 	public static function get_default_ad_units() {
 		$ad_units = [
-			[
+			'newspack_below_header'  => [
 				'name'  => \esc_html__( 'Newspack Below Header', 'newspack' ),
 				'sizes' => [
 					[ 320, 50 ],
@@ -157,42 +157,42 @@ final class GAM_Model {
 					[ 970, 250 ],
 				],
 			],
-			[
+			'newspack_sticky_footer' => [
 				'name'  => \esc_html__( 'Newspack Sticky Footer', 'newspack' ),
 				'sizes' => [
 					[ 320, 50 ],
 					[ 320, 100 ],
 				],
 			],
-			[
+			'newspack_sidebar_1'     => [
 				'name'  => \esc_html__( 'Newspack Sidebar 1', 'newspack' ),
 				'sizes' => [
 					[ 300, 250 ],
 					[ 300, 600 ],
 				],
 			],
-			[
+			'newspack_sidebar_2'     => [
 				'name'  => \esc_html__( 'Newspack Sidebar 2', 'newspack' ),
 				'sizes' => [
 					[ 300, 250 ],
 					[ 300, 600 ],
 				],
 			],
-			[
+			'newspack_in_article_1'  => [
 				'name'  => \esc_html__( 'Newspack In-Article 1', 'newspack' ),
 				'sizes' => [
 					[ 728, 90 ],
 					[ 300, 250 ],
 				],
 			],
-			[
+			'newspack_in_article_2'  => [
 				'name'  => \esc_html__( 'Newspack In-Article 2', 'newspack' ),
 				'sizes' => [
 					[ 728, 90 ],
 					[ 300, 250 ],
 				],
 			],
-			[
+			'newspack_in_article_3'  => [
 				'name'  => \esc_html__( 'Newspack In-Article 3', 'newspack' ),
 				'sizes' => [
 					[ 728, 90 ],
@@ -207,16 +207,16 @@ final class GAM_Model {
 		 */
 		$ad_units = apply_filters( 'newspack_ads_default_ad_units', $ad_units );
 		return array_map(
-			function( $ad_unit ) {
-				$sanitized_title       = str_replace( '-', '_', \sanitize_title( $ad_unit['name'] ) );
-				$ad_unit['id']         = $sanitized_title;
-				$ad_unit['code']       = $sanitized_title;
+			function( $id, $ad_unit ) {
+				$ad_unit['id']         = $id;
+				$ad_unit['code']       = $id;
 				$ad_unit['fluid']      = false;
 				$ad_unit['status']     = 'ACTIVE';
 				$ad_unit['is_default'] = true;
 				return $ad_unit;
 			},
-			$ad_units 
+			array_keys( $ad_units ),
+			array_values( $ad_units )
 		);
 	}
 
