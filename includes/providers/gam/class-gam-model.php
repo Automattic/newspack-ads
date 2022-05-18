@@ -277,8 +277,10 @@ final class GAM_Model {
 		} else {
 			$ad_units = array_merge( $ad_units, self::get_synced_gam_ad_units() );
 		}
-		$ad_units       = array_merge( $ad_units, self::get_default_ad_units() );
-		self::$ad_units = $ad_units;
+		$ad_units = array_merge( $ad_units, self::get_default_ad_units() );
+		if ( ! $synced ) {
+			self::$ad_units = $ad_units;
+		}
 		return self::$ad_units;
 	}
 
