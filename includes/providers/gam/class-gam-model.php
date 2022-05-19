@@ -8,6 +8,7 @@
 namespace Newspack_Ads\Providers;
 
 use Newspack_Ads\Providers\GAM_API;
+use Newspack_Ads\Placements;
 
 /**
  * Newspack Ads GAM Model Class.
@@ -55,6 +56,7 @@ final class GAM_Model {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_ad_post_type' ) );
+		add_action( 'newspack_ads_activation_hook', array( __CLASS__, 'register_default_placements_units' ) );
 		GAM_API::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
 	}
 
@@ -72,6 +74,50 @@ final class GAM_Model {
 				'show_in_rest'       => true,
 			)
 		);
+	}
+
+	/**
+	 * Register default ad units to placements
+	 */
+	public static function register_default_placements_units() {
+		$ad_units       = self::get_default_ad_units();
+		$placements_map = [
+			'global_below_header' => 'newspack_below_header',
+			'sticky'              => 'newspack_sticky_footer',
+			'sidebar_sidebar-1'   => [
+				'before' => 'newspack_sidebar_1',
+				'after'  => 'newspack_sidebar_2',
+			],
+			'scaip-1'             => 'newspack_in_article_1',
+			'scaip-2'             => 'newspack_in_article_2',
+			'scaip-3'             => 'newspack_in_article_3',
+		];
+		$default_data   = [
+			'enabled'  => true,
+			'provider' => 'gam',
+		];
+		foreach ( $placements_map as $placement => $ad_unit ) {
+			$should_update  = false;
+			$placement_data = Placements::get_placement_data( $placement );
+			$placement_data = wp_parse_args( $placement_data, $default_data );
+			if ( 'sidebar_sidebar-1' === $placement ) {
+				$placement_data['stick_to_top'] = true;
+			}
+			if ( ! is_array( $ad_unit ) && empty( $placement_data['ad_unit'] ) ) {
+				$should_update             = true;
+				$placement_data['ad_unit'] = $ad_unit;
+			} elseif ( is_array( $ad_unit ) ) {
+				foreach ( $ad_unit as $hook => $hook_ad_unit ) {
+					if ( ! isset( $placement_data['hooks'][ $hook ]['ad_unit'] ) || empty( $placement_data['hooks'][ $hook ]['ad_unit'] ) ) {
+						$should_update                               = true;
+						$placement_data['hooks'][ $hook ]['ad_unit'] = $hook_ad_unit;
+					}
+				}
+			}
+			if ( $should_update ) {
+				Placements::update_placement( $placement, $placement_data );
+			}
+		}
 	}
 
 	/**
