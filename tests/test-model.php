@@ -132,11 +132,12 @@ class ModelTest extends WP_UnitTestCase {
 	 * Ad units getter.
 	 */
 	public function test_ad_units_getter() {
-		$result = GAM_Model::get_ad_units();
+		$default_ad_units = GAM_Model::get_default_ad_units();
+		$result           = GAM_Model::get_ad_units();
 		self::assertEquals(
 			count( $result ),
-			1,
-			'Only the single legacy ad unit is returned, as there is no GAM connection.'
+			count( $default_ad_units ) + 1,
+			'The default ad units and the single legacy ad unit are returned, as there is no GAM connection.'
 		);
 		self::assertTrue(
 			$result[0]['is_legacy'],
