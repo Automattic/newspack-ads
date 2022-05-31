@@ -48,7 +48,7 @@ final class Core {
 	/**
 	 * Activation Hook
 	 */
-	public function activation_hook() {
+	public static function activation_hook() {
 		do_action( 'newspack_ads_activation_hook' );
 	}
 
