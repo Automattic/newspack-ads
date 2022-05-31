@@ -159,7 +159,7 @@ final class SCAIP {
 		];
 		foreach ( $defaults as $key => $value ) {
 			$option_name = sprintf( '%s%s_%s', Settings::OPTION_NAME_PREFIX, 'scaip', $key );
-			if ( ! isset( self::OPTIONS_MAP[ $key ] ) ) {
+			if ( isset( self::OPTIONS_MAP[ $key ] ) ) {
 				$option_name = self::OPTIONS_MAP[ $key ];
 			}
 			if ( false === get_option( $option_name ) ) {
