@@ -317,7 +317,7 @@ final class GAM_Model {
 		}
 		$ad_units = array_merge(
 			$ad_units,
-			self::get_synced_gam_ad_units(),
+			self::get_synced_ad_units(),
 			self::get_default_ad_units()
 		);
 		return $ad_units;
@@ -549,7 +549,7 @@ final class GAM_Model {
 	 *
 	 * @return array[] GAM items.
 	 */
-	private static function get_synced_gam_ad_units() {
+	public static function get_synced_ad_units() {
 		$gam_items = self::get_synced_gam_items();
 		if ( $gam_items ) {
 			return $gam_items['ad_units'];
