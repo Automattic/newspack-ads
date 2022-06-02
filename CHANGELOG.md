@@ -1,10 +1,9 @@
-# [1.36.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.35.0...v1.36.0-alpha.1) (2022-06-02)
+## [1.35.1](https://github.com/Automattic/newspack-ads/compare/v1.35.0...v1.35.1) (2022-06-02)
 
 
-### Features
+### Bug Fixes
 
-* activation hook defaults ([#415](https://github.com/Automattic/newspack-ads/issues/415)) ([a5a0cea](https://github.com/Automattic/newspack-ads/commit/a5a0cea5ec862eacc2fbab87a7a84f495bdb326b))
-* **gam:** default ad units ([#406](https://github.com/Automattic/newspack-ads/issues/406)) ([0af2e6e](https://github.com/Automattic/newspack-ads/commit/0af2e6e2a5f9a51b5a7c8c9d59e0ec62c6cc7958))
+* **gam:** return synced units when disconnected ([#428](https://github.com/Automattic/newspack-ads/issues/428)) ([320f4c4](https://github.com/Automattic/newspack-ads/commit/320f4c4c1564c2d524ca2b4436bc754c07e0f9bd))
 
 # [1.35.0](https://github.com/Automattic/newspack-ads/compare/v1.34.0...v1.35.0) (2022-05-30)
 
