@@ -134,13 +134,15 @@ class ModelTest extends WP_UnitTestCase {
 	public function test_ad_units_getter() {
 		$result = GAM_Model::get_ad_units();
 		self::assertEquals(
+			3,
 			count( $result ),
-			1,
-			'Only the single legacy ad unit is returned, as there is no GAM connection.'
+			'All units are returned, because we want the synced units even without GAM connection.'
 		);
-		self::assertTrue(
-			$result[0]['is_legacy'],
-			'The legacy ad unit is marked as legacy by a property.'
+		$legacy = array_search( true, array_column( $result, 'is_legacy' ), true );
+		self::assertEquals(
+			self::$legacy_ad_id,
+			$result[ $legacy ]['id'],
+			'The legacy ad unit is returned.'
 		);
 	}
 
