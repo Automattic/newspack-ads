@@ -42,11 +42,11 @@ final class GAM_Model {
 	public static $ad_ids = [];
 
 	/**
-	 * Array of all ad units configurations.
+	 * Whether GAM units were already synced.
 	 *
-	 * @var array|null Array or null if not yet initialized.
+	 * @var boolean Whether GAM units were already synced.
 	 */
-	public static $ad_units = null;
+	public static $synced = false;
 
 	/**
 	 * Initialize Google Ads Model
@@ -164,7 +164,7 @@ final class GAM_Model {
 		$placement = $config['placement'] ?? '';
 		$context   = $config['context'] ?? '';
 
-		$ad_units = self::get_ad_units( true );
+		$ad_units = self::get_ad_units( false );
 
 		$index = array_search( $id, array_column( $ad_units, 'id' ) );
 		if ( false === $index ) {
@@ -299,39 +299,27 @@ final class GAM_Model {
 	/**
 	 * Get the ad units.
 	 *
-	 * @param bool $synced Whether to only retrieve synced data.
+	 * @param bool $sync Whether to attempt sync with connected GAM.
 	 *
 	 * @return array Array of ad units.
 	 */
-	public static function get_ad_units( $synced = false ) {
-		if ( null !== self::$ad_units && ! $synced ) {
-			return self::$ad_units;
-		}
+	public static function get_ad_units( $sync = true ) {
 		$ad_units = self::get_legacy_ad_units();
-		if ( ! $synced ) {
+		if ( $sync && ! self::$synced ) {
+			// Only sync once per execution.
 			if ( self::is_gam_connected() ) {
 				$gam_ad_units = GAM_API::get_serialised_gam_ad_units();
-				if ( \is_wp_error( $gam_ad_units ) ) {
-					return $gam_ad_units;
+				if ( ! \is_wp_error( $gam_ad_units ) && ! empty( $gam_ad_units ) ) {
+					self::sync_gam_settings( $gam_ad_units );
+					self::$synced = true;
 				}
-				$sync_result = self::sync_gam_settings( $gam_ad_units );
-				if ( \is_wp_error( $sync_result ) ) {
-					return $sync_result;
-				}
-				$ad_units = array_merge( $ad_units, $gam_ad_units );
 			}
-			$sync_result = self::sync_gam_settings( $gam_ad_units );
-			if ( \is_wp_error( $sync_result ) ) {
-				return $sync_result;
-			}
-			$ad_units = array_merge( $ad_units, $gam_ad_units );
-		} else {
-			$ad_units = array_merge( $ad_units, self::get_synced_gam_ad_units() );
 		}
-		$ad_units = array_merge( $ad_units, self::get_default_ad_units() );
-		if ( ! $synced ) {
-			self::$ad_units = $ad_units;
-		}
+		$ad_units = array_merge(
+			$ad_units,
+			self::get_synced_gam_ad_units(),
+			self::get_default_ad_units()
+		);
 		return $ad_units;
 	}
 

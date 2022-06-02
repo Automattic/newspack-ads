@@ -133,9 +133,10 @@ class ModelTest extends WP_UnitTestCase {
 	 */
 	public function test_ad_units_getter() {
 		$default_ad_units = GAM_Model::get_default_ad_units();
+		$synced_ad_units  = GAM_Model::get_synced_gam_ad_units();
 		$result           = GAM_Model::get_ad_units();
 		self::assertEquals(
-			3,
+			count( $default_ad_units ) + count( $synced_ad_units ) + 1,
 			count( $result ),
 			'All units are returned, because we want the synced units even without GAM connection.'
 		);
