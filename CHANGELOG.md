@@ -1,3 +1,10 @@
+# [1.36.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.36.0-alpha.1...v1.36.0-alpha.2) (2022-06-02)
+
+
+### Bug Fixes
+
+* **gam:** return synced units when disconnected ([#428](https://github.com/Automattic/newspack-ads/issues/428)) ([320f4c4](https://github.com/Automattic/newspack-ads/commit/320f4c4c1564c2d524ca2b4436bc754c07e0f9bd))
+
 ## [1.35.1](https://github.com/Automattic/newspack-ads/compare/v1.35.0...v1.35.1) (2022-06-02)
 
 
