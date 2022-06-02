@@ -320,6 +320,11 @@ final class GAM_Model {
 				}
 				$ad_units = array_merge( $ad_units, $gam_ad_units );
 			}
+			$sync_result = self::sync_gam_settings( $gam_ad_units );
+			if ( \is_wp_error( $sync_result ) ) {
+				return $sync_result;
+			}
+			$ad_units = array_merge( $ad_units, $gam_ad_units );
 		} else {
 			$ad_units = array_merge( $ad_units, self::get_synced_gam_ad_units() );
 		}
