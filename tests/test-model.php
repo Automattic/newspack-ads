@@ -138,7 +138,7 @@ class ModelTest extends WP_UnitTestCase {
 			count( $result ),
 			'All units are returned, because we want the synced units even without GAM connection.'
 		);
-		$legacy = array_search( true, array_column( 'is_legacy', $result ), true );
+		$legacy = array_search( true, array_column( $result, 'is_legacy' ), true );
 		self::assertEquals(
 			self::$legacy_ad_id,
 			$result[ $legacy ]['id'],
