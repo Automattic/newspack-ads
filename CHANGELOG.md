@@ -1,3 +1,10 @@
+# [1.36.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.36.0-alpha.2...v1.36.0-alpha.3) (2022-06-03)
+
+
+### Bug Fixes
+
+* **gam:** refactor ad units getter sync strategy ([#429](https://github.com/Automattic/newspack-ads/issues/429)) ([f4f3bbd](https://github.com/Automattic/newspack-ads/commit/f4f3bbd97691046a243017c0d2cb7ffd06bc33c5))
+
 # [1.36.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.36.0-alpha.1...v1.36.0-alpha.2) (2022-06-02)
 
 
