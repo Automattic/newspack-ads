@@ -172,7 +172,8 @@ final class GAM_API {
 	 * Get Service Account credentials.
 	 *
 	 * @param array $service_account_credentials_config Service Account Credentials.
-	 * @return object OAuth2 credentials.
+	 *
+	 * @return ServiceAccountCredentials|false OAuth2 credentials or false otherwise.
 	 */
 	private static function get_service_account_credentials( $service_account_credentials_config = false ) {
 		if ( false === $service_account_credentials_config ) {
@@ -274,7 +275,10 @@ final class GAM_API {
 	 * @return int GAM network code.
 	 */
 	private static function get_gam_network_code() {
-		return self::get_gam_network()->getNetworkCode();
+		if ( empty( self::$network_code ) ) {
+			self::get_gam_network();
+		}
+		return self::$network_code;
 	}
 
 	/**
@@ -1349,15 +1353,6 @@ final class GAM_API {
 	}
 
 	/**
-	 * Can this instance use Service Account for authentication?
-	 * OAuth is the preferred method, but if it's not available, a fallback to Service
-	 * Account is handy.
-	 */
-	private static function can_use_service_account() {
-		return ! self::can_use_oauth();
-	}
-
-	/**
 	 * Get saved Service Account credentials config.
 	 */
 	private static function service_account_credentials_config() {
@@ -1368,18 +1363,18 @@ final class GAM_API {
 	 * How does this instance connect to GAM?
 	 */
 	private static function get_connection_details() {
+		$credentials = self::get_service_account_credentials();
+		if ( false !== $credentials ) {
+			return [
+				'credentials' => $credentials,
+				'mode'        => 'service_account',
+			];
+		}
 		$credentials = self::get_google_oauth2_credentials();
 		if ( false !== $credentials ) {
 			return [
 				'credentials' => $credentials,
 				'mode'        => 'oauth',
-			];
-		}
-			$credentials = self::get_service_account_credentials();
-		if ( false !== $credentials ) {
-			return [
-				'credentials' => $credentials,
-				'mode'        => 'service_account',
 			];
 		}
 		return [
@@ -1394,21 +1389,16 @@ final class GAM_API {
 	 * @return object Object with status information.
 	 */
 	public static function connection_status() {
-		$connection_details      = self::get_connection_details();
-		$can_use_oauth           = self::can_use_oauth();
-		$can_use_service_account = self::can_use_service_account();
-		$response                = [
-			'connected'               => false,
-			'connection_mode'         => $connection_details['mode'],
-			'can_use_oauth'           => $can_use_oauth,
-			'can_use_service_account' => $can_use_service_account,
+		$connection_details = self::get_connection_details();
+		$can_use_oauth      = self::can_use_oauth();
+		$response           = [
+			'connected'       => false,
+			'connection_mode' => $connection_details['mode'],
+			'can_use_oauth'   => $can_use_oauth,
 		];
 		if ( false === self::is_environment_compatible() ) {
 			$response['incompatible'] = true;
 			$response['error']        = __( 'Cannot connect to Google Ad Manager. This WordPress instance is not compatible with this feature.', 'newspack-ads' );
-			return $response;
-		}
-		if ( ! $can_use_oauth && ! $can_use_service_account ) {
 			return $response;
 		}
 		try {
