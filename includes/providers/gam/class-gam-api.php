@@ -12,44 +12,44 @@ use Newspack_Ads\Providers\GAM_Model;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
-use Google\AdsApi\AdManager\Util\v202111\StatementBuilder;
+use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\AdManagerSession;
-use Google\AdsApi\AdManager\v202111\AdUnitTargeting;
-use Google\AdsApi\AdManager\v202111\LineItemCreativeAssociation;
-use Google\AdsApi\AdManager\v202111\Statement;
-use Google\AdsApi\AdManager\v202111\String_ValueMapEntry;
-use Google\AdsApi\AdManager\v202111\TextValue;
-use Google\AdsApi\AdManager\v202111\SetValue;
-use Google\AdsApi\AdManager\v202111\CustomTargetingKey;
-use Google\AdsApi\AdManager\v202111\CustomTargetingValue;
-use Google\AdsApi\AdManager\v202111\ServiceFactory;
-use Google\AdsApi\AdManager\v202111\ArchiveAdUnits as ArchiveAdUnitsAction;
-use Google\AdsApi\AdManager\v202111\ActivateAdUnits as ActivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202111\DeactivateAdUnits as DeactivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202111\Network;
-use Google\AdsApi\AdManager\v202111\User;
-use Google\AdsApi\AdManager\v202111\AdUnit;
-use Google\AdsApi\AdManager\v202111\AdUnitSize;
-use Google\AdsApi\AdManager\v202111\AdUnitTargetWindow;
-use Google\AdsApi\AdManager\v202111\Order;
-use Google\AdsApi\AdManager\v202111\ArchiveOrders;
-use Google\AdsApi\AdManager\v202111\UpdateResult;
-use Google\AdsApi\AdManager\v202111\Creative;
-use Google\AdsApi\AdManager\v202111\LineItem;
-use Google\AdsApi\AdManager\v202111\EnvironmentType;
-use Google\AdsApi\AdManager\v202111\Size;
-use Google\AdsApi\AdManager\v202111\Company;
-use Google\AdsApi\AdManager\v202111\CompanyType;
+use Google\AdsApi\AdManager\v202205\AdUnitTargeting;
+use Google\AdsApi\AdManager\v202205\LineItemCreativeAssociation;
+use Google\AdsApi\AdManager\v202205\Statement;
+use Google\AdsApi\AdManager\v202205\String_ValueMapEntry;
+use Google\AdsApi\AdManager\v202205\TextValue;
+use Google\AdsApi\AdManager\v202205\SetValue;
+use Google\AdsApi\AdManager\v202205\CustomTargetingKey;
+use Google\AdsApi\AdManager\v202205\CustomTargetingValue;
+use Google\AdsApi\AdManager\v202205\ServiceFactory;
+use Google\AdsApi\AdManager\v202205\ArchiveAdUnits as ArchiveAdUnitsAction;
+use Google\AdsApi\AdManager\v202205\ActivateAdUnits as ActivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202205\DeactivateAdUnits as DeactivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202205\Network;
+use Google\AdsApi\AdManager\v202205\User;
+use Google\AdsApi\AdManager\v202205\AdUnit;
+use Google\AdsApi\AdManager\v202205\AdUnitSize;
+use Google\AdsApi\AdManager\v202205\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202205\Order;
+use Google\AdsApi\AdManager\v202205\ArchiveOrders;
+use Google\AdsApi\AdManager\v202205\UpdateResult;
+use Google\AdsApi\AdManager\v202205\Creative;
+use Google\AdsApi\AdManager\v202205\LineItem;
+use Google\AdsApi\AdManager\v202205\EnvironmentType;
+use Google\AdsApi\AdManager\v202205\Size;
+use Google\AdsApi\AdManager\v202205\Company;
+use Google\AdsApi\AdManager\v202205\CompanyType;
 
-use Google\AdsApi\AdManager\v202111\Goal;
-use Google\AdsApi\AdManager\v202111\CreativePlaceholder;
-use Google\AdsApi\AdManager\v202111\Money;
-use Google\AdsApi\AdManager\v202111\Targeting;
-use Google\AdsApi\AdManager\v202111\CustomCriteriaSet;
-use Google\AdsApi\AdManager\v202111\CustomCriteria;
-use Google\AdsApi\AdManager\v202111\InventoryTargeting;
+use Google\AdsApi\AdManager\v202205\Goal;
+use Google\AdsApi\AdManager\v202205\CreativePlaceholder;
+use Google\AdsApi\AdManager\v202205\Money;
+use Google\AdsApi\AdManager\v202205\Targeting;
+use Google\AdsApi\AdManager\v202205\CustomCriteriaSet;
+use Google\AdsApi\AdManager\v202205\CustomCriteria;
+use Google\AdsApi\AdManager\v202205\InventoryTargeting;
 
-use Google\AdsApi\AdManager\v202111\ApiException;
+use Google\AdsApi\AdManager\v202205\ApiException;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 
@@ -62,7 +62,7 @@ final class GAM_API {
 
 	const SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
 
-	const GAM_API_VERSION = 'v202111';
+	const GAM_API_VERSION = 'v202205';
 
 	/**
 	 * Codes of networks that the user has access to.
