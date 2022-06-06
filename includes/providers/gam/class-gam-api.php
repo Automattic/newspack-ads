@@ -99,6 +99,13 @@ final class GAM_API {
 	];
 
 	/**
+	 * Cached credentials.
+	 *
+	 * @var object|false OAuth2 credentials or false, if none cached.
+	 */
+	private static $oauth2_credentials = false;
+
+	/**
 	 * Get a WP_Error object from an optional ApiException or message.
 	 *
 	 * @param ApiException $exception       Optional Google Ads API exception.
@@ -159,10 +166,14 @@ final class GAM_API {
 	 * @return object OAuth2 credentials.
 	 */
 	private static function get_google_oauth2_credentials() {
+		if ( self::$oauth2_credentials ) {
+			return self::$oauth2_credentials;
+		}
 		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
-			if ( false !== $oauth2_credentials ) {
-				return $oauth2_credentials;
+			$fresh_oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
+			if ( false !== $fresh_oauth2_credentials ) {
+				self::$oauth2_credentials = $fresh_oauth2_credentials;
+				return self::$oauth2_credentials;
 			}
 		}
 		return false;
@@ -381,7 +392,7 @@ final class GAM_API {
 
 	/**
 	 * Get all GAM Advertisers in the user's network.
-	 * 
+	 *
 	 * @return Company[] Array of Companies of typer Advertiser.
 	 */
 	private static function get_advertisers() {
@@ -407,7 +418,7 @@ final class GAM_API {
 	 * Get all Advertisers in the user's network, serialised.
 	 *
 	 * @param Company[] $companies Optional array of companies to serialise. If empty, return all advertisers.
-	 * 
+	 *
 	 * @return array[] Array of serialised companies.
 	 */
 	public static function get_serialised_advertisers( $companies = null ) {
@@ -444,7 +455,7 @@ final class GAM_API {
 	 * Get all GAM orders in the user's network.
 	 *
 	 * @param StatementBuilder $statement_builder (optional) Statement builder.
-	 * 
+	 *
 	 * @return Order[] Array of Orders.
 	 */
 	private static function get_orders( StatementBuilder $statement_builder = null ) {
@@ -477,7 +488,7 @@ final class GAM_API {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_id( $ids = [] ) { 
+	public static function get_orders_by_id( $ids = [] ) {
 		if ( ! is_array( $ids ) ) {
 			$ids = [ $ids ];
 		}
@@ -492,7 +503,7 @@ final class GAM_API {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_advertiser( $advertiser_id ) { 
+	public static function get_orders_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
 		return self::get_orders( $statement_builder );
 	}
@@ -553,7 +564,7 @@ final class GAM_API {
 	 *
 	 * @return Creative[] Array of creatives.
 	 */
-	private static function get_creatives_by_advertiser( $advertiser_id ) { 
+	private static function get_creatives_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
 		return self::get_creatives( $statement_builder );
 	}
@@ -593,7 +604,7 @@ final class GAM_API {
 	 * Get all GAM Line Items in the user's network.
 	 *
 	 * @param StatementBuilder $statement_builder (optional) Statement builder.
-	 * 
+	 *
 	 * @return LineItem[] Array of Orders.
 	 */
 	private static function get_line_items( StatementBuilder $statement_builder = null ) {
@@ -936,7 +947,7 @@ final class GAM_API {
 					$criteria_set->setChildren( $children );
 					$targeting->setCustomTargeting( $criteria_set );
 				}
-				
+
 				// Apply configured targeting to line item.
 				$line_item->setTargeting( $targeting );
 			}
@@ -974,7 +985,7 @@ final class GAM_API {
 							return new Size( $size[0], $size[1] );
 						},
 						$lica_config['sizes']
-					) 
+					)
 				);
 			}
 			$licas[] = $lica;
@@ -1190,7 +1201,7 @@ final class GAM_API {
 				),
 			]
 		);
-		
+
 		$targeting_key = null;
 		$found_keys    = $service->getCustomTargetingKeysByStatement( $statement )->getResults();
 		if ( empty( $found_keys ) ) {
