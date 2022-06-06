@@ -275,10 +275,7 @@ final class GAM_API {
 	 * @return int GAM network code.
 	 */
 	private static function get_gam_network_code() {
-		if ( empty( self::$network_code ) ) {
-			self::get_gam_network();
-		}
-		return self::$network_code;
+		return self::get_gam_network()->getNetworkCode();
 	}
 
 	/**
