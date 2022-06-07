@@ -79,6 +79,9 @@ final class Placements {
 					'bidders_ids'  => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_bidders_ids' ],
 					],
+					'fixed_height' => [
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
 					'hooks'        => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_hooks_data' ],
 					],
@@ -130,6 +133,10 @@ final class Placements {
 
 		if ( isset( $data['ad_unit'] ) ) {
 			$sanitized_data['ad_unit'] = sanitize_text_field( $data['ad_unit'] );
+		}
+
+		if ( isset( $data['fixed_height'] ) ) {
+			$sanitized_data['fixed_height'] = rest_sanitize_boolean( $data['fixed_height'] );
 		}
 
 		if ( isset( $data['bidders_ids'] ) ) {
@@ -210,7 +217,7 @@ final class Placements {
 			$placements,
 			function( $placement ) {
 				return ! empty( $placement['name'] ) && true === $placement['show_ui'];
-			} 
+			}
 		);
 		return \rest_ensure_response( $placements );
 	}
@@ -228,6 +235,7 @@ final class Placements {
 			'ad_unit'      => $request['ad_unit'],
 			'bidders_ids'  => $request['bidders_ids'],
 			'hooks'        => $request['hooks'],
+			'fixed_height' => $request['fixed_height'],
 			'stick_to_top' => $request['stick_to_top'],
 		];
 		$result = self::update_placement( $request['placement'], $data );
@@ -254,10 +262,10 @@ final class Placements {
 
 	/**
 	 * Get the option name
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
-	 * 
-	 * @return string Option name. 
+	 *
+	 * @return string Option name.
 	 */
 	public static function get_option_name( $placement_key ) {
 		return Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
@@ -508,7 +516,7 @@ final class Placements {
 
 	/**
 	 * Update a placement with an ad unit. Enables the placement by default.
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
 	 * @param array  $data {
 	 *   Placement data.
@@ -548,7 +556,7 @@ final class Placements {
 
 	/**
 	 * Disable a placement.
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
 	 *
 	 * @return bool Whether the placement has been disabled or not.
@@ -564,7 +572,7 @@ final class Placements {
 			wp_json_encode(
 				wp_parse_args(
 					[ 'enabled' => false ],
-					$placement_data 
+					$placement_data
 				)
 			)
 		);
@@ -722,7 +730,7 @@ final class Placements {
 
 		$provider_id = isset( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::DEFAULT_PROVIDER;
 		$ad_unit     = $placement_data['ad_unit'];
-		
+
 		$is_amp        = Core::is_amp();
 		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );

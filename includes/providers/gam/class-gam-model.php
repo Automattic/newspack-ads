@@ -35,11 +35,11 @@ final class GAM_Model {
 	public static $custom_post_type = 'newspack_ad_codes';
 
 	/**
-	 * Array of all unique div IDs used for ads.
+	 * Associative array of all ad slots that will be rendered on the page.
 	 *
 	 * @var array
 	 */
-	public static $ad_ids = [];
+	public static $slots = [];
 
 	/**
 	 * Whether GAM units were already synced.
@@ -160,9 +160,10 @@ final class GAM_Model {
 			);
 		}
 
-		$unique_id = $config['unique_id'] ?? uniqid();
-		$placement = $config['placement'] ?? '';
-		$context   = $config['context'] ?? '';
+		$unique_id    = $config['unique_id'] ?? uniqid();
+		$placement    = $config['placement'] ?? '';
+		$context      = $config['context'] ?? '';
+		$fixed_height = $config['fixed_height'] ?? false;
 
 		$ad_units = self::get_ad_units( false );
 
@@ -178,8 +179,9 @@ final class GAM_Model {
 		}
 		$ad_unit = $ad_units[ $index ];
 
-		$ad_unit['placement'] = $placement;
-		$ad_unit['context']   = $context;
+		$ad_unit['placement']    = $placement;
+		$ad_unit['context']      = $context;
+		$ad_unit['fixed_height'] = $fixed_height;
 
 		$ad_unit['ad_code']     = self::get_ad_unit_code( $ad_unit, $unique_id );
 		$ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $ad_unit, $unique_id );
@@ -601,7 +603,7 @@ final class GAM_Model {
 			);
 		}
 
-		self::$ad_ids[ $unique_id ] = $ad_unit;
+		self::$slots[ $unique_id ] = $ad_unit;
 
 		$code = sprintf(
 			"<!-- /%s/%s --><div id='div-gpt-ad-%s-0'></div>",
@@ -707,7 +709,7 @@ final class GAM_Model {
 
 	/**
 	 * Get size map for responsive ads.
-	 * 
+	 *
 	 * Gather up all of the ad sizes which should be displayed on the same
 	 * viewports. As a heuristic, each ad slot can safely display ads with a 30%
 	 * difference from slot's width. e.g. for the following setup: [[300,200],
@@ -729,7 +731,7 @@ final class GAM_Model {
 	public static function get_responsive_size_map( $sizes, $width_diff_ratio = 0.3, $width_threshold = 600 ) {
 
 		array_multisort( $sizes );
-	
+
 		// Each existing size's width is size map viewport.
 		$viewports = array_unique( array_column( $sizes, 0 ) );
 
@@ -927,7 +929,7 @@ final class GAM_Model {
 					function( $user ) {
 						return $user->user_login;
 					},
-					get_coauthors() 
+					get_coauthors()
 				);
 			} else {
 				$authors = [ get_the_author_meta( 'user_login' ) ];
@@ -935,7 +937,7 @@ final class GAM_Model {
 			if ( ! empty( $authors ) ) {
 				$targeting['author'] = array_map( 'sanitize_text_field', $authors );
 			}
-					
+
 			// Add post type to targeting.
 			$targeting['post_type'] = get_post_type();
 

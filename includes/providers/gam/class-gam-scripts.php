@@ -67,7 +67,7 @@ final class GAM_Scripts {
 		$network_code = GAM_Model::get_active_network_code();
 
 		$prepared_unit_data = [];
-		foreach ( GAM_Model::$ad_ids as $unique_id => $ad_unit ) {
+		foreach ( GAM_Model::$slots as $unique_id => $ad_unit ) {
 			$ad_targeting = GAM_Model::get_ad_targeting( $ad_unit );
 
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
@@ -124,6 +124,7 @@ final class GAM_Scripts {
 				'code'             => esc_attr( $ad_unit['code'] ),
 				'sizes'            => $sizes,
 				'fluid'            => (bool) $ad_unit['fluid'],
+				'fixed_height'     => (bool) $ad_unit['fixed_height'],
 				'targeting'        => $ad_targeting,
 				'sticky'           => GAM_Model::is_sticky( $ad_unit ),
 				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
@@ -152,7 +153,7 @@ final class GAM_Scripts {
 			'network_code'         => esc_attr( $network_code ),
 			'disable_initial_load' => (bool) apply_filters( 'newspack_ads_disable_gtag_initial_load', false ),
 		];
-	
+
 		/**
 		 * Filters the ads data parsed for gtag.
 		 *
@@ -173,7 +174,7 @@ final class GAM_Scripts {
 		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
 		?>
 		<script data-amp-plus-allowed>
-			googletag.cmd.push(function() {
+			( function() {
 				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
 				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
 				var lazy_load        = <?php echo wp_json_encode( Settings::get_settings( 'lazy_load', true ), JSON_FORCE_OBJECT ); ?>;
@@ -185,51 +186,6 @@ final class GAM_Scripts {
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
 					var container = document.querySelector( '#' + container_id );
-
-					<?php
-					// Only set up ad units that are present on the page.
-					?>
-					if ( ! container ) {
-						continue;
-					}
-
-					var slotSizes = ad_unit['sizes'];
-					if ( ad_unit['fluid'] ) {
-						slotSizes = slotSizes.concat( 'fluid' );
-					}
-
-					defined_ad_units[ container_id ] = googletag.defineSlot(
-						'/' + ad_config['network_code'] + '/' + ad_unit['code'],
-						slotSizes,
-						container_id
-					).addService( googletag.pubads() );
-
-					for ( var target_key in common_targeting ) {
-						defined_ad_units[ container_id ].setTargeting( target_key, common_targeting[ target_key ] );
-					}
-					for ( var target_key in ad_unit['targeting'] ) {
-						defined_ad_units[ container_id ].setTargeting( target_key, ad_unit['targeting'][ target_key ] );
-					}
-
-					<?php
-					/**
-					 * Build and set the responsive mapping.
-					 *
-					 * @see https://developers.google.com/doubleclick-gpt/guides/ad-sizes#responsive_ads
-					 */
-					?>
-					var mapping = googletag.sizeMapping();
-					<?php
-					// Default base is to not show ads.
-					?>
-					var baseSizes = [];
-					<?php
-					// If the ad unit is fluid, base includes fluid.
-					?>
-					if( ad_unit['fluid'] ) {
-						baseSizes = baseSizes.concat( 'fluid' );
-					}
-
 					<?php
 					/**
 					 * Identify the bounds container for this slot and use its offset
@@ -255,7 +211,7 @@ final class GAM_Scripts {
 					}
 					<?php
 					/**
-					 * Iterate and apply size map skipping viewports larger than the
+					 * Iterate and remove size map rules with viewport larger than the
 					 * container width, if a bounds container is identified.
 					 *
 					 * The available width is the bigger of the bounds container width or
@@ -263,69 +219,143 @@ final class GAM_Scripts {
 					 */
 					?>
 					var shouldUseBounds = !! boundsWidth;
-					var containerWidth = container.parentNode.offsetWidth;
-					var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
-					for ( viewportWidth in ad_unit['size_map'] ) {
-						var width = parseInt( viewportWidth );
-						if ( ! shouldUseBounds || width <= availableWidth ) {
-							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
-							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
-						}
-					}
-					<?php
-					// Sticky ads should only be shown on mobile (screen width <=600px).
-					?>
-					if ( ad_unit['sticky'] ) {
-						mapping.addSize( [600, 0], baseSizes );
-					}
-					<?php
-					// On viewports smaller than the smallest ad size, don't show any ads.
-					?>
-					mapping.addSize( [0, 0], baseSizes );
-					defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
-				}
-
-				if ( ad_config['disable_initial_load'] ) {
-					googletag.pubads().disableInitialLoad();
-				}
-				googletag.pubads().collapseEmptyDivs();
-				googletag.pubads().enableSingleRequest();
-				if ( lazy_load && lazy_load.active ) {
-					googletag.pubads().enableLazyLoad( {
-						fetchMarginPercent: lazy_load.fetch_margin_percent,
-						renderMarginPercent: lazy_load.render_margin_percent,
-						mobileScaling: lazy_load.mobile_scaling
-					} );
-				}
-				googletag.enableServices();
-
-				for ( var container_id in defined_ad_units ) {
-					googletag.display( container_id );
-				}
-
-				<?php
-				/**
-				 * Identify fluid rendered ad and fix iframe width.
-				 * GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
-				 * This causes the iframe to be rendered with 0 width.
-				 */
-				?>
-				googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
-					var sizes = event.slot.getSizes();
-					if (
-						( event.size === null || event.size[0] === 0 ) &&
-						Array.isArray( sizes ) && sizes.indexOf( 'fluid' ) !== -1
-					) {
-						var container = document.getElementById( event.slot.getSlotElementId() );
-						if ( container ) {
-							var iframe = container.querySelector( 'iframe' );
-							if ( iframe ) {
-								iframe.style.width = '100%';
+					if ( shouldUseBounds ) {
+						var containerWidth = container.parentNode.offsetWidth;
+						var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
+						for ( viewportWidth in ad_unit['size_map'] ) {
+							var width = parseInt( viewportWidth );
+							if ( shouldUseBounds && width > availableWidth ) {
+								delete ad_unit['size_map'][ viewportWidth ];
 							}
 						}
 					}
+					<?php
+					/**
+					 * Set fixed height for parentNode.
+					 */
+					?>
+					if ( ad_unit.fixed_height ) {
+						var height = 0;
+						for ( viewportWidth in ad_unit.size_map ) {
+							if ( viewportWidth < window.innerWidth ) {
+								for ( size in ad_unit.size_map[ viewportWidth ] ) {
+									height = Math.max( height, ad_unit.size_map[ viewportWidth ][ size ][1] );
+								}
+							}
+						}
+						container.parentNode.style.height = height + 'px';
+					}
+				}
+				googletag.cmd.push(function() {
+					for ( var container_id in all_ad_units ) {
+						var ad_unit = all_ad_units[ container_id ];
+						var container = document.querySelector( '#' + container_id );
+						<?php
+						// Only set up ad units that are present on the page.
+						?>
+						if ( ! container ) {
+							continue;
+						}
+
+						var slotSizes = ad_unit['sizes'];
+						if ( ad_unit['fluid'] ) {
+							slotSizes = slotSizes.concat( 'fluid' );
+						}
+
+						defined_ad_units[ container_id ] = googletag.defineSlot(
+							'/' + ad_config['network_code'] + '/' + ad_unit['code'],
+							slotSizes,
+							container_id
+						).addService( googletag.pubads() );
+
+						for ( var target_key in common_targeting ) {
+							defined_ad_units[ container_id ].setTargeting( target_key, common_targeting[ target_key ] );
+						}
+						for ( var target_key in ad_unit['targeting'] ) {
+							defined_ad_units[ container_id ].setTargeting( target_key, ad_unit['targeting'][ target_key ] );
+						}
+
+						<?php
+						/**
+						 * Build and set the responsive mapping.
+						 *
+						 * @see https://developers.google.com/doubleclick-gpt/guides/ad-sizes#responsive_ads
+						 */
+						?>
+						var mapping = googletag.sizeMapping();
+						<?php
+						// Default base is to not show ads.
+						?>
+						var baseSizes = [];
+						<?php
+						// If the ad unit is fluid, base includes fluid.
+						?>
+						if( ad_unit['fluid'] ) {
+							baseSizes = baseSizes.concat( 'fluid' );
+						}
+						<?php
+						// Apply size map rules.
+						?>
+						for ( viewportWidth in ad_unit['size_map'] ) {
+							var width = parseInt( viewportWidth );
+							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
+							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
+						}
+						<?php
+						// Sticky ads should only be shown on mobile (screen width <=600px).
+						?>
+						if ( ad_unit['sticky'] ) {
+							mapping.addSize( [600, 0], baseSizes );
+						}
+						<?php
+						// On viewports smaller than the smallest ad size, don't show any ads.
+						?>
+						mapping.addSize( [0, 0], baseSizes );
+						defined_ad_units[ container_id ].defineSizeMapping( mapping.build() );
+					}
+
+					if ( ad_config['disable_initial_load'] ) {
+						googletag.pubads().disableInitialLoad();
+					}
+					googletag.pubads().collapseEmptyDivs();
+					googletag.pubads().enableSingleRequest();
+					if ( lazy_load && lazy_load.active ) {
+						googletag.pubads().enableLazyLoad( {
+							fetchMarginPercent: lazy_load.fetch_margin_percent,
+							renderMarginPercent: lazy_load.render_margin_percent,
+							mobileScaling: lazy_load.mobile_scaling
+						} );
+					}
+					googletag.enableServices();
+
+					for ( var container_id in defined_ad_units ) {
+						googletag.display( container_id );
+					}
+
+					<?php
+					/**
+					 * Identify fluid rendered ad and fix iframe width.
+					 * GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
+					 * This causes the iframe to be rendered with 0 width.
+					 */
+					?>
+					googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
+						var sizes = event.slot.getSizes();
+						if (
+							( event.size === null || event.size[0] === 0 ) &&
+							Array.isArray( sizes ) && sizes.indexOf( 'fluid' ) !== -1
+						) {
+							var container = document.getElementById( event.slot.getSlotElementId() );
+							if ( container ) {
+								var iframe = container.querySelector( 'iframe' );
+								if ( iframe ) {
+									iframe.style.width = '100%';
+								}
+							}
+						}
+					} );
 				} );
-			} );
+			} )();
 		</script>
 		<?php
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
