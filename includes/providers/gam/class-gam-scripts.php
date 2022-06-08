@@ -27,6 +27,7 @@ final class GAM_Scripts {
 	public static function init() {
 		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ], 1 );
 		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
+		add_action( 'newspack_ads_before_placement_ad', [ __CLASS__, 'print_fixed_height_css' ], 10, 3 );
 	}
 
 	/**
@@ -73,21 +74,6 @@ final class GAM_Scripts {
 			$container_id = esc_attr( 'div-gpt-ad-' . $unique_id . '-0' );
 			$sizes        = $ad_unit['sizes'];
 
-			if ( ! is_array( $sizes ) ) {
-				$sizes = [];
-			}
-
-			// Remove all ad sizes greater than 600px wide for sticky ads.
-			if ( GAM_Model::is_sticky( $ad_unit ) ) {
-				$sizes = array_filter(
-					$sizes,
-					function( $size ) {
-						return $size[0] < 600;
-					}
-				);
-				$sizes = array_values( $sizes );
-			}
-
 			/**
 			 * Filters which container elements should restrict the bounds of its
 			 * inner ads.
@@ -127,7 +113,7 @@ final class GAM_Scripts {
 				'fixed_height'     => (bool) $ad_unit['fixed_height'],
 				'targeting'        => $ad_targeting,
 				'sticky'           => GAM_Model::is_sticky( $ad_unit ),
-				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit, $sizes ),
+				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit ),
 				'bounds_selectors' => $bounds_selectors,
 				'bounds_bleed'     => (int) $bounds_bleed ?? 0,
 			];
@@ -359,6 +345,38 @@ final class GAM_Scripts {
 		</script>
 		<?php
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
+	}
+
+	/**
+	 * Print media queries CSS to apply a fixed height to placements.
+	 *
+	 * @param string $placement_key  The placement key.
+	 * @param string $hook_key       The placement hook hey.
+	 * @param array  $placement_data The placement data.
+	 */
+	public static function print_fixed_height_css( $placement_key, $hook_key, $placement_data ) {
+		if ( 'gam' !== $placement_data['provider'] ) {
+			return;
+		}
+		if ( ! isset( $placement_data['fixed_height'] ) || ! $placement_data['fixed_height'] ) {
+			return;
+		}
+
+		$ad_units    = GAM_Model::get_ad_units( false );
+		$ad_unit_idx = array_search( $placement_data['ad_unit'], array_column( $ad_units, 'id' ) );
+		if ( false === $ad_unit_idx ) {
+			return;
+		}
+		$ad_unit      = $ad_units[ $ad_unit_idx ];
+		$container_id = esc_attr( sprintf( '.newspack_global_ad.%s', $placement_key ) );
+		$size_map     = GAM_Model::get_ad_unit_size_map( $ad_unit );
+		echo '<style>';
+		foreach ( $size_map as $viewport_width => $sizes ) {
+			$height = max( array_column( $sizes, 1 ) );
+			$css    = sprintf( ' @media ( min-width: %1$dpx ) { %2$s { height: %3$dpx; } } ', $viewport_width, $container_id, $height );
+			echo esc_html( $css );
+		}
+		echo '</style>';
 	}
 }
 GAM_Scripts::init();

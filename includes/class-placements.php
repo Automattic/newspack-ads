@@ -724,15 +724,25 @@ final class Placements {
 			$placement_data = $placement['data'];
 		}
 
+		$placement_data['fixed_height'] = isset( $placement_data['fixed_height'] ) ? (bool) $placement_data['fixed_height'] : false;
+
 		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
 
-		$provider_id = isset( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::DEFAULT_PROVIDER;
+		$provider_id = isset( $placement_data['provider'] ) && ! empty( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::DEFAULT_PROVIDER;
 		$ad_unit     = $placement_data['ad_unit'];
 
 		$is_amp        = Core::is_amp();
 		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
+
+		/**
+		 * Fires before an ad is injected into a placement.
+		 *
+		 * @param string $placement_key  The placement key.
+		 * @param string $hook_key       The placement hook hey.
+		 * @param array  $placement_data The placement data.
+		 */
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
 		/**
@@ -752,6 +762,7 @@ final class Placements {
 				$placement_key . '-' . $hook_key    => ! empty( $hook_key ),
 				'hook-' . $hook_key                 => ! empty( $hook_key ),
 				'stick-to-top'                      => $stick_to_top,
+				'fixed-height'                      => $placement_data['fixed_height'],
 			],
 			$placement_key,
 			$hook_key,

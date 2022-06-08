@@ -55,8 +55,8 @@ final class GAM_Model {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'init', array( __CLASS__, 'register_ad_post_type' ) );
-		add_action( 'newspack_ads_activation_hook', array( __CLASS__, 'register_default_placements_units' ) );
+		add_action( 'init', [ __CLASS__, 'register_ad_post_type' ] );
+		add_action( 'newspack_ads_activation_hook', [ __CLASS__, 'register_default_placements_units' ] );
 		GAM_API::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
 	}
 
@@ -585,17 +585,17 @@ final class GAM_Model {
 	 * @param string $unique_id The unique ID for this ad displayment.
 	 */
 	public static function get_ad_unit_code( $ad_unit, $unique_id = '' ) {
-		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
 		$unique_id    = $unique_id ?? uniqid();
-		if ( ! is_array( $sizes ) ) {
-			$sizes = [];
+
+		if ( ! is_array( $ad_unit['sizes'] ) ) {
+			$ad_unit['sizes'] = [];
 		}
 
 		// Remove all ad sizes greater than 600px wide for sticky ads.
 		if ( self::is_sticky( $ad_unit ) ) {
-			$sizes = array_filter(
+			$ad_unit['sizes'] = array_filter(
 				$sizes,
 				function( $size ) {
 					return $size[0] < 600;
@@ -621,25 +621,26 @@ final class GAM_Model {
 	 * @param string $unique_id Optional pre-defined unique ID for this ad displayment.
 	 */
 	public static function get_ad_unit_amp_code( $ad_unit, $unique_id = '' ) {
-		$sizes        = $ad_unit['sizes'];
 		$code         = $ad_unit['code'];
 		$network_code = self::get_active_network_code();
 		$targeting    = self::get_ad_targeting( $ad_unit );
 		$unique_id    = $unique_id ?? uniqid();
 
-		if ( ! is_array( $sizes ) ) {
-			$sizes = [];
+		if ( ! is_array( $ad_unit['sizes'] ) ) {
+			$ad_unit['sizes'] = [];
 		}
 
 		// Remove all ad sizes greater than 600px wide for sticky ads.
 		if ( self::is_sticky( $ad_unit ) ) {
-			$sizes = array_filter(
-				$sizes,
+			$ad_unit['sizes'] = array_filter(
+				$ad_unit['sizes'],
 				function( $size ) {
 					return $size[0] < 600;
 				}
 			);
 		}
+
+		$sizes = $ad_unit['sizes'];
 
 		$size_map = self::get_ad_unit_size_map( $ad_unit, $sizes );
 
