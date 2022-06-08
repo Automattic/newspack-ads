@@ -169,9 +169,32 @@ final class GAM_Scripts {
 
 				var boundsContainers = {};
 
+				function inViewport( element ) {
+					var bounding = element.getBoundingClientRect();
+					return (
+						bounding.top >= 0 &&
+						bounding.left >= 0 &&
+						bounding.right <= ( window.innerWidth || document.documentElement.clientWidth ) &&
+						bounding.bottom <= ( window.innerHeight || document.documentElement.clientHeight )
+					);
+				}
+
+				function isNewspackAd( adContainer ) {
+					return adContainer.parentNode.classList.contains( 'newspack_global_ad' );
+				}
+
+				function isFixedHeight( adContainer ) {
+					return adContainer.parentNode.classList.contains( 'fixed-height' );
+				}
+
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
 					var container = document.querySelector( '#' + container_id );
+					if ( ! container ) {
+						continue;
+					}
+					ad_unit.in_viewport = inViewport( container );
+					container.ad_unit = ad_unit;
 					<?php
 					/**
 					 * Identify the bounds container for this slot and use its offset
@@ -236,9 +259,6 @@ final class GAM_Scripts {
 					for ( var container_id in all_ad_units ) {
 						var ad_unit = all_ad_units[ container_id ];
 						var container = document.querySelector( '#' + container_id );
-						<?php
-						// Only set up ad units that are present on the page.
-						?>
 						if ( ! container ) {
 							continue;
 						}
@@ -318,20 +338,33 @@ final class GAM_Scripts {
 						googletag.display( container_id );
 					}
 
-					<?php
-					/**
-					 * Identify fluid rendered ad and fix iframe width.
-					 * GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
-					 * This causes the iframe to be rendered with 0 width.
-					 */
-					?>
-					googletag.pubads().addEventListener( 'slotRenderEnded', function(event) {
+					googletag.pubads().addEventListener( 'slotRenderEnded', function( event ) {
+						var container = document.getElementById( event.slot.getSlotElementId() );
+						if ( ! isNewspackAd( container ) ) {
+							return;
+						}
+						<?php
+						/**
+						 * Handle slot visibility.
+						 */
+						?>
+						if ( event.isEmpty && ! isFixedHeight( container ) || ( isFixedHeight(container) && ! container.ad_unit.in_viewport ) ) {
+							container.parentNode.style.display = 'none';
+						} else {
+							container.parentNode.style.display = 'flex';
+						}
+						<?php
+						/**
+						 * Identify fluid rendered ad and fix iframe width.
+						 * GPT currently sets the iframe with `min-width` set to 100% and property `width` set to 0.
+						 * This causes the iframe to be rendered with 0 width.
+						 */
+						?>
 						var sizes = event.slot.getSizes();
 						if (
 							( event.size === null || event.size[0] === 0 ) &&
 							Array.isArray( sizes ) && sizes.indexOf( 'fluid' ) !== -1
 						) {
-							var container = document.getElementById( event.slot.getSlotElementId() );
 							if ( container ) {
 								var iframe = container.querySelector( 'iframe' );
 								if ( iframe ) {
