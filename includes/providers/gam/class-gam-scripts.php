@@ -220,9 +220,10 @@ final class GAM_Scripts {
 					 */
 					?>
 					var shouldUseBounds = !! boundsWidth;
+					var availableWidth = window.innerWidth;
 					if ( shouldUseBounds ) {
 						var containerWidth = container.parentNode.offsetWidth;
-						var availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
+						availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
 						for ( viewportWidth in ad_unit['size_map'] ) {
 							var width = parseInt( viewportWidth );
 							if ( shouldUseBounds && width > availableWidth ) {
@@ -238,7 +239,8 @@ final class GAM_Scripts {
 					if ( ad_unit.fixed_height ) {
 						var height = 0;
 						for ( viewportWidth in ad_unit.size_map ) {
-							if ( viewportWidth < window.innerWidth ) {
+							if ( viewportWidth < availableWidth ) {
+								height = 0;
 								for ( size in ad_unit.size_map[ viewportWidth ] ) {
 									height = Math.max( height, ad_unit.size_map[ viewportWidth ][ size ][1] );
 								}
