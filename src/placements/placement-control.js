@@ -172,7 +172,7 @@ const PlacementControl = ( {
 			<ToggleControl
 				label={ __( 'Use fixed height', 'newspack-ads' ) }
 				help={ __(
-					'Avoid content layout shift by using the ad unit height as fixed height for this placement. This is recommended if an ad will be shown across all devices.',
+					'Avoid content layout shift by using the ad unit height as fixed height for this placement. This is recommended if an ad is guaranteed to be shown across all devices.',
 					'newspack-ads'
 				) }
 				checked={ !! value.fixed_height }

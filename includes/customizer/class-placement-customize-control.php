@@ -296,7 +296,7 @@ final class Placement_Customize_Control extends \WP_Customize_Control {
 		<span class="customize-control fixed-height-checkbox">
 			<input id="<?php echo esc_attr( $input_id ); ?>" type="checkbox" value="1" <?php checked( $value, '1' ); ?> />
 			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $label ); ?></label>
-			<span id="<?php echo esc_attr( $desc_id ); ?>" class="description customize-control-description"><?php esc_html_e( 'Avoid content layout shift by using the ad unit height as fixed height for this placement. This is recommended if an ad will be shown across all devices.', 'newspack-ads' ); ?></span>
+			<span id="<?php echo esc_attr( $desc_id ); ?>" class="description customize-control-description"><?php esc_html_e( 'Avoid content layout shift by using the ad unit height as fixed height for this placement. This is recommended if an ad is guaranteed to be shown across all devices.', 'newspack-ads' ); ?></span>
 		</span>
 		<?php
 	}
