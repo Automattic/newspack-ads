@@ -179,14 +179,6 @@ final class GAM_Scripts {
 					);
 				}
 
-				function isNewspackAd( adContainer ) {
-					return adContainer.parentNode.classList.contains( 'newspack_global_ad' );
-				}
-
-				function isFixedHeight( adContainer ) {
-					return adContainer.parentNode.classList.contains( 'fixed-height' );
-				}
-
 				for ( var container_id in all_ad_units ) {
 					var ad_unit = all_ad_units[ container_id ];
 					var container = document.querySelector( '#' + container_id );
@@ -340,7 +332,11 @@ final class GAM_Scripts {
 
 					googletag.pubads().addEventListener( 'slotRenderEnded', function( event ) {
 						var container = document.getElementById( event.slot.getSlotElementId() );
-						if ( ! isNewspackAd( container ) ) {
+						if ( ! container ) {
+							return;
+						}
+						var ad_unit = container.ad_unit;
+						if ( ! ad_unit ) {
 							return;
 						}
 						<?php
@@ -348,7 +344,7 @@ final class GAM_Scripts {
 						 * Handle slot visibility.
 						 */
 						?>
-						if ( event.isEmpty && ( ! isFixedHeight( container ) || ( isFixedHeight(container) && ! container.ad_unit.in_viewport ) ) ) {
+						if ( event.isEmpty && ( ! ad_unit.fixed_height || ( ad_unit.fixed_height && ! ad_unit.in_viewport ) ) ) {
 							container.parentNode.style.display = 'none';
 						} else {
 							container.parentNode.style.display = 'flex';
