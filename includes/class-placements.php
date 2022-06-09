@@ -588,6 +588,14 @@ final class Placements {
 	private static function can_display( $placement_key ) {
 		$placements = self::get_placements();
 
+		// Suppressed by post definition.
+		if ( is_singular() ) {
+			$post_suppressed = get_post_meta( get_the_ID(), 'newspack_ads_suppress_ads_placements', true );
+			if ( is_array( $post_suppressed ) && ! empty( $post_suppressed ) && in_array( $placement_key, $post_suppressed, true ) ) {
+				return false;
+			}
+		}
+
 		// Placement does not exist.
 		if ( ! isset( $placements[ $placement_key ] ) ) {
 			return false;
