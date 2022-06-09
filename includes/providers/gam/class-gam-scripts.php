@@ -348,7 +348,7 @@ final class GAM_Scripts {
 						 * Handle slot visibility.
 						 */
 						?>
-						if ( event.isEmpty && ! isFixedHeight( container ) || ( isFixedHeight(container) && ! container.ad_unit.in_viewport ) ) {
+						if ( event.isEmpty && ( ! isFixedHeight( container ) || ( isFixedHeight(container) && ! container.ad_unit.in_viewport ) ) ) {
 							container.parentNode.style.display = 'none';
 						} else {
 							container.parentNode.style.display = 'flex';
