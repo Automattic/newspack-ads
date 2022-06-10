@@ -304,7 +304,6 @@ final class GAM_Model {
 	 * @return array Array of ad units.
 	 */
 	public static function get_ad_units( $sync = true ) {
-		$ad_units = self::get_legacy_ad_units();
 		if ( $sync && ! self::$synced ) {
 			// Only sync once per execution.
 			if ( self::is_gam_connected() ) {
@@ -316,7 +315,7 @@ final class GAM_Model {
 			}
 		}
 		$ad_units = array_merge(
-			$ad_units,
+			self::get_legacy_ad_units(),
 			self::get_synced_ad_units(),
 			self::get_default_ad_units()
 		);
