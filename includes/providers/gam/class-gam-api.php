@@ -382,7 +382,7 @@ final class GAM_API {
 
 	/**
 	 * Get all GAM Advertisers in the user's network.
-	 * 
+	 *
 	 * @return Company[] Array of Companies of typer Advertiser.
 	 */
 	private static function get_advertisers() {
@@ -408,7 +408,7 @@ final class GAM_API {
 	 * Get all Advertisers in the user's network, serialised.
 	 *
 	 * @param Company[] $companies Optional array of companies to serialise. If empty, return all advertisers.
-	 * 
+	 *
 	 * @return array[] Array of serialised companies.
 	 */
 	public static function get_serialised_advertisers( $companies = null ) {
@@ -445,7 +445,7 @@ final class GAM_API {
 	 * Get all GAM orders in the user's network.
 	 *
 	 * @param StatementBuilder $statement_builder (optional) Statement builder.
-	 * 
+	 *
 	 * @return Order[] Array of Orders.
 	 */
 	private static function get_orders( StatementBuilder $statement_builder = null ) {
@@ -478,7 +478,7 @@ final class GAM_API {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_id( $ids = [] ) { 
+	public static function get_orders_by_id( $ids = [] ) {
 		if ( ! is_array( $ids ) ) {
 			$ids = [ $ids ];
 		}
@@ -493,7 +493,7 @@ final class GAM_API {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_advertiser( $advertiser_id ) { 
+	public static function get_orders_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
 		return self::get_orders( $statement_builder );
 	}
@@ -554,7 +554,7 @@ final class GAM_API {
 	 *
 	 * @return Creative[] Array of creatives.
 	 */
-	private static function get_creatives_by_advertiser( $advertiser_id ) { 
+	private static function get_creatives_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
 		return self::get_creatives( $statement_builder );
 	}
@@ -594,7 +594,7 @@ final class GAM_API {
 	 * Get all GAM Line Items in the user's network.
 	 *
 	 * @param StatementBuilder $statement_builder (optional) Statement builder.
-	 * 
+	 *
 	 * @return LineItem[] Array of Orders.
 	 */
 	private static function get_line_items( StatementBuilder $statement_builder = null ) {
@@ -937,7 +937,7 @@ final class GAM_API {
 					$criteria_set->setChildren( $children );
 					$targeting->setCustomTargeting( $criteria_set );
 				}
-				
+
 				// Apply configured targeting to line item.
 				$line_item->setTargeting( $targeting );
 			}
@@ -975,7 +975,7 @@ final class GAM_API {
 							return new Size( $size[0], $size[1] );
 						},
 						$lica_config['sizes']
-					) 
+					)
 				);
 			}
 			$licas[] = $lica;
@@ -1191,7 +1191,7 @@ final class GAM_API {
 				),
 			]
 		);
-		
+
 		$targeting_key = null;
 		$found_keys    = $service->getCustomTargetingKeysByStatement( $statement )->getResults();
 		if ( empty( $found_keys ) ) {
@@ -1343,13 +1343,6 @@ final class GAM_API {
 	}
 
 	/**
-	 * Can this instance use OAuth for authentication?
-	 */
-	private static function can_use_oauth() {
-		return class_exists( 'Newspack\Google_OAuth' ) && \Newspack\Google_OAuth::is_oauth_configured();
-	}
-
-	/**
 	 * Get saved Service Account credentials config.
 	 */
 	private static function service_account_credentials_config() {
@@ -1387,11 +1380,9 @@ final class GAM_API {
 	 */
 	public static function connection_status() {
 		$connection_details = self::get_connection_details();
-		$can_use_oauth      = self::can_use_oauth();
 		$response           = [
 			'connected'       => false,
 			'connection_mode' => $connection_details['mode'],
-			'can_use_oauth'   => $can_use_oauth,
 		];
 		if ( false === self::is_environment_compatible() ) {
 			$response['incompatible'] = true;
