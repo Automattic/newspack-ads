@@ -231,20 +231,24 @@ final class GAM_Scripts {
 					}
 					<?php
 					/**
-					 * Set fixed height for parentNode.
+					 * Set fixed height on parentNode for slots within viewport. Slots
+					 * outside of the viewport will have 'auto' height.
 					 */
 					?>
 					if ( ad_unit.fixed_height ) {
-						var height = 0;
-						for ( viewportWidth in ad_unit.size_map ) {
-							if ( viewportWidth < availableWidth ) {
-								height = 0;
-								for ( size in ad_unit.size_map[ viewportWidth ] ) {
-									height = Math.max( height, ad_unit.size_map[ viewportWidth ][ size ][1] );
+						var height = 'auto';
+						if ( ad_unit.in_viewport ) {
+							for ( viewportWidth in ad_unit.size_map ) {
+								if ( viewportWidth < availableWidth ) {
+									height = 0;
+									for ( size in ad_unit.size_map[ viewportWidth ] ) {
+										height = Math.max( height, ad_unit.size_map[ viewportWidth ][ size ][1] );
+									}
 								}
 							}
+							height = height + 'px';
 						}
-						container.parentNode.style.height = height + 'px';
+						container.parentNode.style.height = height;
 					}
 				}
 				googletag.cmd.push(function() {
