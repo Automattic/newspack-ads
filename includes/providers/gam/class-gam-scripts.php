@@ -383,9 +383,6 @@ final class GAM_Scripts {
 							}
 						}
 					} );
-					setInterval( function() {
-						googletag.pubads().refresh();
-					}, 5000 );
 				} );
 			} )();
 		</script>
