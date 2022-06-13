@@ -169,11 +169,9 @@ final class GAM_Scripts {
 
 				var boundsContainers = {};
 
-				function inViewport( element ) {
+				function inOrPastViewport( element ) {
 					var bounding = element.getBoundingClientRect();
 					return (
-						bounding.top >= 0 &&
-						bounding.left >= 0 &&
 						bounding.right <= ( window.innerWidth || document.documentElement.clientWidth ) &&
 						bounding.bottom <= ( window.innerHeight || document.documentElement.clientHeight )
 					);
@@ -185,7 +183,7 @@ final class GAM_Scripts {
 					if ( ! container ) {
 						continue;
 					}
-					ad_unit.in_viewport = inViewport( container );
+					ad_unit.in_viewport = inOrPastViewport( container );
 					container.ad_unit = ad_unit;
 					<?php
 					/**
