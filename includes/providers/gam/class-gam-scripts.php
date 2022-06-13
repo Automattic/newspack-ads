@@ -345,6 +345,16 @@ final class GAM_Scripts {
 						}
 						<?php
 						/**
+						 * Lock fixed height ad unit size mapping to prevent larger
+						 * creatives to render on refresh control.
+						 */
+						?>
+						if ( ad_unit.fixed_height && container.parentNode.style.height === 'auto' ) {
+							container.parentNode.style.height = event.size[1] + 'px';
+							event.slot.defineSizeMapping( googletag.sizeMapping().addSize( [ 0, 0 ], event.size ).build() );
+						}
+						<?php
+						/**
 						 * Handle slot visibility.
 						 */
 						?>
@@ -373,6 +383,9 @@ final class GAM_Scripts {
 							}
 						}
 					} );
+					setInterval( function() {
+						googletag.pubads().refresh();
+					}, 5000 );
 				} );
 			} )();
 		</script>
