@@ -23,7 +23,6 @@ class NewspackSuppressAdsPanel extends Component {
 			updateSuppressAds,
 			updateSuppressPlacements,
 		} = this.props;
-		console.log( newspack_ads_suppress_ads_placements );
 		return (
 			<PluginDocumentSettingPanel
 				name="newspack-ad-free"
