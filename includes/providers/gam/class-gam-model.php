@@ -596,7 +596,7 @@ final class GAM_Model {
 		// Remove all ad sizes greater than 600px wide for sticky ads.
 		if ( self::is_sticky( $ad_unit ) ) {
 			$ad_unit['sizes'] = array_filter(
-				$$ad_unit['sizes'],
+				$ad_unit['sizes'],
 				function( $size ) {
 					return $size[0] < 600;
 				}
