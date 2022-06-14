@@ -349,7 +349,7 @@ final class GAM_Scripts {
 						 * creatives to render on refresh control.
 						 */
 						?>
-						if ( ad_unit.fixed_height && container.parentNode.style.height === 'auto' ) {
+						if ( ad_unit.fixed_height && container.parentNode.style.height === 'auto' && event.size ) {
 							container.parentNode.style.height = event.size[1] + 'px';
 							event.slot.defineSizeMapping( googletag.sizeMapping().addSize( [ 0, 0 ], event.size ).build() );
 						}
