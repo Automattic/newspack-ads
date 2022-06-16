@@ -118,7 +118,6 @@ function Edit( { attributes, setAttributes } ) {
 								<div
 									className={ classNames( {
 										'newspack-ads-ad-block-edit-fields': true,
-										'one-column': providers.length < 2 && ! Object.keys( bidders ).length,
 									} ) }
 								>
 									<PlacementControl
@@ -130,8 +129,6 @@ function Edit( { attributes, setAttributes } ) {
 											setAttributes( value );
 										} }
 									/>
-								</div>
-								<div className="newspack-ads-ad-block-save-button">
 									<Button disabled={ ! unit } onClick={ () => setIsEditing( false ) } isPrimary>
 										{ __( 'Save', 'newspack-ads' ) }
 									</Button>
