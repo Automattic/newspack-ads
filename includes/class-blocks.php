@@ -35,19 +35,23 @@ final class Blocks {
 			'newspack-ads/ad-unit',
 			[
 				'attributes'      => [
-					'provider'    => [
+					'provider'     => [
 						'type'    => 'string',
 						'default' => 'gam',
 					],
-					'ad_unit'     => [
+					'ad_unit'      => [
 						'type' => 'string',
 					],
-					'bidders_ids' => [
+					'bidders_ids'  => [
 						'type'    => 'object',
 						'default' => [],
 					],
+					'fixed_height' => [
+						'type'    => 'boolean',
+						'default' => false,
+					],
 					// Legacy attribute.
-					'activeAd'    => [
+					'activeAd'     => [
 						'type' => 'string',
 					],
 				],
@@ -115,7 +119,7 @@ final class Blocks {
 
 	/**
 	 * Render block.
-	 * 
+	 *
 	 * @param array[] $attrs Block attributes.
 	 *
 	 * @return string Block HTML.

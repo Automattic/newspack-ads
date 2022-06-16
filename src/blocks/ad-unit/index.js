@@ -43,6 +43,10 @@ export const settings = {
 			type: 'object',
 			default: {},
 		},
+		fixed_height: {
+			type: 'boolean',
+			default: false,
+		},
 		// Legacy attribute.
 		activeAd: {
 			type: 'string',

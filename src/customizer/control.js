@@ -37,6 +37,9 @@ import { set, debounce } from 'lodash';
 			$toggle.on( 'change', function () {
 				updateValue( '', 'enabled', $( this ).is( ':checked' ) );
 			} );
+			container.on( 'change', '.fixed-height-checkbox input[type=checkbox]', function () {
+				updateValue( '', 'fixed_height', $( this ).is( ':checked' ) );
+			} );
 			container.on( 'change', '.stick-to-top-checkbox input[type=checkbox]', function () {
 				updateValue( '', 'stick_to_top', $( this ).is( ':checked' ) );
 			} );
