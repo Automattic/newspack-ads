@@ -1,3 +1,16 @@
+# [1.37.0](https://github.com/Automattic/newspack-ads/compare/v1.36.0...v1.37.0) (2022-06-27)
+
+
+### Bug Fixes
+
+* **gam:** prioritize service account and other tweaks ([#433](https://github.com/Automattic/newspack-ads/issues/433)) ([d6fcbdd](https://github.com/Automattic/newspack-ads/commit/d6fcbdd5dc311f94a2fe9ac8a0cdd23c10744490))
+* **oauth:** cache oauth credentials ([c394b4b](https://github.com/Automattic/newspack-ads/commit/c394b4b9460c49862e26fb067009f26d1772b6a4))
+
+
+### Features
+
+* **placements:** optional fixed height ([#439](https://github.com/Automattic/newspack-ads/issues/439)) ([d9f92db](https://github.com/Automattic/newspack-ads/commit/d9f92db7203901d09b540af2ff1758e3212400d1)), closes [#409](https://github.com/Automattic/newspack-ads/issues/409)
+
 # [1.37.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.36.0...v1.37.0-alpha.1) (2022-06-16)
 
 
