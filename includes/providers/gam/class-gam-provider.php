@@ -41,14 +41,16 @@ final class GAM_Provider extends Provider {
 	/**
 	 * The provider available units for placement.
 	 *
+	 * @param bool $refresh Whether refresh provider units data.
+	 *
 	 * @return array[
 	 *  'name'  => string,
 	 *  'value' => string,
 	 *  'sizes' => array[]
 	 * ] The provider available units for placement.
 	 */
-	public function get_units() {
-		$ad_units = GAM_Model::get_ad_units();
+	public function get_units( $refresh = false ) {
+		$ad_units = GAM_Model::get_ad_units( $refresh );
 		return array_map(
 			function( $ad_unit ) {
 				return [

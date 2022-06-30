@@ -57,13 +57,15 @@ final class Broadstreet_Provider extends Provider {
 	/**
 	 * The provider available units for placement.
 	 *
+	 * @param bool $refresh Whether refresh provider units data.
+	 *
 	 * @return array[
 	 *  'name'  => string,
 	 *  'value' => string,
 	 *  'sizes' => array[]
 	 * ] The provider available units for placement.
 	 */
-	public function get_units() {
+	public function get_units( $refresh = false ) {
 		if ( ! self::is_plugin_active() || ! method_exists( '\Broadstreet_Utility', 'getZoneCache' ) ) {
 			return [];
 		}
@@ -72,7 +74,7 @@ final class Broadstreet_Provider extends Provider {
 		 * If getting through the dashboard, fetch from plugin utility and update
 		 * local cache.
 		 */
-		if ( is_admin() ) {
+		if ( true === $refresh ) {
 			$zones = \Broadstreet_Utility::getZoneCache();
 			\update_option( self::CACHE, $zones );
 		}

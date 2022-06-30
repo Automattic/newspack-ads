@@ -167,7 +167,7 @@ final class Providers {
 			if ( $provider ) {
 				self::$providers_data[ $provider_id ] = array_merge(
 					self::get_serialised_provider( $provider ),
-					[ 'units' => $provider->get_units() ]
+					[ 'units' => $provider->get_units( true ) ]
 				);
 			} else {
 				self::$providers_data[ $provider_id ] = null;
