@@ -95,11 +95,11 @@ final class Placement_Customize_Control extends \WP_Customize_Control {
 	 *
 	 * @param string $hook_key Optional hook key, will look root placement otherwise.
 	 *
-	 * @return string Provider ID or \Newspack_Ads\Providers::DEFAULT_PROVIDER if not found.
+	 * @return string Provider ID or empty string.
 	 */
 	private function get_provider_value( $hook_key = '' ) {
 		$value   = json_decode( $this->value(), true );
-		$default = Providers::DEFAULT_PROVIDER;
+		$default = '';
 		$data    = $value;
 		if ( ! empty( $hook_key ) && isset( $value['hooks'], $value['hooks'][ $hook_key ] ) ) {
 			$data = $value['hooks'][ $hook_key ];

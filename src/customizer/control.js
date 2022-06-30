@@ -16,10 +16,10 @@ import { set, debounce } from 'lodash';
 			try {
 				value = JSON.parse( control.setting.get() || '{}' );
 			} catch ( e ) {
-				value = { enabled: false, provider: 'gam' };
+				value = { enabled: false };
 			}
 			container.find( '[data-provider]' ).hide();
-			container.find( `[data-provider="${ value.provider || 'gam' }"]` ).show();
+			container.find( `[data-provider="${ value.provider }"]` ).show();
 			const _update = debounce( function () {
 				control.setting.set( JSON.stringify( value ) );
 			}, 300 );

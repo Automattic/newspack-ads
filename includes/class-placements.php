@@ -288,7 +288,7 @@ final class Placements {
 			[
 				'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
 				'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
-				'provider' => Providers::DEFAULT_PROVIDER,
+				'provider' => Providers::get_default_provider(),
 			]
 		);
 
@@ -317,7 +317,7 @@ final class Placements {
 				$data['hooks'][ $hook_key ] = wp_parse_args(
 					$hook,
 					[
-						'provider' => Providers::DEFAULT_PROVIDER,
+						'provider' => Providers::get_default_provider(),
 					]
 				);
 				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] && ! isset( $hook['id'] ) ) {
@@ -532,7 +532,7 @@ final class Placements {
 		// Updates always enables the placement.
 		$data['enabled'] = true;
 
-		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Providers::DEFAULT_PROVIDER;
+		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Providers::get_default_provider();
 
 		// Generate unique ID.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {
@@ -738,7 +738,7 @@ final class Placements {
 			return;
 		}
 
-		$provider_id = isset( $placement_data['provider'] ) && ! empty( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::DEFAULT_PROVIDER;
+		$provider_id = isset( $placement_data['provider'] ) && ! empty( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::get_default_provider();
 		$ad_unit     = $placement_data['ad_unit'];
 
 		$is_amp        = Core::is_amp();
