@@ -1,3 +1,17 @@
+## [1.37.1](https://github.com/Automattic/newspack-ads/compare/v1.37.0...v1.37.1) (2022-06-30)
+
+
+### Bug Fixes
+
+* handling of default provider when GAM is not active ([#456](https://github.com/Automattic/newspack-ads/issues/456)) ([55bb6f1](https://github.com/Automattic/newspack-ads/commit/55bb6f1325585e893d45536ad6df8244922f593a))
+
+## [1.37.1-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.37.0...v1.37.1-hotfix.1) (2022-06-30)
+
+
+### Bug Fixes
+
+* handling of default provider when GAM is not active ([d42141e](https://github.com/Automattic/newspack-ads/commit/d42141e36a860a57e0d3d7bd9d916ebecd0e9ac4))
+
 # [1.37.0](https://github.com/Automattic/newspack-ads/compare/v1.36.0...v1.37.0) (2022-06-27)
 
 

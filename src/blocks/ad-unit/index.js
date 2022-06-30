@@ -34,7 +34,6 @@ export const settings = {
 	attributes: {
 		provider: {
 			type: 'string',
-			default: 'gam',
 		},
 		ad_unit: {
 			type: 'string',

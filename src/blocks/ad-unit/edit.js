@@ -65,6 +65,12 @@ function Edit( { attributes, setAttributes } ) {
 		setInFlight( false );
 	}, [] );
 
+	useEffect( () => {
+		if ( providers?.length && ! attributes.provider ) {
+			setAttributes( { provider: providers[ 0 ].id } );
+		}
+	}, [ providers ] );
+
 	return (
 		<div { ...blockProps }>
 			{ ! isEditing && unit ? (

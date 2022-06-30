@@ -23,13 +23,15 @@ class Newspack_Ads_Test_Provider extends Provider {
 	/**
 	 * The provider available units for placement.
 	 *
+	 * @param bool $refresh Whether refresh provider units data.
+	 *
 	 * @return array[
 	 *  'name'  => string,
 	 *  'value' => string,
 	 *  'sizes' => array[]
 	 * ] The provider available units for placement.
 	 */
-	public function get_units() {
+	public function get_units( $refresh = false ) {
 		return [
 			[
 				'name'  => 'Test Ad Unit',
