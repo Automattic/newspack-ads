@@ -9,6 +9,7 @@ namespace Newspack_Ads;
 
 use Newspack_Ads\Core;
 use Newspack_Ads\Placements;
+use Newspack_Ads\Providers;
 
 /**
  * Newspack Ads Blocks Management
@@ -36,8 +37,7 @@ final class Blocks {
 			[
 				'attributes'      => [
 					'provider'     => [
-						'type'    => 'string',
-						'default' => 'gam',
+						'type' => 'string',
 					],
 					'ad_unit'      => [
 						'type' => 'string',
@@ -74,7 +74,7 @@ final class Blocks {
 			[
 				'id'       => uniqid(),
 				'enabled'  => true,
-				'provider' => 'gam',
+				'provider' => Providers::get_default_provider(),
 				'ad_unit'  => isset( $attrs['activeAd'] ) ? $attrs['activeAd'] : '',
 			]
 		);
