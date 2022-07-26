@@ -1,3 +1,10 @@
+## [1.37.2-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.37.1...v1.37.2-alpha.1) (2022-07-14)
+
+
+### Bug Fixes
+
+* **broadstreet:**  responsive ads ([#458](https://github.com/Automattic/newspack-ads/issues/458)) ([635d447](https://github.com/Automattic/newspack-ads/commit/635d447638337d8eb99bb1ac92d64822ca753e70))
+
 ## [1.37.1](https://github.com/Automattic/newspack-ads/compare/v1.37.0...v1.37.1) (2022-06-30)
 
 
