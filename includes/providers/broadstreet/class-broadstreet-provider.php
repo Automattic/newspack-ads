@@ -118,12 +118,18 @@ final class Broadstreet_Provider extends Provider {
 		if ( false === $zone_idx ) {
 			return;
 		}
-		$zone           = $zones[ $zone_idx ];
-		$width          = $zone['sizes'][0][0];
-		$attrs['style'] = sprintf( 'width: %dpx;', $width );
-		if ( $fixed_height ) {
-			$height         = $zone['sizes'][0][1];
-			$attrs['style'] = sprintf( '%s height: %dpx;', $attrs['style'], $height );
+		$zone = $zones[ $zone_idx ];
+		if ( ! empty( $zone['sizes'] ) ) {
+			$width = $zone['sizes'][0][0];
+			if ( $width && 0 < absint( $width ) ) {
+				$attrs['style'] = sprintf( 'width: %dpx;', $width );
+			}
+			if ( $fixed_height ) {
+				$height = $zone['sizes'][0][1];
+				if ( $height && 0 < absint( $height ) ) {
+					$attrs['style'] = sprintf( '%s height: %dpx;', $attrs['style'], $height );
+				}
+			}
 		}
 		$code_attrs = [];
 		return sprintf(
