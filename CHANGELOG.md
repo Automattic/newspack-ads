@@ -1,3 +1,17 @@
+## [1.37.3](https://github.com/Automattic/newspack-ads/compare/v1.37.2...v1.37.3) (2022-08-11)
+
+
+### Bug Fixes
+
+* **broadstreet:** allow units without fixed sizes ([#478](https://github.com/Automattic/newspack-ads/issues/478)) ([556c002](https://github.com/Automattic/newspack-ads/commit/556c002932c885e5530f2c614e9bd243eae1751d))
+
+## [1.37.3-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.37.2...v1.37.3-hotfix.1) (2022-08-09)
+
+
+### Bug Fixes
+
+* **broadstreet:** allow units without fixed sizes ([7985959](https://github.com/Automattic/newspack-ads/commit/79859594c704932ca7df3bb7c5339c6043905f08))
+
 ## [1.37.2](https://github.com/Automattic/newspack-ads/compare/v1.37.1...v1.37.2) (2022-07-26)
 
 
