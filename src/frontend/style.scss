@@ -16,6 +16,7 @@
 
 .newspack_global_ad {
 	max-width: 100%;
+	flex: 1 1 auto;
 	&.fixed-height {
 		padding: 16px 0;
 		box-sizing: content-box;
