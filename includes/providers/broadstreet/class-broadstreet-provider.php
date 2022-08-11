@@ -130,6 +130,8 @@ final class Broadstreet_Provider extends Provider {
 					$attrs['style'] = sprintf( '%s height: %dpx;', $attrs['style'], $height );
 				}
 			}
+		} else {
+			$attrs['style'] = 'flex: 1 1 100%; width: 100%; height: auto;';
 		}
 		$code_attrs = [];
 		return sprintf(
