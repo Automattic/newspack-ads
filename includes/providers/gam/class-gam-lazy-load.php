@@ -13,7 +13,7 @@ use Newspack_Ads\Settings;
 /**
  * Newspack Ads GAM Lazy Loading Class.
  */
-final class GAM_Lazy_Loading {
+final class GAM_Lazy_Load {
 
 	const SECTION = 'lazy_load';
 	/**
@@ -105,4 +105,4 @@ final class GAM_Lazy_Loading {
 		<?php
 	}
 }
-GAM_Lazy_Loading::init();
+GAM_Lazy_Load::init();

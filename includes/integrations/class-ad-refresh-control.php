@@ -150,21 +150,21 @@ class Ad_Refresh_Control {
 	 * @return WP_REST_Response The response.
 	 */
 	public static function api_get_settings() {
-		if ( Core::is_amp() ) {
-			return new \WP_Error(
-				'newspack_ad_refresh_control_amp',
-				__( 'AMP pages not supported', 'newspack-ads' ),
-				[
-					'status' => 400,
-				]
-			);
-		}
 		if ( ! self::is_active() ) {
 			return new \WP_Error(
 				'newspack_ad_refresh_control_not_active',
 				__( 'The "Ad Refresh Control" plugin is not active.', 'newspack-ads' ),
 				[
 					'status' => 404,
+				]
+			);
+		}
+		if ( Core::is_amp() ) {
+			return new \WP_Error(
+				'newspack_ad_refresh_control_amp',
+				__( 'AMP not supported', 'newspack-ads' ),
+				[
+					'status' => 400,
 				]
 			);
 		}
