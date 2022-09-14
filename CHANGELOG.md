@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/Automattic/newspack-ads/compare/v1.37.3...v1.38.0) (2022-09-14)
+
+
+### Features
+
+* **gam:** ad block recovery ([#506](https://github.com/Automattic/newspack-ads/issues/506)) ([2e7e6e6](https://github.com/Automattic/newspack-ads/commit/2e7e6e69f27c1a830c6ce315cc50526a74ffe7ad))
+
 # [1.38.0-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.37.3...v1.38.0-hotfix.1) (2022-09-14)
 
 
