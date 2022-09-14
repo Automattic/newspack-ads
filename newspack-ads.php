@@ -27,3 +27,5 @@ if ( ! defined( 'NEWSPACK_ADS_COMPOSER_ABSPATH' ) ) {
 if ( ! class_exists( 'Newspack_Ads\Core' ) ) {
 	include_once dirname( __FILE__ ) . '/includes/class-core.php';
 }
+
+// test
