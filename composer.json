@@ -8,7 +8,8 @@
 		"brainmaestro/composer-git-hooks": "^2.6",
 		"wp-coding-standards/wpcs": "*",
 		"dealerdirect/phpcodesniffer-composer-installer": "*",
-		"phpcompatibility/phpcompatibility-wp": "*"
+		"phpcompatibility/phpcompatibility-wp": "*",
+    "yoast/phpunit-polyfills": "^1.0"
 	},
 	"license": "GPL-3.0-or-later",
 	"scripts": {
@@ -31,5 +32,11 @@
 	},
 	"require": {
 		"googleads/googleads-php-lib": "^57.0"
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
 	}
 }
