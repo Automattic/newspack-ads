@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.37.3",
+  "version": "1.38.0-hotfix.1",
   "author": "Automattic",
   "private": true,
   "scripts": {
