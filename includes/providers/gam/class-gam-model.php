@@ -666,7 +666,7 @@ final class GAM_Model {
 			usort(
 				$sizes,
 				function( $a, $b ) {
-					return $a[0] * $a[1] < $b[0] * $b[1];
+					return $a[0] * $a[1] < $b[0] * $b[1] ? 1 : -1;
 				}
 			);
 			if ( ! isset( $attrs['layout'] ) ) {
