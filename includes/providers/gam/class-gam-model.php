@@ -740,7 +740,7 @@ final class GAM_Model {
 			foreach ( $sizes as $size ) {
 				$is_in_viewport     = $size[0] <= $viewport_width;
 				$is_above_threshold = false !== $width_threshold && $width_threshold <= $size[0];
-				if ( 0 == $size[0] ) {
+				if ( 0 === $size[0] ) {
 					continue;
 				}
 				$diff            = min( $viewport_width, $size[0] ) / max( $viewport_width, $size[0] );
