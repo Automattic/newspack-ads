@@ -23,7 +23,7 @@ class ProvidersTest extends WP_UnitTestCase {
 	/**
 	 * Set up test
 	 */
-	public function setUp() {
+	public function set_up() {
 		include_once dirname( __FILE__ ) . '/class-newspack-ads-test-provider.php';
 		// Register the test provider.
 		self::$provider = new Newspack_Ads_Test_Provider();
