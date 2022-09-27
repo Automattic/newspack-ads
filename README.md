@@ -1,8 +1,18 @@
-# Newspack Google Ad Manager
+# Newspack Ads
 
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release) [![newspack-ads](https://circleci.com/gh/Automattic/newspack-ads/tree/master.svg?style=shield)](https://circleci.com/gh/Automattic/newspack-ads)
 
-This plugin supplies Google Ad Manager integration to Newspack.
+A full suite of advertising functionality controls, allowing you to manage all ad placements and behaviors from within the WordPress admin. Connect to Google Ad Manager or Broadstreet for seamless inventory management, adjust load rules, and configure advanced programmatic practices such as header bidding – all with one click.
+
+Some features include:
+- Two options for ad server connection (Google Ad Manager and Broadstreet)
+- Create and manage ad unit inventory
+- Place ads across the site by enabling global placements, or using Newspack Ad blocks where desired
+- Manage where and how often ads appear within content
+- Set a custom ad label
+- Control of lazy loading (for Google Ad Manager users)
+- Control of active-view refresh
+- Suppress ads based on tags or categories
 
 ### Development
 

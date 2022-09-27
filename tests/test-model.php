@@ -5,6 +5,8 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Providers\GAM_Model;
+
 /**
  * Test ads model functionality.
  */
@@ -15,12 +17,12 @@ class ModelTest extends WP_UnitTestCase {
 	private static $sizes_1           = [ [ 123, 321 ] ]; // phpcs:ignore Squiz.Commenting.VariableComment.Missing
 	private static $mock_gam_ad_units = []; // phpcs:ignore Squiz.Commenting.VariableComment.Missing
 
-	public static function setUpBeforeClass() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	public static function set_up_before_class() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		// Set the active network code.
-		update_option( Newspack_Ads_Model::OPTION_NAME_LEGACY_NETWORK_CODE, self::$network_code );
+		update_option( GAM_Model::OPTION_NAME_LEGACY_NETWORK_CODE, self::$network_code );
 	}
 
-	public function setUp() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	public function set_up() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		wp_delete_post( self::$legacy_ad_id );
 
 		// Create a legacy ad unit (a CPT).
@@ -53,7 +55,7 @@ class ModelTest extends WP_UnitTestCase {
 				]
 			),
 		];
-		Newspack_Ads_Model::sync_gam_settings(
+		GAM_Model::sync_gam_settings(
 			self::$mock_gam_ad_units,
 			[ 'network_code' => self::$network_code ]
 		);
@@ -78,7 +80,7 @@ class ModelTest extends WP_UnitTestCase {
 	 * Format of the saved option storing the GAM properties.
 	 */
 	public function test_option_format() {
-		$option_value = get_option( Newspack_Ads_Model::OPTION_NAME_GAM_ITEMS, true );
+		$option_value = get_option( GAM_Model::OPTION_NAME_GAM_ITEMS, true );
 		self::assertEquals(
 			$option_value,
 			[
@@ -94,32 +96,32 @@ class ModelTest extends WP_UnitTestCase {
 	 * The markup generated to be inserted on the page.
 	 */
 	public function test_ad_unit_generated_markup() {
-		$legacy_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$legacy_ad_id );
-		self::assertContains(
+		$legacy_ad_unit = GAM_Model::get_ad_unit_for_display( self::$legacy_ad_id );
+		self::assertStringContainsString(
 			'<!-- /' . self::$network_code . '/' . self::$ad_code_1 . ' -->',
 			$legacy_ad_unit['ad_code'],
 			'The ad code for the legacy ad unit contains a comment with network ID and ad unit code.'
 		);
-		self::assertContains(
+		self::assertStringContainsString(
 			'data-slot=\'/' . self::$network_code . '/' . self::$ad_code_1 . '\'',
 			$legacy_ad_unit['amp_ad_code'],
 			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad unit code.'
 		);
 
-		$gam_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
-		self::assertContains(
+		$gam_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
+		self::assertStringContainsString(
 			'<!-- /' . self::$network_code . '/' . $gam_ad_unit['code'] . ' -->',
 			$gam_ad_unit['ad_code'],
 			'The ad code contains a comment with network ID and ad unit code.'
 		);
-		self::assertContains(
+		self::assertStringContainsString(
 			'data-slot=\'/' . self::$network_code . '/' . $gam_ad_unit['code'] . '\'',
 			$gam_ad_unit['amp_ad_code'],
 			'The AMP ad code contains an attribute with network ID and ad unit code.'
 		);
 
-		$fluid_ad_unit = Newspack_Ads_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[1]['id'] );
-		self::assertContains(
+		$fluid_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[1]['id'] );
+		self::assertStringContainsString(
 			'layout=\'fluid\'',
 			$fluid_ad_unit['amp_ad_code'],
 			'The AMP ad code for the fluid ad unit contains fluid layout.'
@@ -130,15 +132,19 @@ class ModelTest extends WP_UnitTestCase {
 	 * Ad units getter.
 	 */
 	public function test_ad_units_getter() {
-		$result = Newspack_Ads_Model::get_ad_units();
+		$default_ad_units = GAM_Model::get_default_ad_units();
+		$synced_ad_units  = GAM_Model::get_synced_ad_units();
+		$result           = GAM_Model::get_ad_units();
 		self::assertEquals(
+			count( $default_ad_units ) + count( $synced_ad_units ) + 1,
 			count( $result ),
-			1,
-			'Only the single legacy ad unit is returned, as there is no GAM connection.'
+			'All units are returned, because we want the synced units even without GAM connection.'
 		);
-		self::assertTrue(
-			$result[0]['is_legacy'],
-			'The legacy ad unit is marked as legacy by a property.'
+		$legacy = array_search( true, array_column( $result, 'is_legacy' ), true );
+		self::assertEquals(
+			self::$legacy_ad_id,
+			$result[ $legacy ]['id'],
+			'The legacy ad unit is returned.'
 		);
 	}
 
@@ -158,7 +164,7 @@ class ModelTest extends WP_UnitTestCase {
 		wp_set_post_terms( $post_id, [ $category_id ], 'category' );
 
 		self::go_to( get_permalink( $post_id ) );
-		$result = Newspack_Ads_Model::get_ad_targeting( self::$mock_gam_ad_units[0] );
+		$result = GAM_Model::get_ad_targeting( self::$mock_gam_ad_units[0] );
 		self::assertEquals(
 			$result['category'],
 			[ $category_slug ],
@@ -171,18 +177,75 @@ class ModelTest extends WP_UnitTestCase {
 	 */
 	public function test_sanitization() {
 		$sizes = [ [ 10, 10 ], [ 100, 100 ] ];
-		$this->assertEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+		$this->assertEquals( $sizes, GAM_Model::sanitize_sizes( $sizes ) );
 
 		$sizes = [ [ 10, 10 ] ];
-		$this->assertEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+		$this->assertEquals( $sizes, GAM_Model::sanitize_sizes( $sizes ) );
 
 		$sizes = [ [ 10, 10, 90 ] ];
-		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+		$this->assertNotEquals( $sizes, GAM_Model::sanitize_sizes( $sizes ) );
 
 		$sizes = [ [ 'dog', 'cat' ] ];
-		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+		$this->assertNotEquals( $sizes, GAM_Model::sanitize_sizes( $sizes ) );
 
 		$sizes = 'notanarray';
-		$this->assertNotEquals( $sizes, Newspack_Ads_Model::sanitize_sizes( $sizes ) );
+		$this->assertNotEquals( $sizes, GAM_Model::sanitize_sizes( $sizes ) );
+	}
+
+	/**
+	 * Test size map rules.
+	 */
+	public function test_responsive_size_map() {
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'100' => [ [ 100, 100 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ] ] )
+		);
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'60'  => [ [ 60, 60 ] ],
+				'90'  => [ [ 90, 90 ] ],
+				'100' => [ [ 90, 90 ], [ 100, 100 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ] )
+		);
+
+		self::assertEquals(
+			[
+				'10'  => [ [ 10, 10 ] ],
+				'60'  => [ [ 60, 60 ] ],
+				'90'  => [ [ 60, 60 ], [ 90, 90 ] ],
+				'100' => [ [ 60, 60 ], [ 90, 90 ], [ 100, 100 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 10, 10 ], [ 100, 100 ], [ 90, 90 ], [ 60, 60 ] ], 0.5 ),
+			'Groups sizes with a custom difference ratio.'
+		);
+
+		self::assertEquals(
+			[
+				'300' => [ [ 300, 200 ], [ 300, 250 ] ],
+				'350' => [ [ 350, 200 ] ],
+				'640' => [ [ 640, 360 ] ],
+				'960' => [ [ 640, 360 ], [ 960, 540 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 300, 200 ], [ 300, 250 ], [ 350, 200 ], [ 640, 360 ], [ 960, 540 ] ], 0 ),
+			'Groups sizes above the default width threshold of 600 regardless of their ratio difference.'
+		);
+
+		self::assertEquals(
+			[
+				'300' => [ [ 300, 200 ], [ 300, 250 ] ],
+				'350' => [ [ 350, 200 ] ],
+				'640' => [ [ 640, 360 ] ],
+				'960' => [ [ 960, 540 ] ],
+			],
+			GAM_Model::get_responsive_size_map( [ [ 300, 200 ], [ 300, 250 ], [ 350, 200 ], [ 640, 360 ], [ 960, 540 ] ], 0, false ),
+			'Groups sizes without ratio difference and threshold disabled.'
+		);
 	}
 }

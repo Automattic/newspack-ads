@@ -5,6 +5,9 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Providers;
+use Newspack_Ads\Providers\Provider;
+
 /**
  * Test ads providers functionality.
  */
@@ -20,25 +23,25 @@ class ProvidersTest extends WP_UnitTestCase {
 	/**
 	 * Set up test
 	 */
-	public function setUp() {
+	public function set_up() {
 		include_once dirname( __FILE__ ) . '/class-newspack-ads-test-provider.php';
 		// Register the test provider.
 		self::$provider = new Newspack_Ads_Test_Provider();
-		Newspack_Ads_Providers::register_provider( self::$provider );
+		Providers::register_provider( self::$provider );
 	}
 
 	/**
 	 * Test serialised provider.
 	 */
 	public function test_serialised_provider() {
-		$serialised_provider = Newspack_Ads_Providers::get_serialised_provider( self::$provider );
+		$serialised_provider = Providers::get_serialised_provider( self::$provider );
 		self::assertEquals(
-			$serialised_provider,
 			[
 				'id'     => self::$provider->get_provider_id(),
 				'name'   => self::$provider->get_provider_name(),
 				'active' => self::$provider->is_active(),
-			]
+			],
+			$serialised_provider
 		);
 	}
 
@@ -46,13 +49,13 @@ class ProvidersTest extends WP_UnitTestCase {
 	 * Test getting a registered provider.
 	 */
 	public function test_get_provider() {
-		$provider = Newspack_Ads_Providers::get_provider( self::$provider->get_provider_id() );
+		$provider = Providers::get_provider( self::$provider->get_provider_id() );
 		self::assertTrue(
-			$provider instanceof Newspack_Ads_Provider
+			$provider instanceof Provider
 		);
 		self::assertEquals(
-			$provider->get_provider_id(),
-			self::$provider->get_provider_id()
+			self::$provider->get_provider_id(),
+			$provider->get_provider_id()
 		);
 	}
 
@@ -61,7 +64,7 @@ class ProvidersTest extends WP_UnitTestCase {
 	 */
 	public function test_render_placement() {
 		ob_start();
-		Newspack_Ads_Providers::render_placement_ad_code(
+		Providers::render_placement_ad_code(
 			'test_ad_unit',
 			self::$provider->get_provider_id(),
 			'test_placement_id',
@@ -70,8 +73,48 @@ class ProvidersTest extends WP_UnitTestCase {
 		);
 		$code = ob_get_clean();
 		self::assertEquals(
-			$code,
-			'test_ad_unit test_placement_id test_hook_key'
+			'test_ad_unit test_placement_id test_hook_key',
+			$code
 		);
+	}
+
+	/**
+	 * Test method to get a provider data.
+	 */
+	public function test_provider_data() {
+		self::assertEquals(
+			[
+				'id'     => 'test_provider',
+				'name'   => 'Test Provider',
+				'active' => true,
+				'units'  => [
+					[
+						'name'  => 'Test Ad Unit',
+						'value' => 'test_ad_unit',
+						'sizes' => [
+							[ 300, 250 ],
+						],
+					],
+				],
+			],
+			Providers::get_provider_data( 'test_provider' )
+		);
+	}
+
+	/**
+	 * Test method to get a provider unit data.
+	 */
+	public function test_provider_unit_data() {
+		self::assertEquals(
+			[
+				'name'  => 'Test Ad Unit',
+				'value' => 'test_ad_unit',
+				'sizes' => [
+					[ 300, 250 ],
+				],
+			],
+			Providers::get_provider_unit_data( 'test_provider', 'test_ad_unit' )
+		);
+		self::assertNull( Providers::get_provider_unit_data( 'test_provider', 'not_an_ad_unit' ) );
 	}
 }

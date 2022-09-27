@@ -5,12 +5,14 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads Settings Class.
  */
-class Newspack_Ads_Settings {
+final class Settings {
 
 	const API_NAMESPACE      = 'newspack-ads/v1';
 	const API_CAPABILITY     = 'manage_options';
@@ -62,7 +64,7 @@ class Newspack_Ads_Settings {
 	/**
 	 * Check capabilities for using API.
 	 *
-	 * @return bool|WP_Error True or error object.
+	 * @return bool|\WP_Error True or error object.
 	 */
 	public static function api_permissions_check() {
 		if ( ! current_user_can( self::API_CAPABILITY ) ) {
@@ -166,44 +168,7 @@ class Newspack_Ads_Settings {
 	 * @return array Indexed or associative array of configured settings grouped by section name.
 	 */
 	public static function get_settings_list( $assoc = false ) {
-		$settings_list = array(
-			array(
-				'description' => __( 'Lazy Loading', 'newspack-ads' ),
-				'help'        => __( 'Enables pages to load faster, reduces resource consumption and contention, and improves viewability rate.', 'newspack-ads' ),
-				'section'     => 'lazy_load',
-				'key'         => 'active',
-				'type'        => 'boolean',
-				'default'     => true,
-				'public'      => true,
-			),
-			array(
-				'description' => __( 'Fetch margin percent', 'newspack-ads' ),
-				'help'        => __( 'Minimum distance from the current viewport a slot must be before we fetch the ad as a percentage of viewport size.', 'newspack-ads' ),
-				'section'     => 'lazy_load',
-				'key'         => 'fetch_margin_percent',
-				'type'        => 'int',
-				'default'     => 100,
-				'public'      => true,
-			),
-			array(
-				'description' => __( 'Render margin percent', 'newspack-ads' ),
-				'help'        => __( 'Minimum distance from the current viewport a slot must be before we render an ad.', 'newspack-ads' ),
-				'section'     => 'lazy_load',
-				'key'         => 'render_margin_percent',
-				'type'        => 'int',
-				'default'     => 0,
-				'public'      => true,
-			),
-			array(
-				'description' => __( 'Mobile scaling', 'newspack-ads' ),
-				'help'        => __( 'A multiplier applied to margins on mobile devices. This allows varying margins on mobile vs. desktop.', 'newspack-ads' ),
-				'section'     => 'lazy_load',
-				'key'         => 'mobile_scaling',
-				'type'        => 'float',
-				'default'     => 2,
-				'public'      => true,
-			),
-		);
+		$settings_list = [];
 
 		$default_setting = array(
 			'section' => '',
@@ -306,7 +271,7 @@ class Newspack_Ads_Settings {
 	private static function update_setting( $section, $key, $value ) {
 		$config = self::get_setting_config( $section, $key );
 		if ( ! $config ) {
-			return new WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_setting_update', __( 'Invalid setting.', 'newspack-ads' ) );
 		}
 		if ( isset( $config['options'] ) && is_array( $config['options'] ) ) {
 			$accepted_values = array_map(
@@ -318,7 +283,7 @@ class Newspack_Ads_Settings {
 			if ( isset( $config['multiple'] ) && true === $config['multiple'] ) {
 				if ( ! is_array( $value ) ) {
 					// translators: %s is the description of the option.
-					return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
+					return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Value for "%s" should be an array.', 'newspack-ads' ), $config['description'] ) );
 				}
 				$value = array_map(
 					function ( $option ) use ( $accepted_values ) {
@@ -329,7 +294,7 @@ class Newspack_Ads_Settings {
 				$value = array_filter( $value );
 			} elseif ( ! in_array( $value, $accepted_values, true ) ) {
 				// translators: %s is the description of the option.
-				return new WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
+				return new \WP_Error( 'newspack_ads_invalid_setting_update', sprintf( __( 'Invalid setting value for "%s".', 'newspack-ads' ), $config['description'] ) );
 			}
 		}
 		do_action( 'newspack_ads_before_update_setting', $section, $key, $value );
@@ -359,7 +324,7 @@ class Newspack_Ads_Settings {
 	public static function update_section( $section, $data ) {
 		foreach ( $data as $key => $value ) {
 			$updated = self::update_setting( $section, $key, $value );
-			if ( is_wp_error( $updated ) ) {
+			if ( \is_wp_error( $updated ) ) {
 				return $updated;
 			}
 		}
@@ -412,4 +377,4 @@ class Newspack_Ads_Settings {
 		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
 	}
 }
-Newspack_Ads_Settings::init();
+Settings::init();

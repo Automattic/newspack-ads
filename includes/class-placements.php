@@ -5,17 +5,43 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads;
+
+use Newspack_Ads\Core;
+use Newspack_Ads\Settings;
+use Newspack_Ads\Providers;
+
 /**
  * Newspack Ads Placements
  */
-class Newspack_Ads_Placements {
+final class Placements {
+
+	/**
+	 * Configured placements.
+	 *
+	 * @var array[
+	 * 'placement_id' => array[
+	 *   'name'            => string,
+	 *   'description'     => string,
+	 *   'show_ui'         => bool,
+	 *   'default_enabled' => string,
+	 *   'default_ad_unit' => string,
+	 *   'hook_name'       => string,
+	 *   'hooks'           => array[
+	 *     'name'      => string,
+	 *     'hook_name' => string
+	 *   ],
+	 *   'supports'        => string[]
+	 * ]
+	 */
+	protected static $placements = [];
 
 	/**
 	 * Initialize settings.
 	 */
 	public static function init() {
+		self::register_default_placements();
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
-		add_action( 'wp_head', [ __CLASS__, 'setup_placements_hooks' ] );
 	}
 
 	/**
@@ -24,22 +50,22 @@ class Newspack_Ads_Placements {
 	public static function register_api_endpoints() {
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_placements' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 				'args'                => [
 					'placement'    => [
 						'sanitize_callback' => 'sanitize_title',
@@ -53,6 +79,9 @@ class Newspack_Ads_Placements {
 					'bidders_ids'  => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_bidders_ids' ],
 					],
+					'fixed_height' => [
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
 					'hooks'        => [
 						'sanitize_callback' => [ __CLASS__, 'sanitize_hooks_data' ],
 					],
@@ -64,12 +93,12 @@ class Newspack_Ads_Placements {
 		);
 
 		register_rest_route(
-			Newspack_Ads_Settings::API_NAMESPACE,
+			Settings::API_NAMESPACE,
 			'/placements/(?P<placement>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ __CLASS__, 'api_disable_placement' ],
-				'permission_callback' => [ 'Newspack_Ads_Settings', 'api_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 				'args'                => [
 					'placement' => [
 						'sanitize_callback' => 'sanitize_title',
@@ -80,22 +109,74 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Sanitize placement data.
+	 *
+	 * @param array $data Placement data.
+	 *
+	 * @return array Sanitized placement data.
+	 */
+	public static function sanitize_placement( $data ) {
+
+		$sanitized_data = [];
+
+		if ( ! is_array( $data ) ) {
+			return $sanitized_data;
+		}
+
+		if ( isset( $data['enabled'] ) ) {
+			$sanitized_data['enabled'] = rest_sanitize_boolean( $data['enabled'] );
+		}
+
+		if ( isset( $data['provider'] ) ) {
+			$sanitized_data['provider'] = sanitize_text_field( $data['provider'] );
+		}
+
+		if ( isset( $data['ad_unit'] ) ) {
+			$sanitized_data['ad_unit'] = sanitize_text_field( $data['ad_unit'] );
+		}
+
+		if ( isset( $data['fixed_height'] ) ) {
+			$sanitized_data['fixed_height'] = rest_sanitize_boolean( $data['fixed_height'] );
+		}
+
+		if ( isset( $data['bidders_ids'] ) ) {
+			$sanitized_data['bidders_ids'] = self::sanitize_bidders_ids( $data['bidders_ids'] );
+		}
+
+		if ( isset( $data['hooks'] ) ) {
+			$sanitized_data['hooks'] = self::sanitize_hooks_data( $data['hooks'] );
+		}
+
+		if ( isset( $data['stick_to_top'] ) ) {
+			$sanitized_data['stick_to_top'] = rest_sanitize_boolean( $data['stick_to_top'] );
+		}
+
+		return $sanitized_data;
+	}
+
+	/**
 	 * Sanitize hooks data.
 	 *
-	 * @param array           $hooks   Hooks data.
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param array                  $hooks                    Hooks data.
+	 * @param WP_REST_Request|string $request_or_placement_key Full details about the request or placement key.
 	 *
 	 * @return array Sanitized hooks data.
 	 */
-	public static function sanitize_hooks_data( $hooks, $request ) {
-		$placement_key   = (string) $request->get_param( 'placement' );
-		$placements      = self::get_placements();
-		$placement       = $placements[ $placement_key ];
+	public static function sanitize_hooks_data( $hooks, $request_or_placement_key = '' ) {
+		if ( is_string( $request_or_placement_key ) ) {
+			$placement_key = $request_or_placement_key;
+		} else {
+			$placement_key = (string) $request_or_placement_key->get_param( 'placement' );
+		}
+		if ( $placement_key ) {
+			$placements = self::get_placements();
+			$placement  = $placements[ $placement_key ];
+		}
 		$sanitized_hooks = [];
 		if ( is_array( $hooks ) ) {
 			foreach ( $hooks as $key => $hook ) {
-				// Check if hook is valid.
-				if ( isset( $placement['hooks'][ $key ] ) ) {
+				// If placement is available, check if hook is valid.
+				if ( ! $placement_key || ( $placement && isset( $placement['hooks'][ $key ] ) ) ) {
 					// Sanitize bidders IDs data.
 					if ( isset( $hooks['bidders_ids'] ) ) {
 						$hook['bidders_ids'] = self::sanitize_bidders_ids( $hook['bidders_ids'] );
@@ -130,7 +211,15 @@ class Newspack_Ads_Placements {
 	 * @return WP_REST_Response containing the configured placements.
 	 */
 	public static function api_get_placements() {
-		return \rest_ensure_response( self::get_placements() );
+		$placements = self::get_placements();
+		// Filter out dynamic placements.
+		$placements = array_filter(
+			$placements,
+			function( $placement ) {
+				return ! empty( $placement['name'] ) && true === $placement['show_ui'];
+			}
+		);
+		return \rest_ensure_response( $placements );
 	}
 
 	/**
@@ -146,10 +235,11 @@ class Newspack_Ads_Placements {
 			'ad_unit'      => $request['ad_unit'],
 			'bidders_ids'  => $request['bidders_ids'],
 			'hooks'        => $request['hooks'],
+			'fixed_height' => $request['fixed_height'],
 			'stick_to_top' => $request['stick_to_top'],
 		];
 		$result = self::update_placement( $request['placement'], $data );
-		if ( is_wp_error( $result ) ) {
+		if ( \is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_placements() );
@@ -164,48 +254,21 @@ class Newspack_Ads_Placements {
 	 */
 	public static function api_disable_placement( $request ) {
 		$result = self::disable_placement( $request['placement'] );
-		if ( is_wp_error( $result ) ) {
+		if ( \is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_placements() );
 	}
 
 	/**
-	 * Setup hooks for placements that have `hook_name` configured.
-	 */
-	public static function setup_placements_hooks() {
-		$placements = self::get_placements();
-		foreach ( $placements as $placement_key => $placement ) {
-			if ( isset( $placement['hook_name'] ) ) {
-				add_action(
-					$placement['hook_name'],
-					function () use ( $placement_key ) {
-						self::inject_placement_ad( $placement_key );
-					}
-				);
-			}
-			if ( isset( $placement['hooks'] ) && count( $placement['hooks'] ) ) {
-				foreach ( $placement['hooks'] as $hook_key => $hook ) {
-					add_action(
-						$hook['hook_name'],
-						function () use ( $placement_key, $hook_key ) {
-							self::inject_placement_ad( $placement_key, $hook_key );
-						}
-					);
-				}
-			}
-		}
-	}
-
-	/**
 	 * Get the option name
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
-	 * 
-	 * @return string Option name. 
+	 *
+	 * @return string Option name.
 	 */
-	private static function get_option_name( $placement_key ) {
-		return Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
+	public static function get_option_name( $placement_key ) {
+		return Settings::OPTION_NAME_PREFIX . 'placement_' . $placement_key;
 	}
 
 	/**
@@ -216,15 +279,18 @@ class Newspack_Ads_Placements {
 	 *
 	 * @return object Placement ad unit data.
 	 */
-	private static function get_placement_data( $placement_key, $config = array() ) {
+	public static function get_placement_data( $placement_key, $config = array() ) {
 		/**
 		 * Default placement data to return if not configured or stored yet.
 		 */
-		$default_data = [
-			'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
-			'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
-			'provider' => Newspack_Ads_Providers::DEFAULT_PROVIDER,
-		];
+		$default_data = wp_parse_args(
+			isset( $config['data'] ) ? $config['data'] : [],
+			[
+				'enabled'  => isset( $config['default_enabled'] ) ? $config['default_enabled'] : false,
+				'ad_unit'  => isset( $config['default_ad_unit'] ) ? $config['default_ad_unit'] : '',
+				'provider' => Providers::get_default_provider(),
+			]
+		);
 
 		/**
 		 * Handle deprecated option name.
@@ -248,6 +314,12 @@ class Newspack_Ads_Placements {
 		}
 		if ( isset( $data['hooks'] ) ) {
 			foreach ( $data['hooks'] as $hook_key => $hook ) {
+				$data['hooks'][ $hook_key ] = wp_parse_args(
+					$hook,
+					[
+						'provider' => Providers::get_default_provider(),
+					]
+				);
 				if ( isset( $hook['ad_unit'] ) && $hook['ad_unit'] && ! isset( $hook['id'] ) ) {
 					$data['hooks'][ $hook_key ]['id'] = self::get_id( [ $placement_key, $hook_key, $data['ad_unit'] ] );
 				}
@@ -270,6 +342,7 @@ class Newspack_Ads_Placements {
 	 * A placement is an array with the following keys:
 	 * - name: The name of the placement.
 	 * - description: A description of the placement.
+	 * - show_ui: Whether this placement can be edited through the wizard. Default is true.
 	 * - default_enabled: Whether this placement should be enabled by default.
 	 * - default_ad_unit: A default ad unit name to be used for this placement.
 	 * - hook_name: The name of the WordPress action hook to inject an ad unit into.
@@ -282,62 +355,106 @@ class Newspack_Ads_Placements {
 	 * @return array Placement objects.
 	 */
 	public static function get_placements() {
-		$placements = array(
-			'global_above_header' => array(
-				'name'            => __( 'Global: Above Header', 'newspack-ads' ),
-				'description'     => __( 'Choose an ad unit to display above the header.', 'newspack-ads' ),
-				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_above_header',
-				'hook_name'       => 'before_header',
-			),
-			'global_below_header' => array(
-				'name'            => __( 'Global: Below Header', 'newspack-ads' ),
-				'description'     => __( 'Choose an ad unit to display below the header.', 'newspack-ads' ),
-				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_below_header',
-				'hook_name'       => 'after_header',
-			),
-			'global_above_footer' => array(
-				'name'            => __( 'Global: Above Footer', 'newspack-ads' ),
-				'description'     => __( 'Choose an ad unit to display above the footer.', 'newspack-ads' ),
-				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_above_footer',
-				'hook_name'       => 'before_footer',
-			),
-			'sticky'              => array(
-				'name'            => __( 'Mobile Sticky Footer', 'newspack-ads' ),
-				'description'     => __( 'Choose a sticky ad unit to display at the bottom of the viewport on mobile devices (recommended sizes are 320x50, 300x50)', 'newspack-ads' ),
-				'default_enabled' => true,
-				'default_ad_unit' => 'newspack_sticky',
-				'hook_name'       => 'before_footer',
-			),
-		);
 
-		$placements = apply_filters( 'newspack_ads_placements', $placements );
+		$placements = apply_filters( 'newspack_ads_placements', self::$placements );
 
 		foreach ( $placements as $placement_key => $placement ) {
 
 			// Force disable `stick_to_top` on AMP.
-			if ( isset( $placement['supports'] ) && Newspack_Ads::is_amp() ) {
+			if ( isset( $placement['supports'] ) && Core::is_amp() ) {
 				$feature_index = array_search( 'stick_to_top', $placement['supports'] );
 				if ( false !== $feature_index ) {
 					unset( $placement['supports'][ $feature_index ] );
 				}
 			}
 
+			$placement['data'] = self::get_placement_data( $placement_key, $placement );
+
 			$placements[ $placement_key ] = wp_parse_args(
 				$placement,
 				[
 					'name'            => '',
 					'description'     => '',
+					'show_ui'         => true,
 					'default_enabled' => false,
 					'hook_name'       => '',
 					'supports'        => [],
-					'data'            => self::get_placement_data( $placement_key, $placement ),
 				]
 			);
 		}
 		return $placements;
+	}
+
+	/**
+	 * Register default placements.
+	 */
+	private static function register_default_placements() {
+		$placements = array(
+			'global_above_header' => array(
+				'name'        => __( 'Global: Above Header', 'newspack-ads' ),
+				'description' => __( 'Choose an ad unit to display above the header.', 'newspack-ads' ),
+				'hook_name'   => 'before_header',
+			),
+			'global_below_header' => array(
+				'name'        => __( 'Global: Below Header', 'newspack-ads' ),
+				'description' => __( 'Choose an ad unit to display below the header.', 'newspack-ads' ),
+				'hook_name'   => 'after_header',
+			),
+			'global_above_footer' => array(
+				'name'        => __( 'Global: Above Footer', 'newspack-ads' ),
+				'description' => __( 'Choose an ad unit to display above the footer.', 'newspack-ads' ),
+				'hook_name'   => 'before_footer',
+			),
+			'sticky'              => array(
+				'name'        => __( 'Mobile Sticky Footer', 'newspack-ads' ),
+				'description' => __( 'Choose a sticky ad unit to display at the bottom of the viewport on mobile devices (recommended sizes are 320x50, 300x50)', 'newspack-ads' ),
+				'hook_name'   => 'before_footer',
+			),
+		);
+		foreach ( $placements as $placement_key => $placement_config ) {
+			self::register_placement( $placement_key, $placement_config );
+		}
+	}
+
+	/**
+	 * Register a new ad placement.
+	 *
+	 * @param string $key    The placement key.
+	 * @param array  $config The placement config.
+	 *
+	 * @return bool|\WP_Error True if placement was registered or error otherwise.
+	 */
+	public static function register_placement( $key, $config = [] ) {
+		if ( empty( $key ) || empty( $config ) ) {
+			return new \WP_Error( 'newspack_ads_invalid_placement', __( 'Invalid placement.', 'newspack-ads' ) );
+		}
+		if ( isset( self::$placements[ $key ] ) ) {
+			return new \WP_Error( 'newspack_ads_placement_exists', __( 'Placement already exists.', 'newspack-ads' ) );
+		}
+		self::$placements[ $key ] = $config;
+
+		/**
+		 * Setup hooks for the placement.
+		 */
+		if ( isset( $config['hook_name'] ) ) {
+			add_action(
+				$config['hook_name'],
+				function () use ( $key ) {
+					self::inject_placement_ad( $key );
+				}
+			);
+		}
+		if ( isset( $config['hooks'] ) && ! empty( $config['hooks'] ) ) {
+			foreach ( $config['hooks'] as $hook_key => $hook ) {
+				add_action(
+					$hook['hook_name'],
+					function () use ( $key, $hook_key ) {
+						self::inject_placement_ad( $key, $hook_key );
+					}
+				);
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -387,7 +504,10 @@ class Newspack_Ads_Placements {
 	 */
 	private static function is_stick_to_top( $placement_key ) {
 		$placements = self::get_placements();
-		$placement  = $placements[ $placement_key ];
+		if ( ! isset( $placements[ $placement_key ] ) ) {
+			return false;
+		}
+		$placement = $placements[ $placement_key ];
 		if ( in_array( 'stick_to_top', $placement['supports'], true ) ) {
 			return true;
 		}
@@ -396,7 +516,7 @@ class Newspack_Ads_Placements {
 
 	/**
 	 * Update a placement with an ad unit. Enables the placement by default.
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
 	 * @param array  $data {
 	 *   Placement data.
@@ -409,15 +529,10 @@ class Newspack_Ads_Placements {
 	 * @return bool Whether the placement has been updated or not.
 	 */
 	public static function update_placement( $placement_key, $data ) {
-		$placements = self::get_placements();
-		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
-		}
-
 		// Updates always enables the placement.
 		$data['enabled'] = true;
 
-		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Newspack_Ads_Providers::DEFAULT_PROVIDER;
+		$data['provider'] = isset( $data['provider'] ) ? $data['provider'] : Providers::get_default_provider();
 
 		// Generate unique ID.
 		if ( isset( $data['ad_unit'] ) && $data['ad_unit'] ) {
@@ -441,7 +556,7 @@ class Newspack_Ads_Placements {
 
 	/**
 	 * Disable a placement.
-	 * 
+	 *
 	 * @param string $placement_key Placement key.
 	 *
 	 * @return bool Whether the placement has been disabled or not.
@@ -449,17 +564,15 @@ class Newspack_Ads_Placements {
 	public static function disable_placement( $placement_key ) {
 		$placements = self::get_placements();
 		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return new WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
+			return new \WP_Error( 'newspack_ads_invalid_placement', __( 'This placement does not exist.', 'newspack-ads' ) );
 		}
 		$placement_data = self::get_placement_data( $placement_key, $placements[ $placement_key ] );
 		return update_option(
 			self::get_option_name( $placement_key ),
 			wp_json_encode(
 				wp_parse_args(
-					array(
-						'enabled' => false,
-					),
-					$placement_data 
+					[ 'enabled' => false ],
+					$placement_data
 				)
 			)
 		);
@@ -474,6 +587,14 @@ class Newspack_Ads_Placements {
 	 */
 	private static function can_display( $placement_key ) {
 		$placements = self::get_placements();
+
+		// Suppressed by post definition.
+		if ( is_singular() ) {
+			$post_suppressed = get_post_meta( get_the_ID(), 'newspack_ads_suppress_ads_placements', true );
+			if ( is_array( $post_suppressed ) && ! empty( $post_suppressed ) && in_array( $placement_key, $post_suppressed, true ) ) {
+				return false;
+			}
+		}
 
 		// Placement does not exist.
 		if ( ! isset( $placements[ $placement_key ] ) ) {
@@ -534,6 +655,63 @@ class Newspack_Ads_Placements {
 	}
 
 	/**
+	 * Render ad unit mock with dimensions.
+	 *
+	 * @param string   $provider_id    Provider.
+	 * @param string   $ad_unit        Ad unit.
+	 * @param array    $placement_data Optional placement data to be serialized into the element.
+	 * @param string[] $classes        Optional list of additional classes.
+	 */
+	public static function render_ad_unit_mock( $provider_id, $ad_unit, $placement_data = [], $classes = [] ) {
+		$provider     = Providers::get_provider( $provider_id );
+		$ad_unit_data = Providers::get_provider_unit_data( $provider_id, $ad_unit );
+		if ( ! $ad_unit_data ) {
+			return;
+		}
+		/**
+		 * Default to a 300x200 size if no sizes are provided.
+		 */
+		$sizes  = $ad_unit_data['sizes'];
+		$width  = count( $sizes ) ? max( array_column( $sizes, 0 ) ) : 300;
+		$height = count( $sizes ) ? max( array_column( $sizes, 1 ) ) : 200;
+		?>
+		<div
+			class="newspack-ads__ad-placement-mock <?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+			<?php ( ! empty( $placement_data ) ) ? printf( 'data-placement="%s"', esc_attr( wp_json_encode( $placement_data ) ) ) : ''; ?>
+		>
+			<div
+				class="newspack-ads__ad-placement-mock__content"
+				style="width:<?php echo esc_attr( $width ); ?>px;height:<?php echo esc_attr( $height ); ?>px;"
+			>
+				<svg
+					class="newspack-ads__ad-placement-mock__svg"
+					width="<?php echo esc_attr( $width ); ?>"
+					viewbox="0 0 <?php echo esc_attr( $width ); ?> <?php echo esc_attr( $height ); ?>"
+				>
+					<rect
+						width="<?php echo esc_attr( $width ); ?>"
+						height="<?php echo esc_attr( $height ); ?>"
+						strokeDasharray="2"
+					/>
+					<line x1="0" y1="0" x2="100%" y2="100%" strokeDasharray="2" />
+				</svg>
+				<span class="newspack-ads__ad-placement-mock__label">
+					<?php printf( '%s - %s', esc_html( $provider->get_provider_name() ), esc_html( $ad_unit_data['name'] ) ); ?>
+					<br />
+					<?php
+					if ( count( $sizes ) ) {
+						echo esc_html( implode( ', ', array_map( 'Newspack_Ads\get_size_string', $sizes ) ) );
+					} else {
+						esc_html_e( 'Unknown size', 'newspack-ads' );
+					}
+					?>
+				</span>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Inject Ad into given placement.
 	 *
 	 * @param string $placement_key Placement key.
@@ -554,18 +732,31 @@ class Newspack_Ads_Placements {
 
 		$stick_to_top = self::is_stick_to_top( $placement_key ) && isset( $placement['data']['stick_to_top'] ) ? (bool) $placement['data']['stick_to_top'] : false;
 
-		if ( $hook_key && isset( $placement['data']['hooks'] ) ) {
+		if ( $hook_key && isset( $placement['data']['hooks'], $placement['data']['hooks'][ $hook_key ] ) ) {
 			$placement_data = $placement['data']['hooks'][ $hook_key ];
 		} else {
 			$placement_data = $placement['data'];
 		}
 
+		$placement_data['fixed_height'] = isset( $placement_data['fixed_height'] ) ? (bool) $placement_data['fixed_height'] : false;
+
 		if ( ! isset( $placement_data['ad_unit'] ) || empty( $placement_data['ad_unit'] ) ) {
 			return;
 		}
-		
-		$is_amp        = Newspack_Ads::is_amp();
+
+		$provider_id = isset( $placement_data['provider'] ) && ! empty( $placement_data['provider'] ) ? $placement_data['provider'] : Providers::get_default_provider();
+		$ad_unit     = $placement_data['ad_unit'];
+
+		$is_amp        = Core::is_amp();
 		$is_sticky_amp = 'sticky' === $placement_key && true === $is_amp;
+
+		/**
+		 * Fires before an ad is injected into a placement.
+		 *
+		 * @param string $placement_key  The placement key.
+		 * @param string $hook_key       The placement hook hey.
+		 * @param array  $placement_data The placement data.
+		 */
 		do_action( 'newspack_ads_before_placement_ad', $placement_key, $hook_key, $placement_data );
 
 		/**
@@ -583,7 +774,9 @@ class Newspack_Ads_Placements {
 				'newspack_amp_sticky_ad__container' => $is_sticky_amp,
 				$placement_key                      => true,
 				$placement_key . '-' . $hook_key    => ! empty( $hook_key ),
+				'hook-' . $hook_key                 => ! empty( $hook_key ),
 				'stick-to-top'                      => $stick_to_top,
+				'fixed-height'                      => $placement_data['fixed_height'],
 			],
 			$placement_key,
 			$hook_key,
@@ -598,13 +791,20 @@ class Newspack_Ads_Placements {
 				<button class='newspack_sticky_ad__close'></button>
 			<?php endif; ?>
 			<?php
-			Newspack_Ads_Providers::render_placement_ad_code(
-				$placement_data['ad_unit'],
-				isset( $placement_data['provider'] ) ? $placement_data['provider'] : null,
-				$placement_key,
-				$hook_key,
-				$placement_data
-			);
+			/**
+			 * Render ad unit mock when in WordPress Customizer.
+			 */
+			if ( ! empty( $GLOBALS['wp_customize'] ) ) {
+				self::render_ad_unit_mock( $provider_id, $ad_unit, $placement['data'] );
+			} else {
+				Providers::render_placement_ad_code(
+					$ad_unit,
+					$provider_id,
+					$placement_key,
+					$hook_key,
+					$placement_data
+				);
+			}
 			?>
 		</div>
 		<?php
@@ -612,4 +812,4 @@ class Newspack_Ads_Placements {
 		do_action( 'newspack_ads_after_placement_ad', $placement_key, $hook_key, $placement_data );
 	}
 }
-Newspack_Ads_Placements::init();
+Placements::init();

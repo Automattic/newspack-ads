@@ -5,12 +5,17 @@
  * @package Newspack
  */
 
+namespace Newspack_Ads\Integrations;
+
+use Newspack_Ads\Placements;
+use Newspack_Ads\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Ads SCAIP Class.
  */
-class Newspack_Ads_SCAIP {
+final class SCAIP {
 
 	// Map of SCAIP option names.
 	const OPTIONS_MAP = array(
@@ -38,8 +43,11 @@ class Newspack_Ads_SCAIP {
 		add_filter( 'newspack_ads_setting_option_name', array( __CLASS__, 'map_option_name' ), 10, 2 );
 
 		// Placements hooks.
+		add_action( 'init', array( __CLASS__, 'register_placements' ) );
 		add_action( 'scaip_shortcode', [ __CLASS__, 'create_placement_action' ] );
-		add_filter( 'newspack_ads_placements', [ __CLASS__, 'add_placements' ] );
+
+		// Setup Newspack Ads defaults on activation.
+		add_action( 'newspack_ads_activation_hook', array( __CLASS__, 'register_defaults' ) );
 
 		// Deprecate sidebar.
 		if ( ! self::is_legacy_widgets() ) {
@@ -114,7 +122,7 @@ class Newspack_Ads_SCAIP {
 	 * @return bool Whether legacy widgets are active.
 	 */
 	private static function is_legacy_widgets() {
-		return (bool) get_option( Newspack_Ads_Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets', true );
+		return (bool) get_option( Settings::OPTION_NAME_PREFIX . 'scaip_legacy_widgets', true );
 	}
 
 	/**
@@ -142,30 +150,47 @@ class Newspack_Ads_SCAIP {
 	}
 
 	/**
-	 * Add SCAIP placements to the list of placements.
-	 *
-	 * @param array $placements List of placements.
-	 *
-	 * @return array Updated list of placements.
+	 * Setup Newspack Ads defaults on activation.
 	 */
-	public static function add_placements( $placements ) {
+	public static function register_defaults() {
+		$defaults = [
+			'repetitions'    => 3,
+			'legacy_widgets' => 0,
+		];
+		foreach ( $defaults as $key => $value ) {
+			$option_name = sprintf( '%s%s_%s', Settings::OPTION_NAME_PREFIX, 'scaip', $key );
+			if ( isset( self::OPTIONS_MAP[ $key ] ) ) {
+				$option_name = self::OPTIONS_MAP[ $key ];
+			}
+			if ( false === get_option( $option_name ) ) {
+				update_option( $option_name, $value );
+			}
+		}
+	}
+
+	/**
+	 * Register SCAIP placements.
+	 */
+	public static function register_placements() {
 
 		if ( ! defined( 'SCAIP_PLUGIN_FILE' ) || self::is_legacy_widgets() ) {
-			return $placements;
+			return;
 		}
 
 		$amount = get_option( self::OPTIONS_MAP['repetitions'], self::DEFAULT_REPETITIONS );
 		for ( $i = 1; $i <= $amount; $i++ ) {
-			$placements[ self::PLACEMENT_PREFIX . $i ] = array(
-				// translators: %s is the number of the placement.
-				'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
-				// translators: %s is the number of the placement.
-				'description'     => sprintf( __( 'Choose an ad unit to display in position #%s within your article content.', 'newspack-ads' ), $i ),
-				'default_enabled' => true,
-				'hook_name'       => sprintf( self::HOOK_NAME, $i ),
+			Placements::register_placement(
+				self::PLACEMENT_PREFIX . $i,
+				[
+					// translators: %s is the number of the placement.
+					'name'            => sprintf( __( 'Post insertion #%s', 'newspack-ads' ), $i ),
+					// translators: %s is the number of the placement.
+					'description'     => sprintf( __( 'Choose an ad unit to display in position #%s within your article content.', 'newspack-ads' ), $i ),
+					'default_enabled' => true,
+					'hook_name'       => sprintf( self::HOOK_NAME, $i ),
+				]
 			);
 		}
-		return $placements;
 	}
 
 	/**
@@ -207,4 +232,4 @@ class Newspack_Ads_SCAIP {
 		return $placement_data;
 	}
 }
-Newspack_Ads_SCAIP::init();
+SCAIP::init();
