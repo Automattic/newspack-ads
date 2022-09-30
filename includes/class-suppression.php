@@ -234,9 +234,13 @@ final class Suppression {
 				$should_show = false;
 			}
 
-			if ( isset( $config['post_types'] ) && in_array( get_post_type( $post_id ), $config['post_types'] ) ) {
+			if ( ! empty( $config['post_types'] ) && in_array( get_post_type( $post_id ), $config['post_types'] ) ) {
 				$should_show = false;
 			}
+		}
+
+		if ( ! empty( $config['post_types'] ) && is_post_type_archive( $config['post_types'] ) ) {
+			$should_show = false;
 		}
 
 		if ( true === $config['tag_archive_pages'] ) {
