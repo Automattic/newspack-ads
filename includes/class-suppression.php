@@ -57,56 +57,41 @@ final class Suppression {
 							'type'       => 'object',
 							'properties' => [
 								'tags'                   => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
+									'type'  => 'array',
+									'items' => [
 										'type' => 'string',
 									],
 								],
 								'tag_archive_pages'      => [
-									'required' => true,
-									'type'     => 'boolean',
+									'type' => 'boolean',
 								],
 								'specific_tag_archive_pages' => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
+									'type'  => 'array',
+									'items' => [
 										'type' => 'integer',
 									],
 								],
 								'categories'             => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
+									'type'  => 'array',
+									'items' => [
 										'type' => 'string',
 									],
 								],
 								'category_archive_pages' => [
-									'required' => true,
-									'type'     => 'boolean',
+									'type' => 'boolean',
 								],
 								'specific_category_archive_pages' => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
+									'type'  => 'array',
+									'items' => [
 										'type' => 'integer',
 									],
 								],
 								'author_archive_pages'   => [
-									'required' => true,
-									'type'     => 'boolean',
+									'type' => 'boolean',
 								],
 								'post_types'             => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
-										'type' => 'string',
-									],
-								],
-								'specific_post_type_archive_pages' => [
-									'required' => true,
-									'type'     => 'array',
-									'items'    => [
+									'type'  => 'array',
+									'items' => [
 										'type' => 'string',
 									],
 								],
@@ -168,7 +153,8 @@ final class Suppression {
 	 * @return WP_REST_Response
 	 */
 	public static function api_update_config( $request ) {
-		return \rest_ensure_response( self::update_config( $request['config'] ) );
+		self::update_config( $request['config'] );
+		return \rest_ensure_response( self::get_config() );
 	}
 
 	/**
@@ -178,15 +164,14 @@ final class Suppression {
 		return \get_option(
 			self::OPTION_NAME,
 			[
-				'tags'                             => [],
-				'tag_archive_pages'                => false,
-				'specific_tag_archive_pages'       => [],
-				'categories'                       => [],
-				'category_archive_pages'           => false,
-				'specific_category_archive_pages'  => [],
-				'author_archive_pages'             => false,
-				'post_types'                       => [],
-				'specific_post_type_archive_pages' => [],
+				'tags'                            => [],
+				'tag_archive_pages'               => false,
+				'specific_tag_archive_pages'      => [],
+				'categories'                      => [],
+				'category_archive_pages'          => false,
+				'specific_category_archive_pages' => [],
+				'author_archive_pages'            => false,
+				'post_types'                      => [],
 			]
 		);
 	}
@@ -238,6 +223,8 @@ final class Suppression {
 			$should_show = false;
 		}
 
+		$config = self::get_config();
+
 		if ( \is_singular() ) {
 			if ( null === $post_id ) {
 				$post_id = get_the_ID();
@@ -246,9 +233,12 @@ final class Suppression {
 			if ( get_post_meta( $post_id, 'newspack_ads_suppress_ads', true ) ) {
 				$should_show = false;
 			}
+
+			if ( isset( $config['post_types'] ) && in_array( get_post_type( $post_id ), $config['post_types'] ) ) {
+				$should_show = false;
+			}
 		}
 
-		$config = self::get_config();
 		if ( true === $config['tag_archive_pages'] ) {
 			if ( is_tag() ) {
 				$should_show = false;
