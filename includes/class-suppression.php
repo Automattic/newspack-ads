@@ -161,7 +161,7 @@ final class Suppression {
 	 * Get ad suppresion config.
 	 */
 	private static function get_config() {
-		return \get_option(
+		$options = \get_option(
 			self::OPTION_NAME,
 			[
 				'tags'                            => [],
@@ -174,6 +174,16 @@ final class Suppression {
 				'post_types'                      => [],
 			]
 		);
+		/** Migrate legacy archive options */
+		if ( ! empty( $options['specific_tag_archive_pages'] ) ) {
+			$options['tags'] = $options['specific_tag_archive_pages'];
+			unset( $options['specific_tag_archive_pages'] );
+		}
+		if ( ! empty( $options['specific_category_archive_pages'] ) ) {
+			$options['categories'] = $options['specific_category_archive_pages'];
+			unset( $options['specific_category_archive_pages'] );
+		}
+		return $options;
 	}
 
 	/**
@@ -210,6 +220,59 @@ final class Suppression {
 	}
 
 	/**
+	 * Internal method for determining if the page should display ads.
+	 *
+	 * @param int $post_id Optional post ID to check for.
+	 *
+	 * @return bool
+	 */
+	private static function internal_should_show_ads( $post_id = null ) {
+		$config = self::get_config();
+		if ( \is_singular() || ! empty( $post_id ) ) {
+			if ( ! $post_id ) {
+				$post_id = \get_the_ID();
+			}
+			if ( \get_post_meta( $post_id, 'newspack_ads_suppress_ads', true ) ) {
+				return false;
+			}
+			if ( ! empty( $config['post_types'] ) && in_array( \get_post_type( $post_id ), $config['post_types'] ) ) {
+				return false;
+			}
+			if ( ! empty( $config['tags'] ) && \has_tag( $config['tags'], $post_id ) ) {
+				return false;
+			}
+			if ( ! empty( $config['categories'] ) && \has_category( $config['categories'], $post_id ) ) {
+				return false;
+			}
+		}
+		if ( \is_archive() ) {
+			if ( \is_tag() ) {
+				if ( isset( $config['tag_archive_pages'] ) && true === $config['tag_archive_pages'] ) {
+					return false;
+				}
+				if ( ! empty( $config['tags'] ) && \in_array( \get_queried_object_id(), $config['tags'] ) ) {
+					return false;
+				}
+			}
+			if ( \is_category() ) {
+				if ( isset( $config['category_archive_pages'] ) && true === $config['category_archive_pages'] ) {
+					return false;
+				}
+				if ( ! empty( $config['categories'] ) && \in_array( \get_queried_object_id(), $config['categories'] ) ) {
+					return false;
+				}
+			}
+			if ( \is_author() && isset( $config['author_archive_pages'] ) && true === $config['author_archive_pages'] ) {
+				return false;
+			}
+		}
+		if ( \is_404() ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Get whether ads should be displayed on a screen.
 	 *
 	 * @param int $post_id Post ID to check (optional, default: current post).
@@ -217,62 +280,10 @@ final class Suppression {
 	 * @return bool
 	 */
 	public static function should_show_ads( $post_id = null ) {
-		$should_show = true;
-
-		if ( \is_404() ) {
-			$should_show = false;
+		if ( is_singular() && empty( $post_id ) ) {
+			$post_id = get_the_ID();
 		}
-
-		$config = self::get_config();
-
-		if ( \is_singular() ) {
-			if ( null === $post_id ) {
-				$post_id = get_the_ID();
-			}
-
-			if ( get_post_meta( $post_id, 'newspack_ads_suppress_ads', true ) ) {
-				$should_show = false;
-			}
-
-			if ( ! empty( $config['post_types'] ) && in_array( get_post_type( $post_id ), $config['post_types'] ) ) {
-				$should_show = false;
-			}
-		}
-
-		if ( ! empty( $config['post_types'] ) && is_post_type_archive( $config['post_types'] ) ) {
-			$should_show = false;
-		}
-
-		if ( true === $config['tag_archive_pages'] ) {
-			if ( is_tag() ) {
-				$should_show = false;
-			}
-		} elseif ( ! empty( $config['specific_tag_archive_pages'] ) ) {
-			$suppressed_tags = $config['specific_tag_archive_pages'];
-			foreach ( $suppressed_tags as $tag_id ) {
-				if ( is_tag( $tag_id ) ) {
-					$should_show = false;
-				}
-			}
-		}
-
-		if ( true === $config['category_archive_pages'] ) {
-			if ( is_category() ) {
-				$should_show = false;
-			}
-		} elseif ( ! empty( $config['specific_category_archive_pages'] ) ) {
-			$suppressed_categories = $config['specific_category_archive_pages'];
-			foreach ( $suppressed_categories as $category_id ) {
-				if ( is_category( $category_id ) ) {
-					$should_show = false;
-				}
-			}
-		}
-		if ( is_author() && true === $config['author_archive_pages'] ) {
-			$should_show = false;
-		}
-
-		return apply_filters( 'newspack_ads_should_show_ads', $should_show, $post_id );
+		return apply_filters( 'newspack_ads_should_show_ads', self::internal_should_show_ads( $post_id ), $post_id );
 	}
 }
 Suppression::init();
