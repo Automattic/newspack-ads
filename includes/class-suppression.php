@@ -246,7 +246,7 @@ final class Suppression {
 			}
 		}
 		if ( \is_archive() ) {
-			if ( ! empty( $config['post_types'] ) && is_post_type_archive( $config['post_types'] ) ) {
+			if ( ! empty( $config['post_types'] ) && \is_post_type_archive( $config['post_types'] ) ) {
 				return false;
 			}
 			if ( \is_tag() ) {
