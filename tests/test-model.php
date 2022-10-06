@@ -17,12 +17,12 @@ class ModelTest extends WP_UnitTestCase {
 	private static $sizes_1           = [ [ 123, 321 ] ]; // phpcs:ignore Squiz.Commenting.VariableComment.Missing
 	private static $mock_gam_ad_units = []; // phpcs:ignore Squiz.Commenting.VariableComment.Missing
 
-	public static function setUpBeforeClass() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	public static function set_up_before_class() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		// Set the active network code.
 		update_option( GAM_Model::OPTION_NAME_LEGACY_NETWORK_CODE, self::$network_code );
 	}
 
-	public function setUp() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	public function set_up() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		wp_delete_post( self::$legacy_ad_id );
 
 		// Create a legacy ad unit (a CPT).
@@ -97,31 +97,31 @@ class ModelTest extends WP_UnitTestCase {
 	 */
 	public function test_ad_unit_generated_markup() {
 		$legacy_ad_unit = GAM_Model::get_ad_unit_for_display( self::$legacy_ad_id );
-		self::assertContains(
+		self::assertStringContainsString(
 			'<!-- /' . self::$network_code . '/' . self::$ad_code_1 . ' -->',
 			$legacy_ad_unit['ad_code'],
 			'The ad code for the legacy ad unit contains a comment with network ID and ad unit code.'
 		);
-		self::assertContains(
+		self::assertStringContainsString(
 			'data-slot=\'/' . self::$network_code . '/' . self::$ad_code_1 . '\'',
 			$legacy_ad_unit['amp_ad_code'],
 			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad unit code.'
 		);
 
 		$gam_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
-		self::assertContains(
+		self::assertStringContainsString(
 			'<!-- /' . self::$network_code . '/' . $gam_ad_unit['code'] . ' -->',
 			$gam_ad_unit['ad_code'],
 			'The ad code contains a comment with network ID and ad unit code.'
 		);
-		self::assertContains(
+		self::assertStringContainsString(
 			'data-slot=\'/' . self::$network_code . '/' . $gam_ad_unit['code'] . '\'',
 			$gam_ad_unit['amp_ad_code'],
 			'The AMP ad code contains an attribute with network ID and ad unit code.'
 		);
 
 		$fluid_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[1]['id'] );
-		self::assertContains(
+		self::assertStringContainsString(
 			'layout=\'fluid\'',
 			$fluid_ad_unit['amp_ad_code'],
 			'The AMP ad code for the fluid ad unit contains fluid layout.'
