@@ -8,20 +8,16 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
-
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\InventoryService;
 use Google\AdsApi\AdManager\v202205\Size;
 use Google\AdsApi\AdManager\v202205\EnvironmentType;
-
 use Google\AdsApi\AdManager\v202205\AdUnit;
 use Google\AdsApi\AdManager\v202205\AdUnitSize;
 use Google\AdsApi\AdManager\v202205\AdUnitTargetWindow;
-
 use Google\AdsApi\AdManager\v202205\ArchiveAdUnits as ArchiveAdUnitsAction;
 use Google\AdsApi\AdManager\v202205\ActivateAdUnits as ActivateAdUnitsAction;
 use Google\AdsApi\AdManager\v202205\DeactivateAdUnits as DeactivateAdUnitsAction;
-
 use Google\AdsApi\AdManager\v202205\ApiException;
 
 /**
@@ -110,7 +106,7 @@ final class Ad_Units {
 			}
 			return $ad_units_serialised;
 		} catch ( ApiException $e ) {
-			return Api::get_api_error( $e, __( 'Unable to fetch ad units.', 'newspack-ads' ) );
+			return Api::get_error( $e, __( 'Unable to fetch ad units.', 'newspack-ads' ) );
 		}
 	}
 

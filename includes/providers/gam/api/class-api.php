@@ -8,7 +8,6 @@
 namespace Newspack_Ads\Providers\GAM;
 
 use Newspack_Ads\Providers\GAM_Model;
-
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
@@ -16,7 +15,6 @@ use Google\AdsApi\AdManager\AdManagerSession;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\Network;
 use Google\AdsApi\AdManager\v202205\User;
-
 use Google\AdsApi\AdManager\v202205\ApiException;
 
 /**
