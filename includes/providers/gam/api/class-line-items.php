@@ -8,6 +8,7 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\LineItemService;
@@ -27,16 +28,15 @@ use Google\AdsApi\AdManager\v202205\ApiException;
 /**
  * Newspack Ads GAM Line Items
  */
-final class Line_Items {
+final class Line_Items extends Api_Object {
 	/**
 	 * Get line item service.
 	 *
 	 * @return LineItemService Line Item service.
 	 */
-	private static function get_line_item_service() {
+	private function get_line_item_service() {
 		$service_factory = new ServiceFactory();
-		$session         = Api::get_session();
-		return $service_factory->createLineItemService( $session );
+		return $service_factory->createLineItemService( $this->session );
 	}
 
 	/**
@@ -46,9 +46,9 @@ final class Line_Items {
 	 *
 	 * @return LineItem[] Array of Orders.
 	 */
-	private static function get_line_items( StatementBuilder $statement_builder = null ) {
+	private function get_line_items( StatementBuilder $statement_builder = null ) {
 		$line_items        = [];
-		$service           = self::get_line_item_service();
+		$service           = $this->get_line_item_service();
 		$page_size         = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$statement_builder = $statement_builder ?? new StatementBuilder();
 		$statement_builder->orderBy( 'id ASC' )->limit( $page_size );
@@ -73,9 +73,9 @@ final class Line_Items {
 	 *
 	 * @return LineItems[] Array of LineItems.
 	 */
-	public static function get_line_items_by_order_id( $order_id ) {
+	public function get_line_items_by_order_id( $order_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'orderId = %d', $order_id ) );
-		return self::get_line_items( $statement_builder );
+		return $this->get_line_items( $statement_builder );
 	}
 
 	/**
@@ -85,7 +85,7 @@ final class Line_Items {
 	 *
 	 * @return object[] Array of serialized orders.
 	 */
-	public static function get_serialized_line_items( $line_items = null ) {
+	public function get_serialized_line_items( $line_items = null ) {
 		return array_map(
 			function( $item ) {
 				return [
@@ -97,7 +97,7 @@ final class Line_Items {
 					'type'        => $item->getLineItemType(),
 				];
 			},
-			null !== $line_items ? $line_items : self::get_line_items()
+			null !== $line_items ? $line_items : $this->get_line_items()
 		);
 	}
 
@@ -113,8 +113,8 @@ final class Line_Items {
 	 *
 	 * @throws \Exception If unsupported configuration or unable to create line items.
 	 */
-	public static function create_or_update_line_items( $line_item_configs = [] ) {
-		$network              = Api::get_network();
+	public function create_or_update_line_items( $line_item_configs = [] ) {
+		$network              = $this->api->get_network();
 		$line_items_to_create = [];
 		$line_items_to_update = [];
 		foreach ( $line_item_configs as $config ) {
@@ -204,7 +204,7 @@ final class Line_Items {
 				$line_items_to_create[] = $line_item;
 			}
 		}
-		$service            = self::get_line_item_service();
+		$service            = $this->get_line_item_service();
 		$created_line_items = ! empty( $line_items_to_create ) ? $service->createLineItems( $line_items_to_create ) : [];
 		$updated_line_items = ! empty( $line_items_to_update ) ? $service->updateLineItems( $line_items_to_update ) : [];
 		return array_merge( $created_line_items, $updated_line_items );
@@ -217,7 +217,7 @@ final class Line_Items {
 	 *
 	 * @return LineItemCreativeAssociation[] Created LICAs.
 	 */
-	public static function associate_creatives_to_line_items( $lica_configs ) {
+	public function associate_creatives_to_line_items( $lica_configs ) {
 		$licas = [];
 		foreach ( $lica_configs as $lica_config ) {
 			$lica = new LineItemCreativeAssociation();
@@ -235,8 +235,7 @@ final class Line_Items {
 			}
 			$licas[] = $lica;
 		}
-		$session        = self::get_gam_session();
-		$service        = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $session );
+		$service        = ( new ServiceFactory() )->createLineItemCreativeAssociationService( $this->session );
 		$attempt_create = true;
 		while ( $attempt_create ) {
 			try {
@@ -250,7 +249,7 @@ final class Line_Items {
 						unset( $licas[ $index ] );
 					} else {
 						// Bail if there are other errors.
-						return Api::get_error( $e, __( 'Unexpected error while creating creative associations.', 'newspack-ads' ) );
+						return $this->api->get_error( $e, __( 'Unexpected error while creating creative associations.', 'newspack-ads' ) );
 					}
 				}
 				// Leave without errors if entire batch exists.

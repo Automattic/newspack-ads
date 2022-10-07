@@ -7,10 +7,8 @@
 
 namespace Newspack_Ads\Providers\GAM\Api;
 
-use Google\Auth\Credentials\ServiceAccountCredentials;
-use Google\AdsApi\Common\Configuration;
-use Google\AdsApi\AdManager\AdManagerSessionBuilder;
-use Google\AdsApi\AdManager\AdManagerSession;
+use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\v202205\Statement;
 use Google\AdsApi\AdManager\v202205\String_ValueMapEntry;
 use Google\AdsApi\AdManager\v202205\TextValue;
@@ -18,21 +16,17 @@ use Google\AdsApi\AdManager\v202205\SetValue;
 use Google\AdsApi\AdManager\v202205\CustomTargetingKey;
 use Google\AdsApi\AdManager\v202205\CustomTargetingValue;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
-use Google\AdsApi\AdManager\v202205\Network;
-use Google\AdsApi\AdManager\v202205\User;
-
-use Google\AdsApi\AdManager\v202205\ApiException;
 
 /**
  * Newspack Ads GAM Default Targeting Keys
  */
-final class Default_Targeting {
+final class Targeting_Keys extends Api_Object {
 	/**
 	 * Custom targeting keys.
 	 *
 	 * @var string[]
 	 */
-	public static $targeting_keys = [
+	public static $default_targeting_keys = [
 		'id',
 		'slug',
 		'category',
@@ -54,9 +48,8 @@ final class Default_Targeting {
 	 *
 	 * @throws \Exception If there is an error while communicating with the API.
 	 */
-	public static function create_targeting_key( $name, $values = [] ) {
-		$session = self::get_gam_session();
-		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+	public function create_targeting_key( $name, $values = [] ) {
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $this->session );
 
 		$statement = new Statement(
 			"WHERE name = :name AND status = 'ACTIVE'",
@@ -147,9 +140,8 @@ final class Default_Targeting {
 	 *
 	 * @throws \Exception If there is an error while communicating with the API.
 	 */
-	public static function update_custom_targeting_keys() {
-		$session = self::get_gam_session();
-		$service = ( new ServiceFactory() )->createCustomTargetingService( $session );
+	public function update_default_targeting_keys() {
+		$service = ( new ServiceFactory() )->createCustomTargetingService( $this->session );
 
 		// Find existing keys.
 		$or_clauses = implode(
@@ -158,7 +150,7 @@ final class Default_Targeting {
 				function( $key ) {
 					return sprintf( "name LIKE '%s'", strtolower( $key ) );
 				},
-				self::$targeting_keys
+				self::$default_targeting_keys
 			)
 		);
 		$statement  = new Statement( sprintf( "WHERE ( %s ) AND status = 'ACTIVE'", $or_clauses ) );
@@ -175,7 +167,7 @@ final class Default_Targeting {
 
 		$keys_to_create = array_values(
 			array_diff(
-				self::$targeting_keys,
+				self::$default_targeting_keys,
 				array_map(
 					function ( $key ) {
 						return strtolower( $key->getName() );

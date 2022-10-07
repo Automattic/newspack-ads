@@ -7,8 +7,10 @@
 
 namespace Newspack_Ads\Providers\GAM;
 
+use Newspack_Ads\Providers\GAM\Api;
 use Newspack_Ads\Providers\GAM_Model;
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use Google\Auth\OAuth2;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\AdManagerSession;
@@ -16,6 +18,15 @@ use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\Network;
 use Google\AdsApi\AdManager\v202205\User;
 use Google\AdsApi\AdManager\v202205\ApiException;
+
+require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
+require_once 'class-api-object.php';
+require_once 'class-advertisers.php';
+require_once 'class-creatives.php';
+require_once 'class-targeting-keys.php';
+require_once 'class-ad-units.php';
+require_once 'class-line-items.php';
+require_once 'class-orders.php';
 
 /**
  * Newspack Ads GAM Management
@@ -26,35 +37,77 @@ final class Api {
 
 	const API_VERSION = 'v202205';
 
-	const SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
-
 	/**
 	 * Codes of networks that the user has access to.
 	 *
 	 * @var Network[]
 	 */
-	private static $networks = [];
+	private $networks = [];
 
 	/**
 	 * Reusable GAM session.
 	 *
 	 * @var AdManagerSession
 	 */
-	private static $session = null;
+	private $session = null;
 
 	/**
 	 * GAM Network Code in use.
 	 *
 	 * @var string
 	 */
-	private static $network_code = null;
+	private $network_code = null;
 
 	/**
-	 * Cached credentials.
+	 * Authentication method. Either 'oauth' or 'service_account'.
 	 *
-	 * @var object|false OAuth2 credentials or false, if none cached.
+	 * @var string
 	 */
-	private static $oauth2_credentials = false;
+	private $auth_method = null;
+
+	/**
+	 * Credentials
+	 *
+	 * @var ServiceAccountCredentials|OAuth2
+	 */
+	private $credentials = null;
+
+	/**
+	 * Contructor.
+	 *
+	 * @param string $auth_method  Authentication method. Either 'oauth2' or 'service_account'.
+	 * @param array  $credentials  OAuth2 or Service Account Credentials configuration.
+	 * @param string $network_code Optional GAM Network Code to use.
+	 *
+	 * @throws \Exception If the credentials are invalid or the environment is incompatible.
+	 */
+	public function __construct( $auth_method, $credentials, $network_code = null ) {
+
+		if ( false === self::is_environment_compatible() ) {
+			throw new \Exception( __( 'The environment is not compatible with the GAM API.', 'newspack-ads' ) );
+		}
+
+		if ( ! in_array( $auth_method, [ 'oauth2', 'service_account' ], true ) ) {
+			throw new \Exception( __( 'Invalid authentication method.', 'newspack-ads' ) );
+		}
+
+		if ( ! $credentials ) {
+			throw new \Exception( __( 'Invalid credentials.', 'newspack-ads' ) );
+		}
+
+		$this->auth_method  = $auth_method;
+		$this->credentials  = $credentials;
+		$this->network_code = $network_code;
+
+		$session = $this->get_session();
+
+		$this->advertisers    = new Api\Advertisers( $session, $this );
+		$this->creatives      = new Api\Creatives( $session, $this );
+		$this->targeting_keys = new Api\Targeting_Keys( $session, $this );
+		$this->ad_units       = new Api\Ad_Units( $session, $this );
+		$this->line_items     = new Api\Line_Items( $session, $this );
+		$this->orders         = new Api\Orders( $session, $this );
+	}
 
 	/**
 	 * Get a WP_Error object from an optional ApiException or message.
@@ -99,103 +152,58 @@ final class Api {
 	}
 
 	/**
-	 * Set the network code to be used.
+	 * Verify WP environment to make sure it's safe to use the GAM API.
 	 *
-	 * @param string $network_code Network code.
+	 * @return bool Whether it's safe to use GAM.
 	 */
-	public static function set_network_code( $network_code ) {
-		self::$network_code = $network_code;
-	}
-
-	/**
-	 * Get credentials for connecting to GAM.
-	 *
-	 * @throws \Exception If credentials are not found.
-	 */
-	private static function get_credentials() {
-		$mode = self::get_connection_details();
-		if ( $mode['credentials'] ) {
-			return $mode['credentials'];
-		}
-		throw new \Exception( __( 'Credentials not found.', 'newspack-ads' ) );
-	}
-
-	/**
-	 * Get OAuth2 credentials.
-	 *
-	 * @return object OAuth2 credentials.
-	 */
-	private static function get_google_oauth2_credentials() {
-		if ( self::$oauth2_credentials ) {
-			return self::$oauth2_credentials;
-		}
-		if ( class_exists( 'Newspack\Google_Services_Connection' ) ) {
-			$fresh_oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
-			if ( false !== $fresh_oauth2_credentials ) {
-				self::$oauth2_credentials = $fresh_oauth2_credentials;
-				return self::$oauth2_credentials;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Get Service Account credentials.
-	 *
-	 * @param array $service_account_credentials_config Service Account Credentials.
-	 *
-	 * @return ServiceAccountCredentials|false OAuth2 credentials or false otherwise.
-	 */
-	private static function get_service_account_credentials( $service_account_credentials_config = false ) {
-		if ( false === $service_account_credentials_config ) {
-			$service_account_credentials_config = self::service_account_credentials_config();
-		}
-		if ( ! $service_account_credentials_config ) {
+	private static function is_environment_compatible() {
+		// Constant Contact Form plugin loads an old version of Guzzle that breaks the SDK.
+		if ( class_exists( 'Constant_Contact' ) ) {
 			return false;
 		}
-		try {
-			return new ServiceAccountCredentials( 'https://www.googleapis.com/auth/dfp', $service_account_credentials_config );
-		} catch ( \Exception $e ) {
-			return false;
-		}
+		return true;
 	}
 
 	/**
-	 * Get GAM service account user.
+	 * Get GAM session for making API requests.
+	 *
+	 * @return AdManagerSession GAM Session.
+	 */
+	public function get_session() {
+		if ( $this->session ) {
+			return $this->session;
+		}
+		$config        = new Configuration(
+			[
+				'AD_MANAGER' => [
+					'applicationName' => self::APP,
+					'networkCode'     => $this->network_code ?? '-',
+				],
+			]
+		);
+		$this->session = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $this->credentials )->build();
+		return $this->session;
+	}
+
+	/**
+	 * Get GAM Connection User.
 	 *
 	 * @return User Current user.
 	 */
-	private static function get_current_user() {
-		$service_factory = new ServiceFactory();
-		$session         = self::get_session();
-		$service         = $service_factory->createUserService( $session );
-		return $service->getCurrentUser();
+	public function get_current_user() {
+		return ( new ServiceFactory() )->createUserService( $this->session )->getCurrentUser();
 	}
 
 	/**
 	 * Get GAM networks the authenticated user has access to.
 	 *
 	 * @return Network[] Array of networks.
-	 * @throws \Exception If not able to fetch networks.
 	 */
-	private static function get_networks() {
-		if ( empty( self::$networks ) ) {
-			// Create a configuration and session to get the network codes.
-			$config = new Configuration(
-				[
-					'AD_MANAGER' => [
-						'networkCode'     => '-', // Provide non-empty network code to pass validation.
-						'applicationName' => self::APP,
-					],
-				]
-			);
-
-			$oauth2_credentials = self::get_credentials();
-			$session            = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-			$service_factory    = new ServiceFactory();
-			self::$networks     = $service_factory->createNetworkService( $session )->getAllNetworks();
+	private function get_networks() {
+		if ( empty( $this->networks ) ) {
+			$this->networks = ( new ServiceFactory() )->createNetworkService( $this->session )->getAllNetworks();
 		}
-		return self::$networks;
+		return $this->networks;
 	}
 
 	/**
@@ -204,8 +212,8 @@ final class Api {
 	 * @return array[] Array of serialized networks.
 	 * @throws \Exception If not able to fetch networks.
 	 */
-	public static function get_serialized_networks() {
-		$networks = self::get_networks();
+	public function get_serialized_networks() {
+		$networks = $this->get_networks();
 		return array_map(
 			function( $network ) {
 				return [
@@ -222,11 +230,12 @@ final class Api {
 	 * Get user's GAM network. Defaults to the first found network if not found or empty.
 	 *
 	 * @return Network GAM network.
+	 *
 	 * @throws \Exception If there is no GAM network to use.
 	 */
-	private static function get_network() {
-		$networks     = self::get_networks();
-		$network_code = self::$network_code;
+	public function get_network() {
+		$networks     = $this->get_networks();
+		$network_code = $this->network_code;
 		if ( empty( $networks ) ) {
 			throw new \Exception( __( 'Missing GAM Ad network.', 'newspack-ads' ) );
 		}
@@ -245,46 +254,20 @@ final class Api {
 	 *
 	 * @return int GAM network code.
 	 */
-	private static function get_network_code() {
-		return self::get_network()->getNetworkCode();
+	public function get_network_code() {
+		return $this->get_network()->getNetworkCode();
 	}
 
 	/**
-	 * Get GAM session for making API requests.
+	 * Get details of the authorized GAM user.
 	 *
-	 * @return AdManagerSession GAM Session.
+	 * @return array Details of the user.
 	 */
-	private static function get_session() {
-		if ( self::$session ) {
-			return self::$session;
-		}
-		$oauth2_credentials = self::get_credentials();
-		$service_factory    = new ServiceFactory();
-
-		// Create a new configuration and session, with a network code.
-		$config        = new Configuration(
-			[
-				'AD_MANAGER' => [
-					'networkCode'     => self::get_network_code(),
-					'applicationName' => self::APP,
-				],
-			]
-		);
-		self::$session = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $oauth2_credentials )->build();
-		return self::$session;
-	}
-
-	/**
-	 * Get details of the authorised GAM user.
-	 *
-	 * @return object Details of the user.
-	 */
-	public static function get_gam_settings() {
+	public function get_settings() {
 		try {
 			$service_factory = new ServiceFactory();
-			$session         = self::get_session();
 			return [
-				'user_email'   => $service_factory->createUserService( $session )->getCurrentUser()->getEmail(),
+				'user_email'   => $service_factory->createUserService( $this->session )->getCurrentUser()->getEmail(),
 				'network_code' => self::get_network_code(),
 			];
 		} catch ( \Exception $e ) {
@@ -293,105 +276,21 @@ final class Api {
 	}
 
 	/**
-	 * Verify WP environment to make sure it's safe to use GAM.
+	 * Get the current auth method.
 	 *
-	 * @return bool Whether it's safe to use GAM.
+	 * @return string Either 'service_account' or 'oauth'.
 	 */
-	private static function is_environment_compatible() {
-		// Constant Contact Form plugin loads an old version of Guzzle that breaks the SDK.
-		if ( class_exists( 'Constant_Contact' ) ) {
-			return false;
-		}
-		return true;
+	public function get_auth_method() {
+		return $this->auth_method;
 	}
 
 	/**
-	 * Get saved Service Account credentials config.
+	 * Get the connection status.
 	 */
-	private static function service_account_credentials_config() {
-		return get_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME, false );
-	}
-
-	/**
-	 * How does this instance connect to GAM?
-	 */
-	private static function get_connection_details() {
-		$credentials = self::get_service_account_credentials();
-		if ( false !== $credentials ) {
-			return [
-				'credentials' => $credentials,
-				'mode'        => 'service_account',
-			];
-		}
-		$credentials = self::get_google_oauth2_credentials();
-		if ( false !== $credentials ) {
-			return [
-				'credentials' => $credentials,
-				'mode'        => 'oauth',
-			];
-		}
+	public function get_connection_status() {
 		return [
-			'credentials' => null,
-			'mode'        => 'legacy', // Manual connection.
+			'network_code' => $this->get_network_code(),
+			'auth_method'  => $this->get_auth_method(),
 		];
-	}
-
-	/**
-	 * Get GAM connection status.
-	 *
-	 * @return object Object with status information.
-	 */
-	public static function connection_status() {
-		$connection_details = self::get_connection_details();
-		$response           = [
-			'connected'       => false,
-			'connection_mode' => $connection_details['mode'],
-		];
-		if ( false === self::is_environment_compatible() ) {
-			$response['incompatible'] = true;
-			$response['error']        = __( 'Cannot connect to Google Ad Manager. This WordPress instance is not compatible with this feature.', 'newspack-ads' );
-			return $response;
-		}
-		try {
-			$response['network_code'] = self::get_network_code();
-			$response['connected']    = true;
-		} catch ( \Exception $e ) {
-			$response['error'] = $e->getMessage();
-		}
-		return $response;
-	}
-
-	/**
-	 * Update GAM credentials.
-	 *
-	 * @param array $credentials_config Credentials to update.
-	 *
-	 * @return object Object with status information.
-	 */
-	public static function update_gam_credentials( $credentials_config ) {
-		try {
-			self::get_service_account_credentials( $credentials_config );
-		} catch ( \Exception $e ) {
-			return new \WP_Error( 'newspack_ads_gam_credentials', $e->getMessage() );
-		}
-		$update_result = update_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME, $credentials_config );
-		if ( ! $update_result ) {
-			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
-		}
-		return GAM_Model::get_gam_connection_status();
-	}
-
-	/**
-	 * Clear existing GAM credentials.
-	 *
-	 * @return object Object with status information.
-	 */
-	public static function remove_gam_credentials() {
-		$deleted_credentials_result  = delete_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
-		$deleted_network_code_result = delete_option( GAM_Model::OPTION_NAME_GAM_NETWORK_CODE );
-		if ( ! $deleted_credentials_result || ! $deleted_network_code_result ) {
-			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
-		}
-		return GAM_Model::get_gam_connection_status();
 	}
 }

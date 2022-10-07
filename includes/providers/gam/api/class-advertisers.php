@@ -7,27 +7,25 @@
 
 namespace Newspack_Ads\Providers\GAM\Api;
 
-use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\Company;
 use Google\AdsApi\AdManager\v202205\CompanyType;
-use Google\AdsApi\AdManager\v202205\ApiException;
 
 /**
  * Newspack Ads GAM Advertisers
  */
-final class Advertisers {
+final class Advertisers extends Api_Object {
 
 	/**
 	 * Create company service.
 	 *
 	 * @return CompanyService Company service.
 	 */
-	private static function get_company_service() {
+	private function get_company_service() {
 		$service_factory = new ServiceFactory();
-		$session         = Api::get_session();
-		return $service_factory->createCompanyService( $session );
+		return $service_factory->createCompanyService( $this->session );
 	}
 
 	/**
@@ -35,9 +33,9 @@ final class Advertisers {
 	 *
 	 * @return Company[] Array of Companies of typer Advertiser.
 	 */
-	private static function get_advertisers() {
+	private function get_advertisers() {
 		$line_items            = [];
-		$service               = self::get_company_service();
+		$service               = $this->get_company_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$statement_builder     = ( new StatementBuilder() )->orderBy( 'id ASC' )->limit( $page_size )->withBindVariableValue( 'type', CompanyType::ADVERTISER );
 		$total_result_set_size = 0;
@@ -61,7 +59,7 @@ final class Advertisers {
 	 *
 	 * @return array[] Array of serialised companies.
 	 */
-	public static function get_serialized_advertisers( $companies = null ) {
+	public function get_serialized_advertisers( $companies = null ) {
 		return array_map(
 			function( $item ) {
 				return [
@@ -69,7 +67,7 @@ final class Advertisers {
 					'name' => $item->getName(),
 				];
 			},
-			null !== $companies ? $companies : self::get_advertisers()
+			null !== $companies ? $companies : $this->get_advertisers()
 		);
 	}
 
@@ -82,12 +80,12 @@ final class Advertisers {
 	 *
 	 * @throws \Exception In case of error in googleads lib.
 	 */
-	public static function create_advertiser( $name ) {
+	public function create_advertiser( $name ) {
 		$advertiser = new Company();
 		$advertiser->setName( $name );
 		$advertiser->setType( CompanyType::ADVERTISER );
-		$service = self::get_company_service();
+		$service = $this->get_company_service();
 		$results = $service->createCompanies( [ $advertiser ] );
-		return self::get_serialized_advertisers( $results )[0];
+		return $this->get_serialized_advertisers( $results )[0];
 	}
 }

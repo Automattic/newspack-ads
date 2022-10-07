@@ -8,6 +8,7 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\Creative;
@@ -15,16 +16,15 @@ use Google\AdsApi\AdManager\v202205\Creative;
 /**
  * Newspack Ads GAM Creatives
  */
-final class Creatives {
+final class Creatives extends Api_Object {
 	/**
 	 * Create creative service.
 	 *
 	 * @return CreativeService Creative service.
 	 */
-	private static function get_creative_service() {
+	private function get_creative_service() {
 		$service_factory = new ServiceFactory();
-		$session         = Api::get_session();
-		return $service_factory->createCreativeService( $session );
+		return $service_factory->createCreativeService( $this->session );
 	}
 
 	/**
@@ -34,9 +34,9 @@ final class Creatives {
 	 *
 	 * @return Creative[] Array of creatives.
 	 */
-	private static function get_creatives( StatementBuilder $statement_builder = null ) {
+	private function get_creatives( StatementBuilder $statement_builder = null ) {
 		$creatives             = [];
-		$creative_service      = self::get_creative_service();
+		$creative_service      = $this->get_creative_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$total_result_set_size = 0;
 		$statement_builder     = $statement_builder ?? new StatementBuilder();
@@ -61,9 +61,9 @@ final class Creatives {
 	 *
 	 * @return Creative[] Array of creatives.
 	 */
-	private static function get_creatives_by_advertiser( $advertiser_id ) {
+	private function get_creatives_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
-		return self::get_creatives( $statement_builder );
+		return $this->get_creatives( $statement_builder );
 	}
 
 	/**
@@ -73,7 +73,7 @@ final class Creatives {
 	 *
 	 * @return array[] Array of serialised creatives.
 	 */
-	public static function get_serialized_creatives( $creatives = null ) {
+	public function get_serialized_creatives( $creatives = null ) {
 		return array_map(
 			function( $creatives ) {
 				return [
@@ -82,7 +82,7 @@ final class Creatives {
 					'advertiserId' => $creatives->getAdvertiserId(),
 				];
 			},
-			null !== $creatives ? $creatives : self::get_creatives()
+			null !== $creatives ? $creatives : $this->get_creatives()
 		);
 	}
 
@@ -93,8 +93,8 @@ final class Creatives {
 	 *
 	 * @return array[] Array of serialised creatives.
 	 */
-	public static function get_serialized_creatives_by_advertiser( $advertiser_id ) {
-		return self::get_serialized_creatives( self::get_creatives_by_advertiser( $advertiser_id ) );
+	public function get_serialized_creatives_by_advertiser( $advertiser_id ) {
+		return $this->get_serialized_creatives( $this->get_creatives_by_advertiser( $advertiser_id ) );
 	}
 
 	/**
@@ -106,7 +106,7 @@ final class Creatives {
 	 *
 	 * @throws \Exception If unable to create creatives.
 	 */
-	public static function create_creatives( $creatives_config = [] ) {
+	public function create_creatives( $creatives_config = [] ) {
 		$creatives = [];
 		$xsi_types = [
 			'BaseDynamicAllocationCreative',
@@ -152,8 +152,8 @@ final class Creatives {
 			}
 			$creatives[] = $creative;
 		}
-		$service           = self::get_creative_service();
+		$service           = $this->get_creative_service();
 		$created_creatives = $service->createCreatives( $creatives );
-		return self::get_serialized_creatives( $created_creatives );
+		return $this->get_serialized_creatives( $created_creatives );
 	}
 }

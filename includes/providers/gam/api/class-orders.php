@@ -8,24 +8,25 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\Order;
 use Google\AdsApi\AdManager\v202205\ArchiveOrders as ArchiveOrdersAction;
+use Google\AdsApi\AdManager\v202205\ApiException;
 
 /**
  * Newspack Ads GAM Orders
  */
-final class Orders {
+final class Orders extends Api_Object {
 	/**
 	 * Create order service.
 	 *
 	 * @return OrderService Order service.
 	 */
-	private static function get_order_service() {
+	private function get_order_service() {
 		$service_factory = new ServiceFactory();
-		$session         = Api::get_session();
-		return $service_factory->createOrderService( $session );
+		return $service_factory->createOrderService( $this->session );
 	}
 
 	/**
@@ -35,9 +36,9 @@ final class Orders {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	private static function get_orders( StatementBuilder $statement_builder = null ) {
+	private function get_orders( StatementBuilder $statement_builder = null ) {
 		$orders                = [];
-		$order_service         = self::get_order_service();
+		$order_service         = $this->get_order_service();
 		$page_size             = StatementBuilder::SUGGESTED_PAGE_LIMIT;
 		$total_result_set_size = 0;
 		$statement_builder     = $statement_builder ?? new StatementBuilder();
@@ -65,12 +66,12 @@ final class Orders {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_id( $ids = [] ) {
+	public function get_orders_by_id( $ids = [] ) {
 		if ( ! is_array( $ids ) ) {
 			$ids = [ $ids ];
 		}
 		$statement_builder = ( new StatementBuilder() )->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
-		return self::get_orders( $statement_builder );
+		return $this->get_orders( $statement_builder );
 	}
 
 	/**
@@ -80,9 +81,9 @@ final class Orders {
 	 *
 	 * @return Order[] Array of Orders.
 	 */
-	public static function get_orders_by_advertiser( $advertiser_id ) {
+	public function get_orders_by_advertiser( $advertiser_id ) {
 		$statement_builder = ( new StatementBuilder() )->where( sprintf( 'advertiserId = %d', $advertiser_id ) );
-		return self::get_orders( $statement_builder );
+		return $this->get_orders( $statement_builder );
 	}
 
 	/**
@@ -92,7 +93,7 @@ final class Orders {
 	 *
 	 * @return object[] Array of serialized orders.
 	 */
-	public static function get_serialized_orders( $orders = null ) {
+	public function get_serialized_orders( $orders = null ) {
 		return array_map(
 			function( $order ) {
 				return [
@@ -103,7 +104,7 @@ final class Orders {
 					'advertiser_id' => $order->getAdvertiserId(),
 				];
 			},
-			null !== $orders ? $orders : self::get_orders()
+			null !== $orders ? $orders : $this->get_orders()
 		);
 	}
 
@@ -115,18 +116,18 @@ final class Orders {
 	 *
 	 * @return array|WP_Error Serialised created order or error if it fails.
 	 */
-	public static function create_order( $name, $advertiser_id ) {
+	public function create_order( $name, $advertiser_id ) {
 		$order = new Order();
 		$order->setName( $name );
 		$order->setAdvertiserId( $advertiser_id );
-		$order->setTraffickerId( self::get_current_user()->getId() );
+		$order->setTraffickerId( $this->api->get_current_user()->getId() );
 		try {
-			$service        = self::get_order_service();
+			$service        = $this->get_order_service();
 			$created_orders = $service->createOrders( [ $order ] );
 		} catch ( ApiException $e ) {
-			return Api::get_error( $e, __( 'Order was not created due to an unexpected error.', 'newspack-ads' ) );
+			return $this->api->get_error( $e, __( 'Order was not created due to an unexpected error.', 'newspack-ads' ) );
 		}
-		return self::get_serialized_orders( $created_orders )[0];
+		return $this->get_serialized_orders( $created_orders )[0];
 	}
 
 	/**
@@ -136,8 +137,8 @@ final class Orders {
 	 *
 	 * @return UpdateResult
 	 */
-	public static function archive_order( $order_id ) {
-		return self::get_order_service()->performOrderAction(
+	public function archive_order( $order_id ) {
+		return $this->get_order_service()->performOrderAction(
 			new ArchiveOrdersAction(),
 			( new StatementBuilder() )->where( 'id = :id' )
 				->orderBy( 'id ASC' )

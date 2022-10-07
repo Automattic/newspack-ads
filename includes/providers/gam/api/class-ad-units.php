@@ -8,6 +8,8 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
+use Newspack_Ads\Providers\GAM\Api\Api_Object;
+use Google\AdsApi\AdManager\Util\v202205\StatementBuilder;
 use Google\AdsApi\AdManager\v202205\ServiceFactory;
 use Google\AdsApi\AdManager\v202205\InventoryService;
 use Google\AdsApi\AdManager\v202205\Size;
@@ -23,16 +25,15 @@ use Google\AdsApi\AdManager\v202205\ApiException;
 /**
  * Newspack Ads GAM Ad Units
  */
-final class Ad_Units {
+final class Ad_Units extends Api_Object {
 	/**
 	 * Create inventory service.
 	 *
 	 * @return InventoryService Inventory service.
 	 */
-	private static function get_inventory_service() {
+	private function get_inventory_service() {
 		$service_factory = new ServiceFactory();
-		$session         = Api::get_session();
-		return $service_factory->createInventoryService( $session );
+		return $service_factory->createInventoryService( $this->session );
 	}
 
 	/**
@@ -42,8 +43,6 @@ final class Ad_Units {
 	 * @return StatementBuilder Statement builder.
 	 */
 	private static function get_statement_builder( $ids = [] ) {
-		$inventory_service = self::get_inventory_service();
-
 		// Get all non-archived ad units, unless ids are specified.
 		$statement_builder = new StatementBuilder();
 		if ( empty( $ids ) ) {
@@ -62,10 +61,10 @@ final class Ad_Units {
 	 * @param int[] $ids Optional array of ad unit ids.
 	 * @return AdUnit[] Array of AdUnits.
 	 */
-	private static function get_ad_units( $ids = [] ) {
+	private function get_ad_units( $ids = [] ) {
 		$gam_ad_units      = [];
 		$statement_builder = self::get_statement_builder( $ids );
-		$inventory_service = self::get_inventory_service();
+		$inventory_service = $this->get_inventory_service();
 
 		// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
 		$total_result_set_size = 0;
@@ -97,16 +96,16 @@ final class Ad_Units {
 	 * @param int[] $ids Optional array of ad unit ids.
 	 * @return object[] Array of serialized ad units.
 	 */
-	public static function get_serialized_ad_units( $ids = [] ) {
+	public function get_serialized_ad_units( $ids = [] ) {
 		try {
-			$ad_units            = self::get_ad_units( $ids );
+			$ad_units            = $this->get_ad_units( $ids );
 			$ad_units_serialised = [];
 			foreach ( $ad_units as $ad_unit ) {
-				$ad_units_serialised[] = self::get_serialized_ad_unit( $ad_unit );
+				$ad_units_serialised[] = $this->get_serialized_ad_unit( $ad_unit );
 			}
 			return $ad_units_serialised;
 		} catch ( ApiException $e ) {
-			return Api::get_error( $e, __( 'Unable to fetch ad units.', 'newspack-ads' ) );
+			return $this->api->get_error( $e, __( 'Unable to fetch ad units.', 'newspack-ads' ) );
 		}
 	}
 
@@ -116,7 +115,7 @@ final class Ad_Units {
 	 * @param AdUnit $gam_ad_unit An AdUnit.
 	 * @return object Ad Unit configuration.
 	 */
-	private static function get_serialized_ad_unit( $gam_ad_unit ) {
+	private function get_serialized_ad_unit( $gam_ad_unit ) {
 		$ad_unit = [
 			'id'     => $gam_ad_unit->getId(),
 			'code'   => $gam_ad_unit->getAdUnitCode(),
@@ -141,7 +140,7 @@ final class Ad_Units {
 	 * @param int    $id Id of the ad unit to archive.
 	 * @param string $status Desired status of the ad unit.
 	 */
-	public static function update_ad_unit_status( $id, $status ) {
+	public function update_ad_unit_status( $id, $status ) {
 		try {
 			switch ( $status ) {
 				case 'ACTIVE':
@@ -156,7 +155,7 @@ final class Ad_Units {
 				default:
 					return false;
 			}
-			$inventory_service = self::get_inventory_service();
+			$inventory_service = $this->get_inventory_service();
 
 			$statement_builder = self::get_statement_builder( [ $id ] );
 			$result            = $inventory_service->performAdUnitAction(
@@ -184,7 +183,7 @@ final class Ad_Units {
 	 *
 	 * @return AdUnit Ad Unit.
 	 */
-	private static function modify_ad_unit( $config, $ad_unit = null ) {
+	private function modify_ad_unit( $config, $ad_unit = null ) {
 		$name     = $config['name'];
 		$sizes    = $config['sizes'];
 		$is_fluid = isset( $config['fluid'] ) && $config['fluid'];
@@ -193,7 +192,7 @@ final class Ad_Units {
 		if ( null === $ad_unit ) {
 			$ad_unit = new AdUnit();
 			$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
-			$network = Api::get_network();
+			$network = $this->api->get_network();
 			$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
 			$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
 		}
@@ -218,7 +217,7 @@ final class Ad_Units {
 			$status          = $config['status'];
 			$existing_status = $ad_unit->getStatus();
 			if ( $existing_status !== $status ) {
-				self::update_ad_unit_status( $ad_unit->getId(), $status );
+				$this->update_ad_unit_status( $ad_unit->getId(), $status );
 			}
 		}
 
@@ -231,22 +230,22 @@ final class Ad_Units {
 	 * @param object $config Ad Unit configuration.
 	 * @return AdUnit|WP_Error Updated AdUnit or error.
 	 */
-	public static function update_ad_unit( $config ) {
+	public function update_ad_unit( $config ) {
 		try {
-			$inventory_service = self::get_inventory_service();
-			$found_ad_units    = self::get_ad_units( [ $config['id'] ] );
+			$inventory_service = $this->get_inventory_service();
+			$found_ad_units    = $this->get_ad_units( [ $config['id'] ] );
 			if ( empty( $found_ad_units ) ) {
-				return Api::get_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
+				return $this->api->get_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
 			}
 			$result = $inventory_service->updateAdUnits(
-				[ self::modify_ad_unit( $config, $found_ad_units[0] ) ]
+				[ $this->modify_ad_unit( $config, $found_ad_units[0] ) ]
 			);
 			if ( empty( $result ) ) {
-				return Api::get_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+				return $this->api->get_error( null, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 			}
 			return $result[0];
 		} catch ( ApiException $e ) {
-			return Api::get_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
+			return $this->api->get_error( $e, __( 'Ad Unit was not updated.', 'newspack-ads' ) );
 		}
 	}
 
@@ -256,18 +255,18 @@ final class Ad_Units {
 	 * @param object $config Configuration of the ad unit.
 	 * @return AdUnit|WP_Error Created AdUnit or error.
 	 */
-	public static function create_ad_unit( $config ) {
+	public function create_ad_unit( $config ) {
 		try {
-			$network           = Api::get_network();
-			$inventory_service = self::get_inventory_service();
-			$ad_unit           = self::modify_ad_unit( $config );
+			$network           = $this->api->get_network();
+			$inventory_service = $this->get_inventory_service();
+			$ad_unit           = $this->modify_ad_unit( $config );
 			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );
 			if ( empty( $created_ad_units ) ) {
-				return Api::get_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+				return $this->api->get_error( null, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 			}
-			return self::get_serialized_ad_unit( $created_ad_units[0] );
+			return $this->get_serialized_ad_unit( $created_ad_units[0] );
 		} catch ( ApiException $e ) {
-			return Api::get_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
+			return $this->api->get_error( $e, __( 'Ad Unit was not created.', 'newspack-ads' ) );
 		}
 	}
 }
