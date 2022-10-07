@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Ads GAM management
+ * Newspack Ads GAM Api
  *
  * @package Newspack
  */
@@ -29,7 +29,7 @@ require_once 'class-line-items.php';
 require_once 'class-orders.php';
 
 /**
- * Newspack Ads GAM Management
+ * Newspack Ads GAM Api
  */
 final class Api {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
