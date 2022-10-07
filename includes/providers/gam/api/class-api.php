@@ -117,7 +117,7 @@ final class Api {
 	 *
 	 * @return WP_Error Error.
 	 */
-	public static function get_error( ApiException $exception = null, $default_message = null ) {
+	public function get_error( ApiException $exception = null, $default_message = null ) {
 		$error_message = $default_message;
 		$errors        = [];
 		if ( ! is_null( $exception ) ) {
@@ -136,7 +136,7 @@ final class Api {
 			$error_message = __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' );
 		}
 		if ( in_array( 'AuthenticationError.NETWORK_API_ACCESS_DISABLED', $errors ) ) {
-			$network_code  = self::get_network_code();
+			$network_code  = $this->get_network_code();
 			$settings_link = "https://admanager.google.com/${network_code}#admin/settings/network";
 			$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
 			" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
