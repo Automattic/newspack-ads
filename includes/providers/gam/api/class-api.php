@@ -14,10 +14,10 @@ use Google\Auth\OAuth2;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\AdManagerSession;
-use Google\AdsApi\AdManager\v202205\ServiceFactory;
-use Google\AdsApi\AdManager\v202205\Network;
-use Google\AdsApi\AdManager\v202205\User;
-use Google\AdsApi\AdManager\v202205\ApiException;
+use Google\AdsApi\AdManager\v202208\ServiceFactory;
+use Google\AdsApi\AdManager\v202208\Network;
+use Google\AdsApi\AdManager\v202208\User;
+use Google\AdsApi\AdManager\v202208\ApiException;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 require_once 'class-api-object.php';
@@ -31,11 +31,11 @@ require_once 'class-orders.php';
 /**
  * Newspack Ads GAM Api
  */
-final class Api {
+class Api {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
 	const APP = 'Newspack';
 
-	const API_VERSION = 'v202205';
+	const API_VERSION = 'v202208';
 
 	/**
 	 * Codes of networks that the user has access to.
@@ -73,30 +73,34 @@ final class Api {
 	private $credentials = null;
 
 	/**
-	 * Contructor.
+	 * Constructor.
 	 *
-	 * @param string $auth_method  Authentication method. Either 'oauth2' or 'service_account'.
-	 * @param array  $credentials  OAuth2 or Service Account Credentials configuration.
-	 * @param string $network_code Optional GAM Network Code to use.
+	 * @param string|AdManagerSession $auth_method_or_session Authentication method or session.
+	 *                                                        Auth menthod should be either 'oauth2' or 'service_account'.
+	 * @param array                   $credentials            OAuth2 or Service Account Credentials configuration.
+	 * @param string                  $network_code           Optional GAM Network Code to use.
 	 *
 	 * @throws \Exception If the credentials are invalid or the environment is incompatible.
 	 */
-	public function __construct( $auth_method, $credentials, $network_code = null ) {
+	public function __construct( $auth_method_or_session, $credentials = null, $network_code = null ) {
 
 		if ( false === self::is_environment_compatible() ) {
 			throw new \Exception( __( 'The environment is not compatible with the GAM API.', 'newspack-ads' ) );
 		}
 
-		if ( ! in_array( $auth_method, [ 'oauth2', 'service_account' ], true ) ) {
-			throw new \Exception( __( 'Invalid authentication method.', 'newspack-ads' ) );
+		if ( 'string' === gettype( $auth_method_or_session ) ) {
+			$auth_method = $auth_method_or_session;
+			if ( ! in_array( $auth_method, [ 'oauth2', 'service_account' ], true ) ) {
+				throw new \Exception( __( 'Invalid authentication method.', 'newspack-ads' ) );
+			}
+			$this->auth_method = $auth_method;
+			if ( ! $credentials ) {
+				throw new \Exception( __( 'Invalid credentials.', 'newspack-ads' ) );
+			}
+			$this->credentials = $credentials;
+		} else {
+			$this->session = $auth_method_or_session;
 		}
-
-		if ( ! $credentials ) {
-			throw new \Exception( __( 'Invalid credentials.', 'newspack-ads' ) );
-		}
-
-		$this->auth_method  = $auth_method;
-		$this->credentials  = $credentials;
 		$this->network_code = $network_code;
 
 		$session = $this->get_session();
@@ -115,7 +119,7 @@ final class Api {
 	 * @param ApiException $exception       Optional Google Ads API exception.
 	 * @param string       $default_message Optional default message to use.
 	 *
-	 * @return WP_Error Error.
+	 * @return WP_Error
 	 */
 	public function get_error( ApiException $exception = null, $default_message = null ) {
 		$error_message = $default_message;
@@ -167,7 +171,7 @@ final class Api {
 	/**
 	 * Get GAM session for making API requests.
 	 *
-	 * @return AdManagerSession GAM Session.
+	 * @return AdManagerSession
 	 */
 	public function get_session() {
 		if ( $this->session ) {
@@ -188,7 +192,7 @@ final class Api {
 	/**
 	 * Get GAM Connection User.
 	 *
-	 * @return User Current user.
+	 * @return User
 	 */
 	public function get_current_user() {
 		return ( new ServiceFactory() )->createUserService( $this->session )->getCurrentUser();
