@@ -287,14 +287,4 @@ class Api {
 	public function get_auth_method() {
 		return $this->auth_method;
 	}
-
-	/**
-	 * Get the connection status.
-	 */
-	public function get_connection_status() {
-		return [
-			'network_code' => $this->get_network_code(),
-			'auth_method'  => $this->get_auth_method(),
-		];
-	}
 }
