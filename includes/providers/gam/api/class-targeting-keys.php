@@ -158,7 +158,10 @@ final class Targeting_Keys extends Api_Object {
 			$keys = $service->getCustomTargetingKeysByStatement( $statement );
 		} catch ( \Exception $e ) {
 			$error_message = $e->getMessage();
-			if ( false !== strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
+			/* Ignore error if it's a network error (network is not set yet). Next request will have a network set. */
+			if ( false !== strpos( $error_message, 'AuthenticationError.NETWORK_NOT_FOUND' ) ) {
+				return [];
+			} elseif ( false !== strpos( $error_message, 'NETWORK_API_ACCESS_DISABLED' ) ) {
 				throw new \Exception( __( 'API access for this GAM account is disabled.', 'newspack-ads' ) );
 			} else {
 				throw new \Exception( __( 'Unable to find existing targeting keys.', 'newspack-ads' ) );
