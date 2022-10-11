@@ -12,6 +12,7 @@ use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202208\StatementBuilder;
 use Google\AdsApi\AdManager\v202208\ServiceFactory;
 use Google\AdsApi\AdManager\v202208\Creative;
+use Google\AdsApi\AdManager\v202208\Size;
 
 /**
  * Newspack Ads GAM Creatives
@@ -98,15 +99,15 @@ final class Creatives extends Api_Object {
 	}
 
 	/**
-	 * Create a GAM Creative.
+	 * Build creative objects from a configuration array.
 	 *
-	 * @param array[] $creatives_config Array of creative configurations.
+	 * @param array[] $creatives_config Array of creatives configurations.
 	 *
-	 * @return array Created creative.
+	 * @return Creative[] Array of creatives.
 	 *
-	 * @throws \Exception If unable to create creatives.
+	 * @throws \Exception If a creative configuration is invalid.
 	 */
-	public function create_creatives( $creatives_config = [] ) {
+	public static function build_creatives_from_config( $creatives_config ) {
 		$creatives = [];
 		$xsi_types = [
 			'BaseDynamicAllocationCreative',
@@ -152,6 +153,20 @@ final class Creatives extends Api_Object {
 			}
 			$creatives[] = $creative;
 		}
+		return $creatives;
+	}
+
+	/**
+	 * Create a GAM Creative.
+	 *
+	 * @param array[] $creatives_config Array of creatives configurations.
+	 *
+	 * @return array Created creative.
+	 *
+	 * @throws \Exception If unable to create creatives.
+	 */
+	public function create_creatives( $creatives_config = [] ) {
+		$creatives         = self::build_creatives_from_config( $creatives_config );
 		$service           = $this->get_creative_service();
 		$created_creatives = $service->createCreatives( $creatives );
 		return $this->get_serialized_creatives( $created_creatives );

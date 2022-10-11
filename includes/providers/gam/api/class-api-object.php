@@ -34,7 +34,7 @@ abstract class Api_Object {
 	 * @param AdManagerSession $session Session.
 	 * @param Api              $api     API Instance.
 	 */
-	public function __construct( $session, $api ) {
+	public function __construct( $session = null, $api = null ) {
 		$this->session = $session;
 		$this->api     = $api;
 	}
