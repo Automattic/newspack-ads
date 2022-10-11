@@ -493,9 +493,20 @@ final class GAM_Model {
 				return true;
 			}
 		} else {
-			$result = GAM_Api\Ad_Units::change_ad_unit_status( $id, 'ARCHIVE' );
-			self::sync_gam_settings();
-			return $result;
+			$api = self::get_api();
+			if ( $api ) {
+				$result = $api->ad_units->update_ad_unit_status( $id, 'ARCHIVE' );
+				self::sync_gam_settings();
+				return $result;
+			} else {
+				return new \WP_Error(
+					'newspack_ads_gam_error',
+					\esc_html__( 'Not connected to GAM', 'newspack-ads' ),
+					array(
+						'status' => '400',
+					)
+				);
+			}
 		}
 	}
 
