@@ -7,8 +7,9 @@
 
 namespace Newspack_Ads\Providers;
 
-use Newspack_Ads\Providers\GAM_API;
+use Google\Auth\Credentials\ServiceAccountCredentials;
 use Newspack_Ads\Placements;
+use Newspack_Ads\Providers\GAM\Api as GAM_Api;
 
 /**
  * Newspack Ads GAM Model Class.
@@ -18,6 +19,8 @@ final class GAM_Model {
 	const CODE  = 'code';
 	const FLUID = 'fluid';
 
+	const SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME = '_newspack_ads_gam_credentials';
+
 	// Legacy network code manually inserted.
 	const OPTION_NAME_LEGACY_NETWORK_CODE = '_newspack_ads_service_google_ad_manager_network_code';
 
@@ -25,6 +28,13 @@ final class GAM_Model {
 	const OPTION_NAME_GAM_NETWORK_CODE = '_newspack_ads_gam_network_code';
 
 	const OPTION_NAME_GAM_ITEMS = '_newspack_ads_gam_items';
+
+	/**
+	 * GAM Api
+	 *
+	 * @var GAM_Api
+	 */
+	private static $api = null;
 
 	/**
 	 * Custom post type
@@ -56,7 +66,40 @@ final class GAM_Model {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_ad_post_type' ] );
 		add_action( 'newspack_ads_activation_hook', [ __CLASS__, 'register_default_placements_units' ] );
-		GAM_API::set_network_code( get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null ) );
+	}
+
+	/**
+	 * Get the GAM API
+	 *
+	 * @return GAM_Api|false The GAM API, or false if unable to initialized.
+	 */
+	public static function get_api() {
+		if ( self::$api ) {
+			return self::$api;
+		}
+
+		/** Default method is through stored service account. */
+		$auth_method = 'service_account';
+		$credentials = self::get_service_account_credentials();
+
+		/** If service account method is not available, look for OAuth2. */
+		if ( ! $credentials && class_exists( 'Newspack\Google_Services_Connection' ) ) {
+			$oauth2_credentials = \Newspack\Google_Services_Connection::get_oauth2_credentials();
+			if ( false !== $oauth2_credentials ) {
+				$auth_method = 'oauth2';
+				$credentials = $oauth2_credentials;
+			}
+		}
+
+		$network_code = get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null );
+
+		try {
+			self::$api = new GAM_Api( $auth_method, $credentials, $network_code );
+		} catch ( \Exception $e ) {
+			return false;
+		}
+
+		return self::$api;
 	}
 
 	/**
@@ -126,10 +169,13 @@ final class GAM_Model {
 	 */
 	public static function setup_gam() {
 		$setup_results = array();
-		try {
-			$setup_results['created_targeting_keys'] = GAM_API::update_custom_targeting_keys();
-		} catch ( \Exception $e ) {
-			return new \WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
+		$api           = self::get_api();
+		if ( $api ) {
+			try {
+				$setup_results['created_targeting_keys'] = $api->targeting_keys->update_default_targeting_keys();
+			} catch ( \Exception $e ) {
+				return new \WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
+			}
 		}
 		return $setup_results;
 	}
@@ -307,8 +353,9 @@ final class GAM_Model {
 	public static function get_ad_units( $sync = true ) {
 		if ( $sync && ! self::$synced ) {
 			// Only sync once per execution.
-			if ( self::is_gam_connected() ) {
-				$gam_ad_units = GAM_API::get_serialised_gam_ad_units();
+			if ( self::is_api_connected() ) {
+				$api          = self::get_api();
+				$gam_ad_units = $api->ad_units->get_serialized_ad_units();
 				if ( ! \is_wp_error( $gam_ad_units ) && ! empty( $gam_ad_units ) ) {
 					self::sync_gam_settings( $gam_ad_units );
 					self::$synced = true;
@@ -329,8 +376,9 @@ final class GAM_Model {
 	 * @param array $ad_unit The new ad unit info to add.
 	 */
 	public static function add_ad_unit( $ad_unit ) {
-		if ( self::is_gam_connected() ) {
-			$result = GAM_API::create_ad_unit( $ad_unit );
+		if ( self::is_api_connected() ) {
+			$api    = self::get_api();
+			$result = $api->ad_units->create_ad_unit( $ad_unit );
 			self::sync_gam_settings();
 		} else {
 			$result = self::legacy_add_ad_unit( $ad_unit );
@@ -425,7 +473,8 @@ final class GAM_Model {
 		if ( isset( $ad_unit['is_legacy'] ) && true === $ad_unit['is_legacy'] ) {
 			$result = self::legacy_update_ad_unit( $ad_unit );
 		} else {
-			$result = GAM_API::update_ad_unit( $ad_unit );
+			$api    = self::get_api();
+			$result = $api->ad_units->update_ad_unit( $ad_unit );
 			self::sync_gam_settings();
 		}
 		return $result;
@@ -444,9 +493,20 @@ final class GAM_Model {
 				return true;
 			}
 		} else {
-			$result = GAM_API::change_ad_unit_status( $id, 'ARCHIVE' );
-			self::sync_gam_settings();
-			return $result;
+			$api = self::get_api();
+			if ( $api ) {
+				$result = $api->ad_units->update_ad_unit_status( $id, 'ARCHIVE' );
+				self::sync_gam_settings();
+				return $result;
+			} else {
+				return new \WP_Error(
+					'newspack_ads_gam_error',
+					\esc_html__( 'Not connected to GAM', 'newspack-ads' ),
+					array(
+						'status' => '400',
+					)
+				);
+			}
 		}
 	}
 
@@ -475,12 +535,13 @@ final class GAM_Model {
 	 * @param object[] $settings Settings to use.
 	 */
 	public static function sync_gam_settings( $serialised_ad_units = null, $settings = null ) {
+		$api = self::get_api();
 		if ( null === $serialised_ad_units ) {
-			$serialised_ad_units = GAM_API::get_serialised_gam_ad_units();
+			$serialised_ad_units = $api->ad_units->get_serialized_ad_units();
 		}
 		if ( null === $settings ) {
 			try {
-				$settings = GAM_API::get_gam_settings();
+				$settings = $api->get_settings();
 			} catch ( \Exception $e ) {
 				return new \WP_Error(
 					'newspack_ads_failed_gam_sync',
@@ -972,24 +1033,30 @@ final class GAM_Model {
 	 *
 	 * @return boolean True if GAM is connected.
 	 */
-	public static function is_gam_connected() {
-		$status = GAM_API::connection_status();
-		return $status['connected'];
+	public static function is_api_connected() {
+		return ! empty( self::get_api() );
 	}
 
 	/**
 	 * Get GAM connection status.
 	 *
-	 * @return object Object with status information.
+	 * @return array Connection status information.
 	 */
-	public static function get_gam_connection_status() {
-		$status = GAM_API::connection_status();
-		if ( isset( $status['network_code'] ) ) {
-			update_option( self::OPTION_NAME_GAM_NETWORK_CODE, $status['network_code'] );
-		} else {
-			$status['network_code'] = self::get_active_network_code();
-		}
-		if ( true === $status['connected'] ) {
+	public static function get_connection_status() {
+		$api    = self::get_api();
+		$status = [
+			'connected'       => false,
+			'connection_mode' => 'legacy',
+			'network_code'    => self::get_active_network_code(),
+		];
+		if ( $api ) {
+			$status['connected']       = self::is_api_connected();
+			$status['connection_mode'] = $api->get_auth_method();
+			$network_code              = $api->get_network_code();
+			if ( ! empty( $network_code ) ) {
+				$status['network_code'] = $network_code;
+				update_option( self::OPTION_NAME_GAM_NETWORK_CODE, $network_code );
+			}
 			$status['is_network_code_matched'] = self::is_network_code_matched();
 		}
 		return $status;
@@ -1000,13 +1067,67 @@ final class GAM_Model {
 	 *
 	 * @return array[] Array of available networks. Empty array if no networks found or unable to fetch.
 	 */
-	public static function get_gam_available_networks() {
-		try {
-			$networks = GAM_API::get_serialized_gam_networks();
-		} catch ( \Exception $e ) {
-			$networks = [];
+	public static function get_available_networks() {
+		$api      = self::get_api();
+		$networks = [];
+		if ( $api ) {
+			$networks = $api->get_serialized_networks();
 		}
 		return $networks;
+	}
+
+	/**
+	 * Get GAM Service Account Credentials
+	 *
+	 * @param array $config Optional config to load.
+	 *
+	 * @return ServiceAccountCredentials|false
+	 */
+	public static function get_service_account_credentials( $config = [] ) {
+		if ( empty( $config ) ) {
+			$config = get_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
+		}
+		if ( ! $config ) {
+			return false;
+		}
+		try {
+			$credentials = new ServiceAccountCredentials( 'https://www.googleapis.com/auth/dfp', $config );
+		} catch ( \Exception $e ) {
+			return false;
+		}
+		return $credentials;
+	}
+
+	/**
+	 * Update GAM credentials.
+	 *
+	 * @param array $config Credentials config to update.
+	 *
+	 * @return object Object with status information.
+	 */
+	public static function update_service_account_credentials( $config ) {
+		if ( ! self::get_service_account_credentials( $config ) ) {
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Invalid credentials configuration.', 'newspack-ads' ) );
+		}
+		$update_result = update_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME, $config );
+		if ( ! $update_result ) {
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to update GAM credentials', 'newspack-ads' ) );
+		}
+		return self::get_connection_status();
+	}
+
+	/**
+	 * Clear existing GAM credentials.
+	 *
+	 * @return object Object with status information.
+	 */
+	public static function remove_service_account_credentials() {
+		$deleted_credentials_result  = delete_option( self::SERVICE_ACCOUNT_CREDENTIALS_OPTION_NAME );
+		$deleted_network_code_result = delete_option( self::OPTION_NAME_GAM_NETWORK_CODE );
+		if ( ! $deleted_credentials_result || ! $deleted_network_code_result ) {
+			return new \WP_Error( 'newspack_ads_gam_credentials', __( 'Unable to remove GAM credentials', 'newspack-ads' ) );
+		}
+		return self::get_connection_status();
 	}
 }
 GAM_Model::init();
