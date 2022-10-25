@@ -29,6 +29,8 @@ final class GAM_Model {
 
 	const OPTION_NAME_GAM_ITEMS = '_newspack_ads_gam_items';
 
+	const OPTION_NAME_DEFAULT_UNITS = '_newspack_ads_gam_default_units';
+
 	/**
 	 * GAM Api
 	 *
@@ -236,9 +238,11 @@ final class GAM_Model {
 	/**
 	 * Get default ad units.
 	 *
+	 * @param boolean $sync Whether to sync the ad units with GAM.
+	 *
 	 * @return array Array of ad units.
 	 */
-	public static function get_default_ad_units() {
+	public static function get_default_ad_units( $sync = true ) {
 		$ad_units = [
 			'newspack_below_header'  => [
 				'name'  => \esc_html__( 'Newspack Below Header', 'newspack' ),
@@ -299,13 +303,59 @@ final class GAM_Model {
 		 * @param array $ad_units Array of ad units.
 		 */
 		$ad_units = apply_filters( 'newspack_ads_default_ad_units', $ad_units );
+
+		/**
+		 * Update values with stored data.
+		 */
+		$ad_units = array_merge(
+			$ad_units,
+			get_option( self::OPTION_NAME_DEFAULT_UNITS, [] )
+		);
+
+		/**
+		 * If API is available, sync ad unit in GAM and replace local config with
+		 * remote.
+		 */
+		if ( true === $sync ) {
+			$gam_ad_units = [];
+			$api          = self::get_api();
+			if ( $api ) {
+				foreach ( $ad_units as $ad_unit_key => $ad_unit_config ) {
+					/** Only sync units that doesn't yet have an ID. */
+					if ( ! empty( $ad_unit_config['id'] ) ) {
+						continue;
+					}
+					$result = $api->ad_units->create_ad_unit( $ad_unit_config );
+					/** If creation failed, it's likely a duplicate. */
+					if ( \is_wp_error( $result ) ) {
+						if ( empty( $gam_ad_units ) ) {
+							$gam_ad_units = $api->ad_units->get_serialized_ad_units();
+						}
+						$ad_unit_idx = array_search( $ad_unit_config['name'], array_column( $gam_ad_units, 'name' ) );
+						if ( $ad_unit_idx ) {
+							$ad_unit                    = $gam_ad_units[ $ad_unit_idx ];
+							$ad_units[ $ad_unit['id'] ] = $ad_unit;
+							unset( $ad_units[ $ad_unit_key ] );
+						}
+					} elseif ( is_array( $result ) && ! empty( $result['id'] ) ) {
+						$ad_units[ $result['id'] ] = $result;
+						unset( $ad_units[ $ad_unit_key ] );
+					}
+				}
+				update_option( self::OPTION_NAME_DEFAULT_UNITS, $ad_units );
+			}
+		}
+
 		return array_map(
 			function( $id, $ad_unit ) {
-				$ad_unit['id']         = $id;
-				$ad_unit['code']       = $id;
-				$ad_unit['fluid']      = false;
-				$ad_unit['status']     = 'ACTIVE';
-				$ad_unit['is_default'] = true;
+				/** Prepare unsynced default units. */
+				if ( empty( $ad_unit['id'] ) ) {
+					$ad_unit['id']         = $id;
+					$ad_unit['code']       = $id;
+					$ad_unit['fluid']      = false;
+					$ad_unit['status']     = 'ACTIVE';
+					$ad_unit['is_default'] = true;
+				}
 				return $ad_unit;
 			},
 			array_keys( $ad_units ),
@@ -362,10 +412,22 @@ final class GAM_Model {
 				}
 			}
 		}
+		$default_units = self::get_default_ad_units( $sync );
+		$synced_units  = self::get_synced_ad_units();
+
+		/* Clear default units that are synced. */
+		foreach ( $synced_units as $ad_unit ) {
+			$default_unit_idx = array_search( $ad_unit['id'], array_column( $default_units, 'id' ) );
+			if ( false !== $default_unit_idx ) {
+				unset( $default_units[ $default_unit_idx ] );
+				$default_units = array_values( $default_units );
+			}
+		}
+
 		$ad_units = array_merge(
 			self::get_legacy_ad_units(),
-			self::get_synced_ad_units(),
-			self::get_default_ad_units()
+			$synced_units,
+			$default_units
 		);
 		return $ad_units;
 	}

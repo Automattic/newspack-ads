@@ -94,7 +94,8 @@ final class Ad_Units extends Api_Object {
 	 * Get all GAM Ad Units in the user's network, serialized.
 	 *
 	 * @param int[] $ids Optional array of ad unit ids.
-	 * @return object[] Array of serialized ad units.
+	 *
+	 * @return array[] Array of serialized ad units.
 	 */
 	public function get_serialized_ad_units( $ids = [] ) {
 		try {
@@ -113,7 +114,8 @@ final class Ad_Units extends Api_Object {
 	 * Serialize Ad Unit.
 	 *
 	 * @param AdUnit $gam_ad_unit An AdUnit.
-	 * @return object Ad Unit configuration.
+	 *
+	 * @return array Ad Unit configuration.
 	 */
 	private function get_serialized_ad_unit( $gam_ad_unit ) {
 		$ad_unit = [
