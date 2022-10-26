@@ -307,40 +307,36 @@ final class GAM_Model {
 		/**
 		 * Update values with stored data.
 		 */
-		$ad_units = array_merge(
-			$ad_units,
-			get_option( self::OPTION_NAME_DEFAULT_UNITS, [] )
-		);
+		$stored_units = get_option( self::OPTION_NAME_DEFAULT_UNITS, [] );
+		if ( is_array( $stored_units ) ) {
+			$ad_units = array_merge( $ad_units, $stored_units );
+		}
 
 		/**
 		 * If API is available, sync ad unit in GAM and replace local config with
 		 * remote.
 		 */
 		if ( true === $sync ) {
-			$gam_ad_units = [];
-			$api          = self::get_api();
+			$api = self::get_api();
 			if ( $api ) {
+				$gam_ad_units = $api->ad_units->get_serialized_ad_units( [], true );
 				foreach ( $ad_units as $ad_unit_key => $ad_unit_config ) {
-					/** Only sync units that don't yet have an ID. */
-					if ( ! empty( $ad_unit_config['id'] ) ) {
-						continue;
-					}
-					$result = $api->ad_units->create_ad_unit( $ad_unit_config );
-					/** If creation failed, it's likely a duplicate. */
-					if ( \is_wp_error( $result ) ) {
-						if ( empty( $gam_ad_units ) ) {
-							$gam_ad_units = $api->ad_units->get_serialized_ad_units();
+					$ad_unit_idx = array_search( $ad_unit_config['name'], array_column( $gam_ad_units, 'name' ) );
+					if ( $ad_unit_idx ) {
+						$gam_ad_unit = $gam_ad_units[ $ad_unit_idx ];
+						/** Update ad unit status to 'ACTIVE' if not active. */
+						if ( 'ACTIVE' !== $gam_ad_unit['status'] ) {
+							$api->ad_units->update_ad_unit_status( $gam_ad_unit['id'], 'ACTIVE' );
+							$gam_ad_unit = $api->ad_units->get_serialized_ad_units( [ $gam_ad_unit['id'] ] )[0];
 						}
-						$ad_unit_idx = array_search( $ad_unit_config['name'], array_column( $gam_ad_units, 'name' ) );
-						if ( $ad_unit_idx ) {
-							$ad_unit                    = $gam_ad_units[ $ad_unit_idx ];
-							$ad_units[ $ad_unit['id'] ] = $ad_unit;
-							unset( $ad_units[ $ad_unit_key ] );
+					} else {
+						/** Create ad unit if not synced. */
+						$created_unit = $api->ad_units->create_ad_unit( $ad_unit_config );
+						if ( ! is_wp_error( $created_unit ) ) {
+							$gam_ad_unit = $created_unit;
 						}
-					} elseif ( is_array( $result ) && ! empty( $result['id'] ) ) {
-						$ad_units[ $result['id'] ] = $result;
-						unset( $ad_units[ $ad_unit_key ] );
 					}
+					$ad_units[ $ad_unit_key ] = $gam_ad_unit;
 				}
 				update_option( self::OPTION_NAME_DEFAULT_UNITS, $ad_units );
 			}
