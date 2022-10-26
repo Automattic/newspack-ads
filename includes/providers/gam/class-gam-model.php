@@ -321,7 +321,7 @@ final class GAM_Model {
 			$api          = self::get_api();
 			if ( $api ) {
 				foreach ( $ad_units as $ad_unit_key => $ad_unit_config ) {
-					/** Only sync units that doesn't yet have an ID. */
+					/** Only sync units that don't yet have an ID. */
 					if ( ! empty( $ad_unit_config['id'] ) ) {
 						continue;
 					}
