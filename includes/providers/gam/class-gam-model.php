@@ -93,7 +93,7 @@ final class GAM_Model {
 			}
 		}
 
-		$network_code = get_option( self::OPTION_NAME_GAM_NETWORK_CODE, null );
+		$network_code = self::get_active_network_code();
 
 		try {
 			self::$api = new GAM_Api( $auth_method, $credentials, $network_code );
@@ -320,25 +320,31 @@ final class GAM_Model {
 			$api = self::get_api();
 			if ( $api ) {
 				$gam_ad_units = $api->ad_units->get_serialized_ad_units( [], true );
-				foreach ( $ad_units as $ad_unit_key => $ad_unit_config ) {
-					$ad_unit_idx = array_search( $ad_unit_config['name'], array_column( $gam_ad_units, 'name' ) );
-					if ( $ad_unit_idx ) {
-						$gam_ad_unit = $gam_ad_units[ $ad_unit_idx ];
-						/** Update ad unit status to 'ACTIVE' if not active. */
-						if ( 'ACTIVE' !== $gam_ad_unit['status'] ) {
-							$api->ad_units->update_ad_unit_status( $gam_ad_unit['id'], 'ACTIVE' );
-							$gam_ad_unit = $api->ad_units->get_serialized_ad_units( [ $gam_ad_unit['id'] ] )[0];
+				if ( ! is_wp_error( $gam_ad_units ) ) {
+					foreach ( $ad_units as $ad_unit_key => $ad_unit_config ) {
+						/** Validate config before continuing. */
+						if ( ! is_array( $ad_unit_config ) || empty( $ad_unit_config['name'] ) ) {
+							continue;
 						}
-					} else {
-						/** Create ad unit if not synced. */
-						$created_unit = $api->ad_units->create_ad_unit( $ad_unit_config );
-						if ( ! is_wp_error( $created_unit ) ) {
-							$gam_ad_unit = $created_unit;
+						$ad_unit_idx = array_search( $ad_unit_config['name'], array_column( $gam_ad_units, 'name' ) );
+						if ( $ad_unit_idx ) {
+							$gam_ad_unit = $gam_ad_units[ $ad_unit_idx ];
+							/** Update ad unit status to 'ACTIVE' if not active. */
+							if ( 'ACTIVE' !== $gam_ad_unit['status'] ) {
+								$api->ad_units->update_ad_unit_status( $gam_ad_unit['id'], 'ACTIVE' );
+								$gam_ad_unit = $api->ad_units->get_serialized_ad_units( [ $gam_ad_unit['id'] ] )[0];
+							}
+						} else {
+							/** Create ad unit if not synced. */
+							$created_unit = $api->ad_units->create_ad_unit( $ad_unit_config );
+							if ( ! is_wp_error( $created_unit ) ) {
+								$gam_ad_unit = $created_unit;
+							}
 						}
+						$ad_units[ $ad_unit_key ] = $gam_ad_unit;
 					}
-					$ad_units[ $ad_unit_key ] = $gam_ad_unit;
+					update_option( self::OPTION_NAME_DEFAULT_UNITS, $ad_units );
 				}
-				update_option( self::OPTION_NAME_DEFAULT_UNITS, $ad_units );
 			}
 		}
 
