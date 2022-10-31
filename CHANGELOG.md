@@ -1,3 +1,10 @@
+## [1.39.2-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.39.1...v1.39.2-alpha.1) (2022-10-28)
+
+
+### Bug Fixes
+
+* trigger release ([5d0fd4b](https://github.com/Automattic/newspack-ads/commit/5d0fd4b904dd6b3c029446c5a1e78406dd30dbed))
+
 ## [1.39.1](https://github.com/Automattic/newspack-ads/compare/v1.39.0...v1.39.1) (2022-10-28)
 
 
