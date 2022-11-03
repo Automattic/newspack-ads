@@ -1,3 +1,10 @@
+# [1.40.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.39.2...v1.40.0-alpha.1) (2022-11-03)
+
+
+### Features
+
+* **gam:** sync default ad units ([#540](https://github.com/Automattic/newspack-ads/issues/540)) ([c0c5f9c](https://github.com/Automattic/newspack-ads/commit/c0c5f9c8e75c5b0d18be4bcd25b14a92922c1f08))
+
 ## [1.39.2](https://github.com/Automattic/newspack-ads/compare/v1.39.1...v1.39.2) (2022-10-31)
 
 
