@@ -57,7 +57,7 @@ final class Marketplace {
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update' ],
 				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
-				'args'                => self::get_ad_product_args(),
+				'args'                => self::get_product_args(),
 			]
 		);
 		\register_rest_route(
@@ -76,7 +76,7 @@ final class Marketplace {
 	 *
 	 * @return array
 	 */
-	private static function get_ad_product_args() {
+	private static function get_product_args() {
 		return [
 			'ad_unit'     => [
 				'required'          => true,
@@ -177,7 +177,7 @@ final class Marketplace {
 	 * @return WP_REST_Response containing the settings list.
 	 */
 	public static function api_update( $request ) {
-		$args      = array_intersect_key( $request->get_params(), self::get_ad_product_args() );
+		$args      = array_intersect_key( $request->get_params(), self::get_product_args() );
 		$placement = $request['placement'];
 		$product   = self::get_product( $placement );
 		if ( ! $product ) {
@@ -322,7 +322,7 @@ final class Marketplace {
 			return [];
 		}
 		$payable_events = self::get_payable_events();
-		$args_keys      = array_keys( self::get_ad_product_args() );
+		$args_keys      = array_keys( self::get_product_args() );
 		$data           = [
 			'id' => $product->get_id(),
 		];
