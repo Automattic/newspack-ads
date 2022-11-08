@@ -42,7 +42,7 @@
     "classnames": "^2.3.2",
     "eslint": "^8.26.0",
     "lint-staged": "^13.0.3",
-    "newspack-scripts": "^4.3.0",
+    "newspack-scripts": "^4.3.7",
     "postcss-scss": "^4.0.5",
     "prettier": "npm:wp-prettier@^2.6.2-beta-1",
     "stylelint": "^14.9.1"
