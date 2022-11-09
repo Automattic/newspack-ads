@@ -217,7 +217,7 @@ class Api {
 	 * @throws \Exception If not able to fetch networks.
 	 */
 	public function get_serialized_networks() {
-		$networks = $this->get_networks();
+		$networks = $this->get_networks() ?? [];
 		return array_map(
 			function( $network ) {
 				return [
