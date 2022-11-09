@@ -76,7 +76,7 @@ final class GAM_Model {
 	 * @return GAM_Api|false The GAM API, or false if unable to initialized.
 	 */
 	public static function get_api() {
-		if ( self::$api ) {
+		if ( isset( self::$api ) ) {
 			return self::$api;
 		}
 
@@ -97,8 +97,10 @@ final class GAM_Model {
 
 		try {
 			self::$api = new GAM_Api( $auth_method, $credentials, $network_code );
+			/** Test the connection once to ensure the session has GAM connection. */
+			self::$api->get_current_user();
 		} catch ( \Exception $e ) {
-			return false;
+			self::$api = false;
 		}
 
 		return self::$api;
@@ -406,11 +408,13 @@ final class GAM_Model {
 		if ( $sync && ! self::$synced ) {
 			// Only sync once per execution.
 			if ( self::is_api_connected() ) {
-				$api          = self::get_api();
-				$gam_ad_units = $api->ad_units->get_serialized_ad_units();
-				if ( ! \is_wp_error( $gam_ad_units ) && ! empty( $gam_ad_units ) ) {
-					self::sync_gam_settings( $gam_ad_units );
-					self::$synced = true;
+				$api = self::get_api();
+				if ( $api ) {
+					$gam_ad_units = $api->ad_units->get_serialized_ad_units();
+					if ( ! \is_wp_error( $gam_ad_units ) && ! empty( $gam_ad_units ) ) {
+						self::sync_gam_settings( $gam_ad_units );
+						self::$synced = true;
+					}
 				}
 			}
 		}
