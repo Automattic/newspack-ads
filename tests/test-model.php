@@ -154,7 +154,7 @@ class ModelTest extends WP_UnitTestCase {
 	public function test_ad_targeting() {
 		$post_id       = self::factory()->post->create();
 		$category_slug = 'events';
-		$category_id   = $this->factory->term->create(
+		$category_id   = self::factory()->term->create(
 			[
 				'name'     => 'Events',
 				'taxonomy' => 'category',
