@@ -181,15 +181,21 @@ class Api {
 		if ( $this->session ) {
 			return $this->session;
 		}
-		$config        = new Configuration(
-			[
-				'AD_MANAGER' => [
-					'applicationName' => self::APP,
-					'networkCode'     => $this->network_code ?? '-',
-				],
-			]
-		);
-		$this->session = ( new AdManagerSessionBuilder() )->from( $config )->withOAuth2Credential( $this->credentials )->build();
+		$config = [
+			'AD_MANAGER' => [
+				'applicationName' => self::APP,
+			],
+		];
+		/** If a network code is not yet available, use first from list. */
+		if ( ! $this->network_code ) {
+			$session  = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
+			$networks = $this->get_networks( $session );
+			if ( ! empty( $networks ) ) {
+				$this->network_code = $networks[0]->getNetworkCode();
+			}
+		}
+		$config['AD_MANAGER']['networkCode'] = $this->network_code;
+		$this->session                       = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
 		return $this->session;
 	}
 
@@ -205,11 +211,16 @@ class Api {
 	/**
 	 * Get GAM networks the authenticated user has access to.
 	 *
+	 * @param AdManagerSession $session Optional session to use.
+	 *
 	 * @return Network[] Array of networks.
 	 */
-	private function get_networks() {
+	private function get_networks( $session = null ) {
+		if ( empty( $session ) ) {
+			$session = $this->get_session();
+		}
 		if ( empty( $this->networks ) ) {
-			$this->networks = ( new ServiceFactory() )->createNetworkService( $this->session )->getAllNetworks();
+			$this->networks = ( new ServiceFactory() )->createNetworkService( $session )->getAllNetworks();
 		}
 		return $this->networks;
 	}
