@@ -1,3 +1,10 @@
+## [1.39.4-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.39.3...v1.39.4-hotfix.1) (2022-11-11)
+
+
+### Bug Fixes
+
+* **gam:** ensure api requests are made with network code ([d4a85a3](https://github.com/Automattic/newspack-ads/commit/d4a85a3f122e95dc184ce1fda3ae1f2c20e176c0))
+
 ## [1.39.3](https://github.com/Automattic/newspack-ads/compare/v1.39.2...v1.39.3) (2022-11-11)
 
 
