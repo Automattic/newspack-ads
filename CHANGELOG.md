@@ -1,3 +1,10 @@
+## [1.39.3](https://github.com/Automattic/newspack-ads/compare/v1.39.2...v1.39.3) (2022-11-11)
+
+
+### Bug Fixes
+
+* **gam:** validate API session ([#556](https://github.com/Automattic/newspack-ads/issues/556)) ([851e558](https://github.com/Automattic/newspack-ads/commit/851e5583f19503543436cb1d1d5f472ba54222b2))
+
 ## [1.39.2](https://github.com/Automattic/newspack-ads/compare/v1.39.1...v1.39.2) (2022-10-31)
 
 
