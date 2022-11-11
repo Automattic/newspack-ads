@@ -1,9 +1,16 @@
-# [1.40.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.40.0-alpha.2...v1.40.0-alpha.3) (2022-11-11)
+## [1.39.4](https://github.com/Automattic/newspack-ads/compare/v1.39.3...v1.39.4) (2022-11-11)
 
 
 ### Bug Fixes
 
-* **gam:** validate API session ([#556](https://github.com/Automattic/newspack-ads/issues/556)) ([851e558](https://github.com/Automattic/newspack-ads/commit/851e5583f19503543436cb1d1d5f472ba54222b2))
+* **gam:** ensure api requests are made with network code ([#557](https://github.com/Automattic/newspack-ads/issues/557)) ([db3d199](https://github.com/Automattic/newspack-ads/commit/db3d199a932e46230527936733bae1440e64b062))
+
+## [1.39.4-hotfix.1](https://github.com/Automattic/newspack-ads/compare/v1.39.3...v1.39.4-hotfix.1) (2022-11-11)
+
+
+### Bug Fixes
+
+* **gam:** ensure api requests are made with network code ([d4a85a3](https://github.com/Automattic/newspack-ads/commit/d4a85a3f122e95dc184ce1fda3ae1f2c20e176c0))
 
 ## [1.39.3](https://github.com/Automattic/newspack-ads/compare/v1.39.2...v1.39.3) (2022-11-11)
 
