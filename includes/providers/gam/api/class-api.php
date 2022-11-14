@@ -130,20 +130,24 @@ class Api {
 				$errors[] = $error->getErrorString();
 			}
 		}
-		if ( in_array( 'UniqueError.NOT_UNIQUE', $errors ) ) {
-			$error_message = __( 'Name must be unique.', 'newspack-ads' );
-		}
-		if ( in_array( 'CommonError.CONCURRENT_MODIFICATION', $errors ) ) {
-			$error_message = __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' );
-		}
-		if ( in_array( 'PermissionError.PERMISSION_DENIED', $errors ) ) {
-			$error_message = __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' );
-		}
-		if ( in_array( 'AuthenticationError.NETWORK_API_ACCESS_DISABLED', $errors ) ) {
-			$network_code  = $this->get_network_code();
-			$settings_link = "https://admanager.google.com/${network_code}#admin/settings/network";
-			$error_message = __( 'API access for this GAM account is disabled.', 'newspack-ads' ) .
-			" <a href=\"${settings_link}\">" . __( 'Enable API access in your GAM settings.', 'newspack' ) . '</a>';
+		$network_code = $this->get_network_code();
+		$message_map  = [
+			'UniqueError.NOT_UNIQUE'                => __( 'Name must be unique.', 'newspack-ads' ),
+			'CommonError.CONCURRENT_MODIFICATION'   => __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' ),
+			'PermissionError.PERMISSION_DENIED'     => __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' ),
+			'AuthenticationError.NETWORK_NOT_FOUND' => __( 'The network code is invalid.', 'newspack-ads' ),
+			'AuthenticationError.NETWORK_API_ACCESS_DISABLED' => sprintf(
+				'%s <a href="%s" target="_blank">%s</a>',
+				__( 'API access for this GAM account is disabled.', 'newspack-ads' ),
+				"https://admanager.google.com/${network_code}#admin/settings/network",
+				__( 'Enable API access in your GAM settings.', 'newspack-ads' )
+			),
+		];
+		foreach ( $message_map as $error_type => $message ) {
+			if ( in_array( $error_type, $errors, true ) ) {
+				$error_message = $message;
+				break;
+			}
 		}
 		return new \WP_Error(
 			'newspack_ads_gam_error',

@@ -39,16 +39,18 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
-	 * @param int[] $ids Optional array of ad unit ids.
+	 * @param int[]   $ids              Optional array of ad unit ids.
+	 * @param boolean $include_archived Whether to include archived ad units.
+	 *
 	 * @return StatementBuilder Statement builder.
 	 */
-	private static function get_statement_builder( $ids = [] ) {
+	private static function get_statement_builder( $ids = [], $include_archived = false ) {
 		// Get all non-archived ad units, unless ids are specified.
 		$statement_builder = new StatementBuilder();
-		if ( empty( $ids ) ) {
-			$statement_builder = $statement_builder->where( "Status IN('ACTIVE')" );
-		} else {
-			$statement_builder = $statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		if ( ! empty( $ids ) ) {
+			$statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
+		} elseif ( ! $include_archived ) {
+			$statement_builder->where( "Status IN('ACTIVE')" );
 		}
 		$statement_builder->orderBy( 'name ASC' )->limit( StatementBuilder::SUGGESTED_PAGE_LIMIT );
 		return $statement_builder;
@@ -58,12 +60,14 @@ final class Ad_Units extends Api_Object {
 	 * Get all GAM Ad Units in the user's network.
 	 * If $ids parameter is not specified, will return all ad units found.
 	 *
-	 * @param int[] $ids Optional array of ad unit ids.
+	 * @param int[]   $ids              Optional array of ad unit ids.
+	 * @param boolean $include_archived Whether to include archived ad units.
+	 *
 	 * @return AdUnit[] Array of AdUnits.
 	 */
-	private function get_ad_units( $ids = [] ) {
+	private function get_ad_units( $ids = [], $include_archived = false ) {
 		$gam_ad_units      = [];
-		$statement_builder = self::get_statement_builder( $ids );
+		$statement_builder = self::get_statement_builder( $ids, $include_archived );
 		$inventory_service = $this->get_inventory_service();
 
 		// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
@@ -93,12 +97,14 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Get all GAM Ad Units in the user's network, serialized.
 	 *
-	 * @param int[] $ids Optional array of ad unit ids.
-	 * @return object[] Array of serialized ad units.
+	 * @param int[]   $ids              Optional array of ad unit ids.
+	 * @param boolean $include_archived Whether to include archived ad units.
+	 *
+	 * @return array[] Array of serialized ad units.
 	 */
-	public function get_serialized_ad_units( $ids = [] ) {
+	public function get_serialized_ad_units( $ids = [], $include_archived = false ) {
 		try {
-			$ad_units            = $this->get_ad_units( $ids );
+			$ad_units            = $this->get_ad_units( $ids, $include_archived );
 			$ad_units_serialised = [];
 			foreach ( $ad_units as $ad_unit ) {
 				$ad_units_serialised[] = $this->get_serialized_ad_unit( $ad_unit );
@@ -113,7 +119,8 @@ final class Ad_Units extends Api_Object {
 	 * Serialize Ad Unit.
 	 *
 	 * @param AdUnit $gam_ad_unit An AdUnit.
-	 * @return object Ad Unit configuration.
+	 *
+	 * @return array Ad Unit configuration.
 	 */
 	private function get_serialized_ad_unit( $gam_ad_unit ) {
 		$ad_unit = [
