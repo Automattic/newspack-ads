@@ -257,11 +257,9 @@ final class Marketplace {
 	 */
 	private static function update_product( $placement, $product, $args ) {
 		$payable_events = self::get_payable_events();
-		$price          = $args['prices'][ $payable_events[ $args['event'] ] ];
 		$product->set_name( __( 'Ad Placement', 'newspack-ads' ) . ' - ' . $placement );
 		$product->set_virtual( true );
 		$product->is_visible( false );
-		$product->set_regular_price( $price );
 		$product->save();
 		self::set_product_meta( $product->get_id(), 'placement', $placement );
 		foreach ( $args as $key => $value ) {
