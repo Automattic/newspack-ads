@@ -78,31 +78,85 @@ final class Marketplace {
 	 */
 	private static function get_product_args() {
 		return [
-			'ad_unit'     => [
-				'required'          => true,
+			'ad_unit'        => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 			],
-			'prices'      => [
-				'required'          => true,
+			'prices'         => [
 				'type'              => 'object',
 				'sanitize_callback' => [ __CLASS__, 'sanitize_prices' ],
 			],
-			'is_per_size' => [
+			'is_flat_fee'    => [
 				'type'              => 'boolean',
 				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => false,
+				'default'           => true,
 			],
-			'per_size'    => [
+			'payable_events' => [
+				'required'          => true,
+				'type'              => 'array',
+				'sanitize_callback' => [ __CLASS__, 'sanitize_payable_events' ],
+			],
+			'allowed_sizes'  => [
+				'required'          => true,
+				'type'              => 'array',
+				'sanitize_callback' => [ __CLASS__, 'sanitize_sizes' ],
+			],
+			'size'           => [
 				'type'              => 'object',
 				'sanitize_callback' => [ __CLASS__, 'sanitize_per_size' ],
 			],
-			'event'       => [
-				'required'          => true,
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-			],
 		];
+	}
+
+	/**
+	 * Sanitize payable events.
+	 *
+	 * @param string[] $events Payable events.
+	 *
+	 * @return string[]
+	 */
+	public static function sanitize_payable_events( $events ) {
+		$payable_events = array_keys( self::get_payable_events() );
+		return array_filter(
+			array_map(
+				function( $event ) use ( $payable_events ) {
+					$event = \sanitize_text_field( $event );
+					if ( array_diff( [ $event ], $payable_events ) ) {
+						return null;
+					}
+					return $event;
+				},
+				$events
+			)
+		);
+	}
+
+	/**
+	 * Sanitize sizes.
+	 *
+	 * @param string[] $sizes List of size strings.
+	 *
+	 * @return string[]
+	 */
+	public static function sanitize_sizes( $sizes ) {
+		return array_filter(
+			array_map(
+				function( $size ) {
+					$size       = \sanitize_text_field( $size );
+					$dimensions = explode( 'x', $size );
+					if ( 2 !== count( $dimensions ) ) {
+						return null;
+					}
+					foreach ( $dimensions as $dimension ) {
+						if ( ! is_numeric( $dimension ) ) {
+							return null;
+						}
+					}
+					return $size;
+				},
+				$sizes
+			)
+		);
 	}
 
 	/**
