@@ -8,6 +8,8 @@
 namespace Newspack_Ads;
 
 use Newspack_Ads\Settings;
+use Newspack_Ads\Providers\GAM_Model;
+use Newspack_Ads\Placements;
 use WC_Product_Simple;
 
 defined( 'ABSPATH' ) || exit;
@@ -26,6 +28,7 @@ final class Marketplace {
 	 */
 	public static function init() {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
+		\add_action( 'init', [ __CLASS__, 'register_block' ] );
 	}
 
 	/**
@@ -43,7 +46,7 @@ final class Marketplace {
 		);
 		\register_rest_route(
 			Settings::API_NAMESPACE,
-			'/products/(?P<placement>.+)',
+			'/products/(?P<id>\d+)',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get' ],
@@ -52,7 +55,17 @@ final class Marketplace {
 		);
 		\register_rest_route(
 			Settings::API_NAMESPACE,
-			'/products/(?P<placement>.+)',
+			'/products',
+			[
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'api_create' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
+				'args'                => self::get_product_args(),
+			]
+		);
+		\register_rest_route(
+			Settings::API_NAMESPACE,
+			'/products/(?P<id>\d+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update' ],
@@ -62,7 +75,7 @@ final class Marketplace {
 		);
 		\register_rest_route(
 			Settings::API_NAMESPACE,
-			'/products/(?P<placement>.+)',
+			'/products/(?P<id>\d+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ __CLASS__, 'api_delete' ],
@@ -78,57 +91,39 @@ final class Marketplace {
 	 */
 	private static function get_product_args() {
 		return [
-			'ad_unit'        => [
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-			],
-			'prices'         => [
-				'type'              => 'object',
-				'sanitize_callback' => [ __CLASS__, 'sanitize_prices' ],
-			],
-			'is_flat_fee'    => [
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => true,
-			],
-			'payable_events' => [
+			'placements'     => [
 				'required'          => true,
 				'type'              => 'array',
-				'sanitize_callback' => [ __CLASS__, 'sanitize_payable_events' ],
+				'sanitize_callback' => [ __CLASS__, 'sanitize_placements' ],
 			],
-			'allowed_sizes'  => [
+			'price'          => [
+				'required'          => true,
+				'type'              => 'string',
+				'sanitize_callback' => [ __CLASS__, 'sanitize_price' ],
+			],
+			'payable_event'  => [
+				'required'          => true,
+				'type'              => 'string',
+				'sanitize_callback' => [ __CLASS__, 'sanitize_payable_event' ],
+				'default'           => 'cpd',
+			],
+			'required_sizes' => [
 				'required'          => true,
 				'type'              => 'array',
 				'sanitize_callback' => [ __CLASS__, 'sanitize_sizes' ],
-			],
-			'size'           => [
-				'type'              => 'object',
-				'sanitize_callback' => [ __CLASS__, 'sanitize_per_size' ],
 			],
 		];
 	}
 
 	/**
-	 * Sanitize payable events.
+	 * Sanitize placements.
 	 *
-	 * @param string[] $events Payable events.
+	 * @param array $placements Placements.
 	 *
-	 * @return string[]
+	 * @return array
 	 */
-	public static function sanitize_payable_events( $events ) {
-		$payable_events = array_keys( self::get_payable_events() );
-		return array_filter(
-			array_map(
-				function( $event ) use ( $payable_events ) {
-					$event = \sanitize_text_field( $event );
-					if ( array_diff( [ $event ], $payable_events ) ) {
-						return null;
-					}
-					return $event;
-				},
-				$events
-			)
-		);
+	public static function sanitize_placements( $placements ) {
+		return array_map( 'sanitize_text_field', $placements );
 	}
 
 	/**
@@ -160,49 +155,35 @@ final class Marketplace {
 	}
 
 	/**
-	 * Sanitize ad product per size data.
+	 * Sanitize payable event.
 	 *
-	 * @param array $sizes Sizes data.
+	 * @param string $price_unit Payable event.
 	 *
-	 * @return array
+	 * @return string
 	 */
-	public static function sanitize_per_size( $sizes ) {
-		$sanitized_sizes = [];
-		foreach ( $sizes as $size_name => $data ) {
-			if ( ! is_array( $data ) ) {
-				continue;
-			}
-			$sanitized_data = [];
-			if ( ! empty( $data['prices'] ) ) {
-				$sanitized_data['prices'] = self::sanitize_prices( $data['prices'] );
-			}
-			if ( ! empty( $sanitized_data ) ) {
-				$sanitized_sizes[ $size_name ] = $sanitized_data;
-			}
-		}
-		return $sanitized_sizes;
+	public static function sanitize_payable_event( $price_unit ) {
+		$units = [
+			'cpm',
+			'cpc',
+			'cpv',
+			'cpd',
+			'viewable_cpm',
+		];
+		return in_array( $price_unit, $units, true ) ? $price_unit : '';
 	}
 
 	/**
-	 * Sanitize ad product prices.
+	 * Sanitize a price.
 	 *
-	 * @param array $prices Array of prices.
+	 * @param string|number $price Price.
 	 *
-	 * @return array[] Array of prices.
+	 * @return float Price.
 	 */
-	public static function sanitize_prices( $prices ) {
-		if ( ! is_array( $prices ) || empty( $prices ) ) {
-			return [];
+	public static function sanitize_price( $price ) {
+		if ( empty( $price ) || ! is_numeric( $price ) ) {
+			return 0;
 		}
-		$payable_events_units = array_values( self::get_payable_events() );
-		$sanitized_prices     = [];
-		foreach ( $prices as $key => $val ) {
-			if ( ! in_array( $key, $payable_events_units ) ) {
-				continue;
-			}
-			$sanitized_prices[ $key ] = floatval( $val );
-		}
-		return $sanitized_prices;
+		return round( floatval( $price ), 2 );
 	}
 
 	/**
@@ -211,16 +192,16 @@ final class Marketplace {
 	 * @param WP_REST_Request $request Full details about the request.
 	 */
 	public static function api_get( $request ) {
-		$products = self::get_products();
-		if ( ! empty( $request['placement'] ) ) {
-			$placement = $request['placement'];
-			if ( ! empty( $products[ $placement ] ) ) {
-				return \rest_ensure_response( self::get_product_data( $products[ $placement ] ) );
-			} else {
+		if ( ! empty( $request['id'] ) ) {
+			$id      = $request['id'];
+			$product = self::get_product( $id );
+			if ( ! $product ) {
 				return new \WP_Error( 'newspack_ads_product_not_found', __( 'Ad product not found.', 'newspack-ads' ), [ 'status' => 404 ] );
 			}
+			return \rest_ensure_response( self::get_product_data( $product ) );
+		} else {
+			return \rest_ensure_response( array_map( [ __CLASS__, 'get_product_data' ], self::get_products() ) );
 		}
-		return \rest_ensure_response( array_map( [ __CLASS__, 'get_product_data' ], $products ) );
 	}
 
 	/**
@@ -230,14 +211,27 @@ final class Marketplace {
 	 *
 	 * @return WP_REST_Response containing the settings list.
 	 */
+	public static function api_create( $request ) {
+		$args    = array_intersect_key( $request->get_params(), self::get_product_args() );
+		$product = self::update_product( new WC_Product_Simple(), $args );
+		return \rest_ensure_response( self::get_product_data( $product ) );
+	}
+
+	/**
+	 * Update an ad product.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the settings list.
+	 */
 	public static function api_update( $request ) {
-		$args      = array_intersect_key( $request->get_params(), self::get_product_args() );
-		$placement = $request['placement'];
-		$product   = self::get_product( $placement );
+		$args    = array_intersect_key( $request->get_params(), self::get_product_args() );
+		$id      = $request['id'];
+		$product = self::get_product( $id );
 		if ( ! $product ) {
 			$product = new WC_Product_Simple();
 		}
-		$product = self::update_product( $placement, $product, $args );
+		$product = self::update_product( $product, $args );
 		return \rest_ensure_response( self::get_product_data( $product ) );
 	}
 
@@ -249,42 +243,52 @@ final class Marketplace {
 	/**
 	 * Update a product with the sanitized arguments.
 	 *
-	 * @param string            $placement The ad placement.
 	 * @param WC_Product_Simple $product   The product to update.
 	 * @param array             $args      The sanitized ad product arguments.
 	 *
 	 * @return WC_Product_Simple The updated product.
 	 */
-	private static function update_product( $placement, $product, $args ) {
-		$payable_events = self::get_payable_events();
-		$product->set_name( __( 'Ad Placement', 'newspack-ads' ) . ' - ' . $placement );
+	private static function update_product( $product, $args ) {
+		$placements = $args['placements'];
+		$product->set_name(
+			sprintf(
+			/* translators: %s: placement name */
+				__( 'Ad - %s', 'newspack-ads' ),
+				implode( ', ', $placements )
+			)
+		);
 		$product->set_virtual( true );
 		$product->is_visible( false );
 		$product->save();
-		self::set_product_meta( $product->get_id(), 'placement', $placement );
 		foreach ( $args as $key => $value ) {
 			self::set_product_meta( $product->get_id(), $key, $value );
 		}
-		self::set_placement_product( $placement, $product );
+		self::set_ad_product( $product );
 		return $product;
 	}
 
 	/**
-	 * Set the placement product.
+	 * Register ad product ID as wp option.
 	 *
-	 * @param string            $placement The ad placement.
-	 * @param WC_Product_Simple $product   The product to set.
+	 * @param WC_Product_Simple $product The product to set.
 	 *
 	 * @return bool Whether the value was updated or not.
 	 */
-	private static function set_placement_product( $placement, $product ) {
+	private static function set_ad_product( $product ) {
 		$id = $product->get_id();
 		/** Bail if WC Product is not saved. */
 		if ( ! $id ) {
 			return;
 		}
-		$products               = self::get_products();
-		$products[ $placement ] = $id;
+		$products = array_map(
+			function( $product ) {
+				return $product->get_id();
+			},
+			self::get_products()
+		);
+		if ( ! in_array( $id, $products, true ) ) {
+			$products[] = $id;
+		}
 		return update_option( self::PRODUCTS_OPTION_NAME, $products );
 	}
 
@@ -314,19 +318,6 @@ final class Marketplace {
 	}
 
 	/**
-	 * Get ad product payable events and its value unit (e.g. CPM, CPC).
-	 *
-	 * @return array Associative array of event value units keyed by the event name.
-	 */
-	public static function get_payable_events() {
-		return [
-			'impressions'          => 'cpm',
-			'clicks'               => 'cpc',
-			'viewable_impressions' => 'viewable_cpm',
-		];
-	}
-
-	/**
 	 * Get all placement products.
 	 *
 	 * @return WC_Product_Simple[] Ad products keyed by their placement.
@@ -337,29 +328,25 @@ final class Marketplace {
 			return [];
 		}
 		$products = [];
-		foreach ( $ids as $placement => $id ) {
-			try {
-				$product = \wc_get_product( $id );
-			} catch ( \Exception $e ) {
-				continue;
-			}
-			if ( $product && ! is_wp_error( $product ) ) {
-				$products[ $placement ] = new WC_Product_Simple( $product );
-			}
+		foreach ( $ids as $id ) {
+			$products[] = self::get_product( $id );
 		}
-		return $products;
+		return array_filter( $products );
 	}
 
 	/**
-	 * Get a product given its placement.
+	 * Get a product given its ID.
 	 *
-	 * @param string $placement The product placement.
+	 * @param string $id The product id.
 	 *
 	 * @return WC_Product_Simple|null Ad product or null if not found.
 	 */
-	public static function get_product( $placement ) {
-		$products = self::get_products();
-		return isset( $products[ $placement ] ) ? $products[ $placement ] : null;
+	public static function get_product( $id ) {
+		$product = \wc_get_product( $id );
+		if ( $product && ! is_wp_error( $product ) ) {
+			return new WC_Product_Simple( $product );
+		}
+		return null;
 	}
 
 	/**
@@ -373,15 +360,56 @@ final class Marketplace {
 		if ( ! $product || ! $product->get_id() ) {
 			return [];
 		}
-		$payable_events = self::get_payable_events();
-		$args_keys      = array_keys( self::get_product_args() );
-		$data           = [
+		$args_keys = array_keys( self::get_product_args() );
+		$data      = [
 			'id' => $product->get_id(),
 		];
 		foreach ( $args_keys as $key ) {
 			$data[ $key ] = self::get_product_meta( $product->get_id(), $key );
 		}
 		return $data;
+	}
+
+	/**
+	 * Register block.
+	 */
+	public static function register_block() {
+		\register_block_type(
+			'newspack-ads/marketplace',
+			[
+				'render_callback' => [ __CLASS__, 'render_marketplace_purchase' ],
+			]
+		);
+	}
+
+	/**
+	 * Render the UI for puchasing placements.
+	 */
+	public static function render_marketplace_purchase() {
+		$placements = Placements::get_placements();
+		$products   = array_map( [ __CLASS__, 'get_product_data' ], self::get_products() );
+		ob_start();
+		?>
+		<div class="newspack-ads__marketplace">
+			<select name="placement">
+				<option value=""><?php esc_html_e( 'Select an ad placement', 'newspack-ads' ); ?></option>
+				<?php
+				foreach ( $products as $key => $product ) :
+					$name = isset( $placements[ $key ] ) ? $placements[ $key ]['name'] : $key;
+					?>
+					<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $name ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<p>
+				<code>
+					<pre>
+						<?php echo wp_json_encode( $products, JSON_PRETTY_PRINT ); ?>
+					</pre>
+				</code>
+			</p>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 }
 Marketplace::init();
