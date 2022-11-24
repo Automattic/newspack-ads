@@ -101,6 +101,7 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-widget.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/customizer/class-customizer.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-suppression.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/marketplace/class-marketplace.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/functions.php';
 	}
 
