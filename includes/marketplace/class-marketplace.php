@@ -100,7 +100,7 @@ final class Marketplace {
 			$actions = [
 				'edit' => sprintf(
 					'<a href="%s">%s</a>',
-					esc_url( admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace/' . $post->ID ) ),
+					esc_url( admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace' ) ),
 					esc_html__( 'Edit in Newspack Ads', 'newspack-ads' )
 				),
 			];
@@ -119,7 +119,7 @@ final class Marketplace {
 	 */
 	public static function get_edit_post_link( $link, $post_id, $context ) {
 		if ( self::is_ad_product( $post_id ) ) {
-			$link = admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace/' . $post_id );
+			$link = admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace' );
 		}
 		return $link;
 	}
