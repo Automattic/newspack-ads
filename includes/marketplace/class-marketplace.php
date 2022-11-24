@@ -30,6 +30,8 @@ final class Marketplace {
 	 */
 	public static function init() {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
+		\add_filter( 'post_row_actions', [ __CLASS__, 'post_row_actions' ], PHP_INT_MAX, 2 );
+		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );
 		\add_action( 'init', [ __CLASS__, 'register_block' ] );
 		\add_action( 'template_redirect', [ __CLASS__, 'handle_purchase' ] );
 		\add_filter( 'woocommerce_add_cart_item_data', [ __CLASS__, 'cart_item_data_add' ], PHP_INT_MAX, 2 );
@@ -92,6 +94,43 @@ final class Marketplace {
 				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
+	}
+
+	/**
+	 * Custom post row actions.
+	 *
+	 * @param array    $actions Array of actions.
+	 * @param \WP_Post $post    Post object.
+	 *
+	 * @return array
+	 */
+	public static function post_row_actions( $actions, $post ) {
+		if ( self::is_ad_product( $post ) ) {
+			$actions = [
+				'edit' => sprintf(
+					'<a href="%s">%s</a>',
+					esc_url( admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace/' . $post->ID ) ),
+					esc_html__( 'Edit in Newspack Ads', 'newspack-ads' )
+				),
+			];
+		}
+		return $actions;
+	}
+
+	/**
+	 * Get ad product edit link.
+	 *
+	 * @param string   $link Link.
+	 * @param int      $post_id Post ID.
+	 * @param bool|int $context Context.
+	 *
+	 * @return string
+	 */
+	public static function get_edit_post_link( $link, $post_id, $context ) {
+		if ( self::is_ad_product( $post_id ) ) {
+			$link = admin_url( 'admin.php?page=newspack-ads-wizard#/marketplace/' . $post_id );
+		}
+		return $link;
 	}
 
 	/**
@@ -200,6 +239,8 @@ final class Marketplace {
 	 * Get a product by placement.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing the ad product data or error.
 	 */
 	public static function api_get( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -219,7 +260,7 @@ final class Marketplace {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
-	 * @return WP_REST_Response containing the settings list.
+	 * @return WP_REST_Response containing the ad product data or error.
 	 */
 	public static function api_create( $request ) {
 		$args    = array_intersect_key( $request->get_params(), self::get_product_args() );
@@ -232,7 +273,7 @@ final class Marketplace {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
-	 * @return WP_REST_Response containing the settings list.
+	 * @return WP_REST_Response containing the ad product data or error.
 	 */
 	public static function api_update( $request ) {
 		$args    = array_intersect_key( $request->get_params(), self::get_product_args() );
@@ -247,8 +288,22 @@ final class Marketplace {
 
 	/**
 	 * Delete an ad product.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response containing all products or error.
 	 */
-	public static function api_delete() {}
+	public static function api_delete( $request ) {
+		$id = $request['id'];
+		if ( ! $id ) {
+			return new \WP_Error( 'newspack_ads_product_not_found', __( 'Ad product not found.', 'newspack-ads' ), [ 'status' => 404 ] );
+		}
+		$res = self::delete_product( $id );
+		if ( ! \is_wp_error( $res ) ) {
+			$res = array_map( [ __CLASS__, 'get_product_data' ], self::get_products() );
+		}
+		return \rest_ensure_response( $res );
+	}
 
 	/**
 	 * Update a product with the sanitized arguments.
@@ -268,6 +323,7 @@ final class Marketplace {
 		);
 		$product->set_regular_price( $args['price'] );
 		$product->set_virtual( true );
+		$product->set_catalog_visibility( 'hidden' );
 		$product->is_visible( false );
 		$product->save();
 		foreach ( $args as $key => $value ) {
@@ -275,6 +331,22 @@ final class Marketplace {
 		}
 		self::set_ad_product( $product );
 		return $product;
+	}
+
+	/**
+	 * Delete a product given its ID.
+	 *
+	 * @param int $product_id Product ID.
+	 *
+	 * @return \WP_Error|void
+	 */
+	private static function delete_product( $product_id ) {
+		$product = self::get_product( $product_id );
+		if ( ! $product ) {
+			return new \WP_Error( 'newspack_ads_product_not_found', __( 'Ad product not found.', 'newspack-ads' ), [ 'status' => 404 ] );
+		}
+		wp_delete_post( $product_id, true );
+		$product->delete( true );
 	}
 
 	/**
@@ -341,6 +413,24 @@ final class Marketplace {
 				$placements
 			)
 		);
+	}
+
+	/**
+	 * Whether the post is an ad product.
+	 *
+	 * @param WP_Post|int $post_id Post object or ID.
+	 *
+	 * @return bool Whether the post is an ad product.
+	 */
+	public static function is_ad_product( $post_id ) {
+		if ( $post_id instanceof \WP_Post ) {
+			$post_id = $post_id->ID;
+		}
+		if ( empty( $post_id ) ) {
+			return false;
+		}
+		$ids = get_option( self::PRODUCTS_OPTION_NAME, [] );
+		return in_array( $post_id, array_map( 'absint', $ids ), true );
 	}
 
 	/**
