@@ -321,6 +321,7 @@ final class Marketplace {
 				self::get_product_title( $product )
 			)
 		);
+		$product->save();
 		return $product;
 	}
 
