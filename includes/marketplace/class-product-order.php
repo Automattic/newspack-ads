@@ -39,38 +39,38 @@ final class Product_Order {
 	/**
 	 * Custom display of order line item meta key.
 	 *
-	 * @param string $display_key Display key.
+	 * @param string $key Meta key.
 	 *
 	 * @return string
 	 */
-	public static function display_meta_key( $display_key ) {
-		if ( 'newspack_ads_from' === $display_key ) {
+	public static function display_meta_key( $key ) {
+		if ( 'newspack_ads_from' === $key ) {
 			return __( 'From', 'newspack-ads' );
 		}
-		if ( 'newspack_ads_to' === $display_key ) {
+		if ( 'newspack_ads_to' === $key ) {
 			return __( 'To', 'newspack-ads' );
 		}
-		if ( 'newspack_ads_days' === $display_key ) {
+		if ( 'newspack_ads_days' === $key ) {
 			return __( 'Days', 'newspack-ads' );
 		}
-		return $display_key;
+		return $key;
 	}
 
 	/**
 	 * Custom display of order line item meta value.
 	 *
-	 * @param string $display_meta_value Display meta value.
-	 * @param object $meta               Meta object.
+	 * @param string $value Meta value.
+	 * @param object $meta  Meta object.
 	 *
 	 * @return string
 	 */
-	public static function display_meta_value( $display_meta_value, $meta ) {
+	public static function display_meta_value( $value, $meta ) {
 		if ( ! empty( $meta ) ) {
 			if ( 'newspack_ads_from' == $meta->key || 'newspack_ads_to' == $meta->key ) {
-				return \date_i18n( \get_option( 'date_format' ), strtotime( $display_meta_value ) );
+				return \date_i18n( \get_option( 'date_format' ), strtotime( $value ) );
 			}
 		}
-		return $display_meta_value;
+		return $value;
 	}
 }
 Product_Order::init();
