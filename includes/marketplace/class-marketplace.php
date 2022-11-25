@@ -23,8 +23,6 @@ final class Marketplace {
 
 	const PRODUCT_META_PREFIX = '_ad_';
 
-	const PURCHASE_ACTION = 'newspack_ads_purchase';
-
 	/**
 	 * Initialize hooks.
 	 */
@@ -32,6 +30,7 @@ final class Marketplace {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		\add_filter( 'post_row_actions', [ __CLASS__, 'post_row_actions' ], PHP_INT_MAX, 2 );
 		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );
+		require_once dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/includes/marketplace/class-product-purchase.php';
 	}
 
 	/**
@@ -446,7 +445,7 @@ final class Marketplace {
 	 *
 	 * @return mixed
 	 */
-	private static function get_product_meta( $product_id, $key ) {
+	public static function get_product_meta( $product_id, $key ) {
 		return \get_post_meta( $product_id, self::PRODUCT_META_PREFIX . $key, true );
 	}
 
