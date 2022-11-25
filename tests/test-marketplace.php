@@ -5,6 +5,9 @@
  * @package Newspack\Tests
  */
 
+use Newspack_Ads\Marketplace;
+use Newspack_Ads\Placements;
+
 /**
  * Test Marketplace
  */
@@ -100,7 +103,6 @@ class MarketplaceTest extends WP_UnitTestCase {
 		$this->assertEquals( '5', $data['price'] );
 		$this->assertEquals( [ '920x250' ], $data['required_sizes'] );
 		$this->assertEquals( [ 'global_below_header' ], $data['placements'] );
-		$this->assertEquals( 'Ad &#8211; Below Header', get_the_title( $data['id'] ) );
 	}
 
 	/**
