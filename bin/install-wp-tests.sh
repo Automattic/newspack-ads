@@ -147,9 +147,21 @@ install_db() {
 	fi
 
 	# create database
+	mysqladmin drop $DB_NAME -f --user="$DB_USER" --password="$DB_PASS"$EXTRA || true
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
+}
+
+install_deps() {
+	cd "$WP_CORE_DIR"
+	curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+	php wp-cli.phar core config --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_PASS --dbhost=$DB_HOST --dbprefix=wptests_
+	php wp-cli.phar core install --url="$WP_SITE_URL" --title="Example" --admin_user=admin --admin_password=password --admin_email=info@example.com --path=$WP_CORE_DIR --skip-email
+
+	php wp-cli.phar plugin install woocommerce --activate
 }
 
 install_wp
 install_test_suite
 install_db
+install_deps

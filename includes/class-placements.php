@@ -380,17 +380,17 @@ final class Placements {
 	private static function register_default_placements() {
 		$placements = array(
 			'global_above_header' => array(
-				'name'        => __( 'Global: Above Header', 'newspack-ads' ),
+				'name'        => __( 'Above Header', 'newspack-ads' ),
 				'description' => __( 'Choose an ad unit to display above the header.', 'newspack-ads' ),
 				'hook_name'   => 'before_header',
 			),
 			'global_below_header' => array(
-				'name'        => __( 'Global: Below Header', 'newspack-ads' ),
+				'name'        => __( 'Below Header', 'newspack-ads' ),
 				'description' => __( 'Choose an ad unit to display below the header.', 'newspack-ads' ),
 				'hook_name'   => 'after_header',
 			),
 			'global_above_footer' => array(
-				'name'        => __( 'Global: Above Footer', 'newspack-ads' ),
+				'name'        => __( 'Above Footer', 'newspack-ads' ),
 				'description' => __( 'Choose an ad unit to display above the footer.', 'newspack-ads' ),
 				'hook_name'   => 'before_footer',
 			),
