@@ -30,7 +30,9 @@ final class Marketplace {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		\add_filter( 'post_row_actions', [ __CLASS__, 'post_row_actions' ], PHP_INT_MAX, 2 );
 		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );
-		require_once dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/includes/marketplace/class-product-purchase.php';
+		require_once 'class-purchase-block.php';
+		require_once 'class-product-cart.php';
+		require_once 'class-product-order.php';
 	}
 
 	/**
