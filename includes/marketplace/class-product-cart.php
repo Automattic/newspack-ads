@@ -18,10 +18,10 @@ final class Product_Cart {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		\add_filter( 'woocommerce_add_cart_item_data', [ __CLASS__, 'cart_item_data_add' ], PHP_INT_MAX, 2 );
-		\add_action( 'woocommerce_cart_updated', [ __CLASS__, 'cart_item_prices' ], PHP_INT_MAX );
-		\add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'cart_item_prices' ], PHP_INT_MAX );
-		\add_filter( 'woocommerce_get_item_data', [ __CLASS__, 'cart_item_data' ], 10, 2 );
+		\add_filter( 'woocommerce_add_cart_item_data', [ __CLASS__, 'add_cart_item_data' ], PHP_INT_MAX, 2 );
+		\add_filter( 'woocommerce_get_item_data', [ __CLASS__, 'get_item_data' ], 10, 2 );
+		\add_action( 'woocommerce_cart_updated', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
+		\add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
 	}
 
 	/**
@@ -32,7 +32,7 @@ final class Product_Cart {
 	 *
 	 * @return array
 	 */
-	public static function cart_item_data_add( $cart_item_data, $product_id ) {
+	public static function add_cart_item_data( $cart_item_data, $product_id ) {
 		if ( ! isset( $_POST[ Purchase_Block::PURCHASE_ACTION ] ) ) {
 			return $cart_item_data;
 		}
@@ -54,12 +54,12 @@ final class Product_Cart {
 
 
 	/**
-	 * Cart item data.
+	 * Get cart item data for display.
 	 *
 	 * @param array $item_data Cart item data.
 	 * @param array $cart_item Cart item.
 	 */
-	public static function cart_item_data( $item_data, $cart_item ) {
+	public static function get_item_data( $item_data, $cart_item ) {
 		if ( empty( $cart_item['newspack_ads'] ) ) {
 			return $item_data;
 		}
@@ -84,7 +84,7 @@ final class Product_Cart {
 	/**
 	 * Update cart item prices according to ad product settings.
 	 */
-	public static function cart_item_prices() {
+	public static function cart_updated() {
 		$cart = WC()->cart;
 		if ( empty( $cart ) || empty( $cart->cart_contents ) ) {
 			return;
