@@ -60,9 +60,16 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 		if ( ! $this->wp_tests_dir ) {
 			$this->wp_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
 		}
+		$this->wc_core_dir = dirname( $this->wp_tests_dir ) . '/wordpress/wp-content/plugins/woocommerce';
 
 		// Load test function so tests_add_filter() is available.
 		require_once $this->wp_tests_dir . '/includes/functions.php';
+
+		// load WC.
+		tests_add_filter( 'muplugins_loaded', array( $this, 'load_wc' ) );
+
+		// install WC.
+		tests_add_filter( 'setup_theme', array( $this, 'install_wc' ) );
 
 		// Load Newspack.
 		tests_add_filter( 'muplugins_loaded', array( $this, 'load_newspack_ads' ) );
@@ -102,6 +109,40 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 		wp_roles();
 
 		echo esc_html( 'Installing Newspack Ads...' . PHP_EOL );
+	}
+
+	/**
+	 * Load WooCommerce
+	 */
+	public function load_wc() {
+		define( 'WC_TAX_ROUNDING_MODE', 'auto' );
+		define( 'WC_USE_TRANSACTIONS', false );
+		update_option( 'woocommerce_enable_coupons', 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		update_option( 'woocommerce_onboarding_opt_in', 'yes' );
+
+		require_once $this->wc_core_dir . '/woocommerce.php';
+	}
+
+	/**
+	 * Install WooCommerce after the test environment and WC have been loaded.
+	 */
+	public function install_wc() {
+		// Clean existing install first.
+		define( 'WP_UNINSTALL_PLUGIN', true );
+		define( 'WC_REMOVE_ALL_DATA', true );
+
+		WC_Install::install();
+
+		// Reload capabilities after install, see https://core.trac.wordpress.org/ticket/28374.
+		if ( version_compare( $GLOBALS['wp_version'], '4.7', '<' ) ) {
+			$GLOBALS['wp_roles']->reinit();
+		} else {
+			$GLOBALS['wp_roles'] = null; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			wp_roles();
+		}
+
+		echo esc_html( 'Installing WooCommerce...' . PHP_EOL );
 	}
 
 	/**

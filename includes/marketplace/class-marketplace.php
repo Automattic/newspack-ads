@@ -305,13 +305,6 @@ final class Marketplace {
 	 * @return WC_Product_Simple The updated product.
 	 */
 	private static function update_product( $product, $args ) {
-		$product->set_name(
-			sprintf(
-			/* translators: %s: product title */
-				__( 'Ad - %s', 'newspack-ads' ),
-				self::get_product_title( $product )
-			)
-		);
 		$product->set_regular_price( $args['price'] );
 		$product->set_virtual( true );
 		$product->set_catalog_visibility( 'hidden' );
@@ -321,6 +314,13 @@ final class Marketplace {
 			self::set_product_meta( $product->get_id(), $key, $value );
 		}
 		self::set_ad_product( $product );
+		$product->set_name(
+			sprintf(
+			/* translators: %s: product title */
+				__( 'Ad - %s', 'newspack-ads' ),
+				self::get_product_title( $product )
+			)
+		);
 		return $product;
 	}
 
