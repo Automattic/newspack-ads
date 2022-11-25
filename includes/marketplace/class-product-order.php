@@ -15,9 +15,9 @@ final class Product_Order {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		\add_action( 'woocommerce_checkout_create_order_line_item', [ __CLASS__, 'order_line_item_data_create' ], 10, 4 );
-		\add_filter( 'woocommerce_order_item_display_meta_key', [ __CLASS__, 'order_line_item_display_meta_key' ] );
-		\add_filter( 'woocommerce_order_item_display_meta_value', [ __CLASS__, 'order_line_item_display_meta_value' ], 10, 2 );
+		\add_action( 'woocommerce_checkout_create_order_line_item', [ __CLASS__, 'create_meta' ], 10, 4 );
+		\add_filter( 'woocommerce_order_item_display_meta_key', [ __CLASS__, 'display_meta_key' ] );
+		\add_filter( 'woocommerce_order_item_display_meta_value', [ __CLASS__, 'display_meta_value' ], 10, 2 );
 	}
 
 	/**
@@ -28,7 +28,7 @@ final class Product_Order {
 	 * @param array                  $values Cart item values.
 	 * @param \WC_Order              $order Order.
 	 */
-	public static function order_line_item_data_create( $item, $cart_item_key, $values, $order ) {
+	public static function create_meta( $item, $cart_item_key, $values, $order ) {
 		if ( ! empty( $values['newspack_ads'] ) ) {
 			$item->add_meta_data( 'newspack_ads_from', $values['newspack_ads']['from'] );
 			$item->add_meta_data( 'newspack_ads_to', $values['newspack_ads']['to'] );
@@ -43,7 +43,7 @@ final class Product_Order {
 	 *
 	 * @return string
 	 */
-	public static function order_line_item_display_meta_key( $display_key ) {
+	public static function display_meta_key( $display_key ) {
 		if ( 'newspack_ads_from' === $display_key ) {
 			return __( 'From', 'newspack-ads' );
 		}
@@ -64,7 +64,7 @@ final class Product_Order {
 	 *
 	 * @return string
 	 */
-	public static function order_line_item_display_meta_value( $display_meta_value, $meta ) {
+	public static function display_meta_value( $display_meta_value, $meta ) {
 		if ( ! empty( $meta ) ) {
 			if ( 'newspack_ads_from' == $meta->key || 'newspack_ads_to' == $meta->key ) {
 				return \date_i18n( \get_option( 'date_format' ), strtotime( $display_meta_value ) );
