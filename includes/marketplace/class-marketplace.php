@@ -23,8 +23,6 @@ final class Marketplace {
 
 	const PRODUCT_META_PREFIX = '_ad_';
 
-	const PURCHASE_ACTION = 'newspack_ads_purchase';
-
 	/**
 	 * Initialize hooks.
 	 */
@@ -32,15 +30,7 @@ final class Marketplace {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		\add_filter( 'post_row_actions', [ __CLASS__, 'post_row_actions' ], PHP_INT_MAX, 2 );
 		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );
-		\add_action( 'init', [ __CLASS__, 'register_block' ] );
-		\add_action( 'template_redirect', [ __CLASS__, 'handle_purchase' ] );
-		\add_filter( 'woocommerce_add_cart_item_data', [ __CLASS__, 'cart_item_data_add' ], PHP_INT_MAX, 2 );
-		\add_action( 'woocommerce_cart_updated', [ __CLASS__, 'cart_item_prices' ], PHP_INT_MAX );
-		\add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'cart_item_prices' ], PHP_INT_MAX );
-		\add_filter( 'woocommerce_get_item_data', [ __CLASS__, 'cart_item_data' ], 10, 2 );
-		\add_action( 'woocommerce_checkout_create_order_line_item', [ __CLASS__, 'order_line_item_data_create' ], 10, 4 );
-		\add_filter( 'woocommerce_order_item_display_meta_key', [ __CLASS__, 'order_line_item_display_meta_key' ] );
-		\add_filter( 'woocommerce_order_item_display_meta_value', [ __CLASS__, 'order_line_item_display_meta_value' ], 10, 2 );
+		require_once dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/includes/marketplace/class-product-purchase.php';
 	}
 
 	/**
@@ -455,7 +445,7 @@ final class Marketplace {
 	 *
 	 * @return mixed
 	 */
-	private static function get_product_meta( $product_id, $key ) {
+	public static function get_product_meta( $product_id, $key ) {
 		return \get_post_meta( $product_id, self::PRODUCT_META_PREFIX . $key, true );
 	}
 
