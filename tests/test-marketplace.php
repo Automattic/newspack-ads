@@ -5,9 +5,6 @@
  * @package Newspack\Tests
  */
 
-use Newspack_Ads\Marketplace;
-use Newspack_Ads\Placements;
-
 /**
  * Test Marketplace
  */
