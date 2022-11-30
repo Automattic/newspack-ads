@@ -389,6 +389,33 @@ final class Marketplace {
 	}
 
 	/**
+	 * Get product sizes.
+	 *
+	 * @param WC_Product_Simple|array $product The product object or data to get sizes for.
+	 *
+	 * @return array Sizes.
+	 */
+	public static function get_product_sizes( $product ) {
+		if ( $product instanceof WC_Product_Simple ) {
+			$product = self::get_product_data( $product );
+		}
+		$placements = self::get_product_placements( $product );
+		$ad_units   = GAM_Model::get_ad_units( false );
+		$sizes      = [];
+		foreach ( $placements as $placement ) {
+			$ad_unit_idx   = array_search( $placement['data']['ad_unit'], array_column( $ad_units, 'id' ), true );
+			$ad_unit_sizes = array_map(
+				function( $size ) {
+					return implode( 'x', $size );
+				},
+				$ad_units[ $ad_unit_idx ]['sizes']
+			);
+			$sizes         = array_merge( $sizes, $ad_unit_sizes );
+		}
+		return array_unique( $sizes );
+	}
+
+	/**
 	 * Get product title
 	 *
 	 * @param WC_Product_Simple|array $product The product object or data to get title for.

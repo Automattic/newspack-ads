@@ -7,9 +7,11 @@
 
 namespace Newspack_Ads\Providers\GAM\Api;
 
+use DateTime;
 use Newspack_Ads\Providers\GAM\Api;
 use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202208\StatementBuilder;
+use Google\AdsApi\AdManager\Util\v202208\AdManagerDateTimes;
 use Google\AdsApi\AdManager\v202208\ServiceFactory;
 use Google\AdsApi\AdManager\v202208\LineItemService;
 use Google\AdsApi\AdManager\v202208\LineItemCreativeAssociation;
@@ -135,7 +137,13 @@ final class Line_Items extends Api_Object {
 			$line_item->setName( $config['name'] );
 			$line_item->setLineItemType( $config['line_item_type'] );
 			$line_item->setCreativeRotationType( $config['creative_rotation_type'] );
-			$line_item->setPrimaryGoal( new Goal( $config['primary_goal']['goal_type'] ) );
+
+			$primary_goal = new Goal();
+			$primary_goal->setGoalType( $config['primary_goal']['goal_type'] );
+			if ( isset( $config['primary_goal']['units'] ) ) {
+				$primary_goal->setUnits( $config['primary_goal']['units'] );
+			}
+			$line_item->setPrimaryGoal( $primary_goal );
 
 			// Creative placeholders (or expected creatives).
 			if ( isset( $config['creative_placeholders'] ) && ! empty( $config['creative_placeholders'] ) ) {
@@ -154,6 +162,13 @@ final class Line_Items extends Api_Object {
 				$line_item->setUnlimitedEndDateTime( (bool) $config['unlimited_end_date_time'] );
 			}
 
+			if ( isset( $config['start_date_time'] ) ) {
+				$line_item->setStartDateTime( AdManagerDateTimes::fromDateTime( new DateTime( $config['start_date_time'] ) ) );
+			}
+			if ( isset( $config['end_date_time'] ) ) {
+				$line_item->setEndDateTime( AdManagerDateTimes::fromDateTime( new DateTime( $config['end_date_time'] ) ) );
+			}
+
 			// Cost options.
 			$line_item->setCostType( $config['cost_type'] );
 			if ( isset( $config['cost_per_unit'] ) ) {
@@ -169,19 +184,19 @@ final class Line_Items extends Api_Object {
 			}
 
 			// Targeting options.
+			$targeting = new Targeting();
+
+			// Obligatory inventory targeting.
+			// Default is "Run of network", which is targeted to the network's root ad unit including descendants.
+			$inventory_targeting = new InventoryTargeting();
+			if ( ! isset( $config['targeting'] ) || ! isset( $config['targeting']['inventory_targeting'] ) ) {
+				$inventory_targeting->setTargetedAdUnits( [ new AdUnitTargeting( $network->getEffectiveRootAdUnitId(), true ) ] );
+			} else {
+				throw new \Exception( 'Inventory targeting is not supported yet' );
+			}
+			$targeting->setInventoryTargeting( $inventory_targeting );
+
 			if ( isset( $config['targeting'] ) ) {
-				$targeting = new Targeting();
-
-				// Obligatory inventory targeting.
-				// Default is "Run of network", which is targeted to the network's root ad unit including descendants.
-				$inventory_targeting = new InventoryTargeting();
-				if ( ! isset( $config['targeting']['inventory_targeting'] ) ) {
-					$inventory_targeting->setTargetedAdUnits( [ new AdUnitTargeting( $network->getEffectiveRootAdUnitId(), true ) ] );
-				} else {
-					throw new \Exception( 'Inventory targeting is not supported yet' );
-				}
-				$targeting->setInventoryTargeting( $inventory_targeting );
-
 				// Custom targeting.
 				if ( isset( $config['targeting']['custom_targeting'] ) ) {
 					$criteria_set = new CustomCriteriaSet( 'AND' );
@@ -192,10 +207,9 @@ final class Line_Items extends Api_Object {
 					$criteria_set->setChildren( $children );
 					$targeting->setCustomTargeting( $criteria_set );
 				}
-
-				// Apply configured targeting to line item.
-				$line_item->setTargeting( $targeting );
 			}
+			// Apply configured targeting to line item.
+			$line_item->setTargeting( $targeting );
 
 			if ( isset( $config['id'] ) ) {
 				$line_item->setId( $config['id'] );
