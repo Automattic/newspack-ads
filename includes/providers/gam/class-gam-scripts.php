@@ -158,6 +158,18 @@ final class GAM_Scripts {
 		$prepared_unit_data = apply_filters( 'newspack_ads_gtag_ads_data', $prepared_unit_data );
 
 		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
+		self::output_frontend_js( $ad_config, $prepared_unit_data, $common_targeting );
+		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
+	}
+
+	/**
+	 * Output frontend JS.
+	 *
+	 * @param array $ad_config Ad config.
+	 * @param array $prepared_unit_data Ad unit data.
+	 * @param array $common_targeting Common targeting.
+	 */
+	private static function output_frontend_js( $ad_config, $prepared_unit_data, $common_targeting ) {
 		?>
 		<script data-amp-plus-allowed>
 			( function() {
@@ -379,7 +391,6 @@ final class GAM_Scripts {
 			} )();
 		</script>
 		<?php
-		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
 	}
 
 	/**
