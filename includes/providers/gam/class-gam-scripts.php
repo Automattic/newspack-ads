@@ -158,7 +158,11 @@ final class GAM_Scripts {
 		$prepared_unit_data = apply_filters( 'newspack_ads_gtag_ads_data', $prepared_unit_data );
 
 		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
+
+		ob_start();
 		self::output_frontend_js( $ad_config, $prepared_unit_data, $common_targeting );
+		echo apply_filters( 'newspack_ads_frontend_js', ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
 	}
 
@@ -173,8 +177,8 @@ final class GAM_Scripts {
 		?>
 		<script data-amp-plus-allowed>
 			( function() {
-				var ad_config        = <?php echo wp_json_encode( $ad_config ); ?>;
-				var all_ad_units     = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
+				var ad_config = <?php echo wp_json_encode( $ad_config ); ?>;
+				var all_ad_units = <?php echo wp_json_encode( $prepared_unit_data ); ?>;
 				var common_targeting = <?php echo wp_json_encode( $common_targeting ); ?>;
 				var defined_ad_units = {};
 
