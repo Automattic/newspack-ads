@@ -160,7 +160,7 @@ final class GAM_Scripts {
 		do_action( 'newspack_ads_gtag_before_script', $ad_config, $prepared_unit_data );
 
 		ob_start();
-		self::output_frontend_js( $ad_config, $prepared_unit_data, $common_targeting );
+		self::print_gpt_script( $ad_config, $prepared_unit_data, $common_targeting );
 		echo apply_filters( 'newspack_ads_frontend_js', ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		do_action( 'newspack_ads_gtag_after_script', $ad_config, $prepared_unit_data );
