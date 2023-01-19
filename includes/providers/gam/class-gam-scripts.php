@@ -167,13 +167,13 @@ final class GAM_Scripts {
 	}
 
 	/**
-	 * Output frontend JS.
+	 * Print GPT/GAM script.
 	 *
-	 * @param array $ad_config Ad config.
+	 * @param array $ad_config          Ad config.
 	 * @param array $prepared_unit_data Ad unit data.
-	 * @param array $common_targeting Common targeting.
+	 * @param array $common_targeting   Common targeting.
 	 */
-	private static function output_frontend_js( $ad_config, $prepared_unit_data, $common_targeting ) {
+	private static function print_gpt_script( $ad_config, $prepared_unit_data, $common_targeting ) {
 		?>
 		<script data-amp-plus-allowed>
 			( function() {
