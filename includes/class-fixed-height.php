@@ -47,7 +47,7 @@ final class Fixed_Height {
 					'public'      => true,
 				],
 				[
-					'description' => __( 'Use maximum fixed height', 'newspack-ads' ),
+					'description' => __( 'Set a maximum fixed height', 'newspack-ads' ),
 					'help'        => __( 'If enabled, rendered creatives larger than "maximum fixed height" will adjust the height accordingly and cause layout shift.', 'newspack-ads' ),
 					'section'     => self::SECTION,
 					'key'         => 'use_max_height',
