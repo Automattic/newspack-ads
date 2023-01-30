@@ -209,10 +209,9 @@ final class GAM_Model {
 			);
 		}
 
-		$unique_id    = $config['unique_id'] ?? uniqid();
-		$placement    = $config['placement'] ?? '';
-		$context      = $config['context'] ?? '';
-		$fixed_height = $config['fixed_height'] ?? false;
+		$unique_id = $config['unique_id'] ?? uniqid();
+		$placement = $config['placement'] ?? '';
+		$context   = $config['context'] ?? '';
 
 		$ad_units = self::get_ad_units( false );
 
@@ -228,9 +227,8 @@ final class GAM_Model {
 		}
 		$ad_unit = $ad_units[ $index ];
 
-		$ad_unit['placement']    = $placement;
-		$ad_unit['context']      = $context;
-		$ad_unit['fixed_height'] = $fixed_height;
+		$ad_unit['placement'] = $placement;
+		$ad_unit['context']   = $context;
 
 		$ad_unit['ad_code']     = self::get_ad_unit_code( $ad_unit, $unique_id );
 		$ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $ad_unit, $unique_id );
