@@ -1076,8 +1076,19 @@ final class GAM_Model {
 			// Add the category slugs to targeting on category archives.
 		} elseif ( get_queried_object() ) {
 			$queried_object = get_queried_object();
-			if ( 'WP_Term' === get_class( $queried_object ) && 'category' === $queried_object->taxonomy ) {
-				$targeting['category'] = [ sanitize_text_field( $queried_object->slug ) ];
+			if ( 'WP_Term' === get_class( $queried_object ) ) {
+				
+				switch ( $queried_object->taxonomy ) {
+						
+					case 'category':
+						$targeting['category'] = [ sanitize_text_field( $queried_object->slug ) ];
+						break;
+						
+					case 'post_tag':
+						$targeting['tag'] = [ sanitize_text_field( $queried_object->slug ) ];
+						break;
+						
+				}
 			}
 		}
 
