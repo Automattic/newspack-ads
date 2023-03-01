@@ -112,7 +112,16 @@ final class Broadstreet_Provider extends Provider {
 		if ( ! self::is_plugin_active() || ! method_exists( '\Broadstreet_Utility', 'getZoneCode' ) ) {
 			return '';
 		}
-		$fixed_height = Settings::get_setting( 'fixed_height', 'active' );
+		/**
+		 * Temporarily disabling "fixed height" support for Broadstreet due to
+		 * unexpected results of rendered creatives sizes and zone sizes.
+		 *
+		 * Creatives can be larger than its defined zone size.
+		 *
+		 * The original value of $fixed_height is:
+		 * `Settings::get_setting( 'fixed_height', 'active' )`
+		 */
+		$fixed_height = false;
 		$attrs        = [];
 		$zones        = $this->get_units();
 		$zone_idx     = array_search( $unit_id, array_column( $zones, 'value' ) );
