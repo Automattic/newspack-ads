@@ -1,3 +1,10 @@
+## [1.42.1](https://github.com/Automattic/newspack-ads/compare/v1.42.0...v1.42.1) (2023-03-01)
+
+
+### Bug Fixes
+
+* **broadstreet:** disable "fixed height" support ([#608](https://github.com/Automattic/newspack-ads/issues/608)) ([b9e9467](https://github.com/Automattic/newspack-ads/commit/b9e9467102382a8cd2288a199c798a1199e564b1))
+
 # [1.42.0](https://github.com/Automattic/newspack-ads/compare/v1.41.0...v1.42.0) (2023-02-28)
 
 
