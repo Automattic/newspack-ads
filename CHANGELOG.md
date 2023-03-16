@@ -1,3 +1,10 @@
+## [1.42.3-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.42.2...v1.42.3-alpha.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* **placements:** suppress render for inactive providers ([#610](https://github.com/Automattic/newspack-ads/issues/610)) ([c6a00df](https://github.com/Automattic/newspack-ads/commit/c6a00df793fa64df842632690e599ccc872e50ad))
+
 ## [1.42.2](https://github.com/Automattic/newspack-ads/compare/v1.42.1...v1.42.2) (2023-03-14)
 
 
