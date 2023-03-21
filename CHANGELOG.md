@@ -1,3 +1,11 @@
+## [1.42.3-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.42.3-alpha.1...v1.42.3-alpha.2) (2023-03-21)
+
+
+### Bug Fixes
+
+* **gam:** handle account without networks ([#622](https://github.com/Automattic/newspack-ads/issues/622)) ([ef0fc9f](https://github.com/Automattic/newspack-ads/commit/ef0fc9f28027505bbae3925724fe53e04ca7a16d))
+* proper usage of useEffect cleanup function ([#620](https://github.com/Automattic/newspack-ads/issues/620)) ([9e7562c](https://github.com/Automattic/newspack-ads/commit/9e7562c6a886a7ca20862bf3563a3cad48c28aed))
+
 ## [1.42.3-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.42.2...v1.42.3-alpha.1) (2023-03-16)
 
 
