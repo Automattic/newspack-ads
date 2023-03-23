@@ -1,3 +1,10 @@
+## [1.42.3](https://github.com/Automattic/newspack-ads/compare/v1.42.2...v1.42.3) (2023-03-23)
+
+
+### Bug Fixes
+
+* **gam:** handle account without networks ([#622](https://github.com/Automattic/newspack-ads/issues/622)) ([#626](https://github.com/Automattic/newspack-ads/issues/626)) ([ff2972c](https://github.com/Automattic/newspack-ads/commit/ff2972c2c17b90355db62b65970fab38db2e53c2))
+
 ## [1.42.2](https://github.com/Automattic/newspack-ads/compare/v1.42.1...v1.42.2) (2023-03-14)
 
 
