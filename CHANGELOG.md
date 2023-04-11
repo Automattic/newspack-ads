@@ -1,3 +1,10 @@
+## [1.42.5](https://github.com/Automattic/newspack-ads/compare/v1.42.4...v1.42.5) (2023-04-11)
+
+
+### Bug Fixes
+
+* **gam:** handle sticky ads without amp ([#641](https://github.com/Automattic/newspack-ads/issues/641)) ([1e50b1c](https://github.com/Automattic/newspack-ads/commit/1e50b1cec2142c04cbc8f1963888f9db95407691))
+
 ## [1.42.4](https://github.com/Automattic/newspack-ads/compare/v1.42.3...v1.42.4) (2023-03-27)
 
 
