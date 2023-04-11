@@ -325,12 +325,6 @@ final class GAM_Scripts {
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
 						<?php
-						// Sticky ads should only be shown on mobile (screen width <=600px).
-						?>
-						if ( ad_unit['sticky'] ) {
-							mapping.addSize( [600, 0], baseSizes );
-						}
-						<?php
 						// On viewports smaller than the smallest ad size, don't show any ads.
 						?>
 						mapping.addSize( [0, 0], baseSizes );
@@ -372,7 +366,7 @@ final class GAM_Scripts {
 						 * Handle slot visibility.
 						 */
 						?>
-						if ( event.isEmpty && ( ! ad_unit.fixed_height.active || ( ad_unit.fixed_height.active && ! ad_unit.in_viewport ) ) ) {
+						if ( event.isEmpty && ( ad_unit.sticky || ! ad_unit.fixed_height.active || ( ad_unit.fixed_height.active && ! ad_unit.in_viewport ) ) ) {
 							container.parentNode.style.display = 'none';
 						} else {
 							container.parentNode.style.display = 'flex';
@@ -397,6 +391,36 @@ final class GAM_Scripts {
 							}
 						}
 					} );
+					<?php
+					/**
+					 * Handle Sticky Ads.
+					 */
+					?>
+					if ( ad_unit.sticky ) {
+						mapping.addSize( [600, 0], baseSizes ); <?php // Sticky ads are only shown on desktop. ?>
+						var stickyContainer = container.parentNode;
+						var stickyClose = stickyContainer.querySelector( 'button.newspack_sticky_ad__close' );
+						var initialBodyPadding = document.body.style.paddingBottom;
+						if ( stickyClose ) {
+							stickyClose.addEventListener( 'click', function() {
+								stickyContainer.parentNode.removeChild( stickyContainer );
+							} );
+						}
+						googletag.pubads().addEventListener( 'slotRenderEnded', function( event ) {
+							var container = document.getElementById( event.slot.getSlotElementId() );
+							if ( ! container ) {
+								return;
+							}
+							var ad_unit = container.ad_unit;
+							if ( ! ad_unit || ! ad_unit.sticky ) {
+								return;
+							}
+							if ( ! event.isEmpty && document.body.clientWidth <= 600 ) {
+								stickyContainer.style.display = 'flex';
+								document.body.style.paddingBottom = stickyContainer.clientHeight + 'px';
+							}
+						} );
+					}
 				} );
 			} )();
 		</script>
