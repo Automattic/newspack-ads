@@ -409,6 +409,7 @@ final class GAM_Scripts {
 						if ( stickyClose ) {
 							stickyClose.addEventListener( 'click', function() {
 								stickyContainer.parentNode.removeChild( stickyContainer );
+								document.body.style.paddingBottom = initialBodyPadding;
 							} );
 						}
 						googletag.pubads().addEventListener( 'slotRenderEnded', function( event ) {
