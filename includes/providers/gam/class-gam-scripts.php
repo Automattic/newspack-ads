@@ -325,6 +325,12 @@ final class GAM_Scripts {
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
 						<?php
+						// Sticky ads should only be shown on mobile (screen width <=600px).
+						?>
+						if ( ad_unit['sticky'] ) {
+							mapping.addSize( [600, 0], baseSizes );
+						}
+						<?php
 						// On viewports smaller than the smallest ad size, don't show any ads.
 						?>
 						mapping.addSize( [0, 0], baseSizes );
@@ -397,7 +403,6 @@ final class GAM_Scripts {
 					 */
 					?>
 					if ( ad_unit.sticky ) {
-						mapping.addSize( [600, 0], baseSizes ); <?php // Sticky ads are only shown on desktop. ?>
 						var stickyContainer = container.parentNode;
 						var stickyClose = stickyContainer.querySelector( 'button.newspack_sticky_ad__close' );
 						var initialBodyPadding = document.body.style.paddingBottom;
@@ -421,6 +426,22 @@ final class GAM_Scripts {
 							}
 						} );
 					}
+					<?php
+					/**
+					 * Sticky header & sticky ad handling.
+					 *
+					 * If the site uses sticky header and a sticky ad, the ad should
+					 * be offset by the header height in order to stack the sticky
+					 * elements on top of each other.
+					 */
+					?>
+					( function () {
+						var stickyAd = document.querySelector( '.h-stk .stick-to-top:last-child' );
+						var siteHeader = document.querySelector( '.h-stk .site-header' );
+						if ( stickyAd && siteHeader ) {
+							stickyAd.style.top = 'calc(' + siteHeader.offsetHeight + 'px + 1rem)';
+						}
+					} )();
 				} );
 			} )();
 		</script>
