@@ -147,9 +147,9 @@ class MarketplaceTest extends WP_UnitTestCase {
 
 		// Empty data should return false.
 		$empty_data = [];
-		$this->assertEquals(
-			false,
-			Marketplace\Product_Cart::validate_item_data( $empty_data, $price, false )
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( $empty_data, $price, false ),
+			'Empty data should return false.'
 		);
 
 		// Past date should return false.
@@ -158,9 +158,9 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'to'   => '2000-01-03',
 			'days' => 3,
 		];
-		$this->assertEquals(
-			false,
-			Marketplace\Product_Cart::validate_item_data( $past_date, $price, false )
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( $past_date, $price, false ),
+			'Past date should return false.'
 		);
 
 		// Invalid date format should return false.
@@ -169,9 +169,9 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'to'   => '01-03-2000',
 			'days' => 3,
 		];
-		$this->assertEquals(
-			false,
-			Marketplace\Product_Cart::validate_item_data( $invalid_date, $price, false )
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( $invalid_date, $price, false ),
+			'Invalid date format should return false.'
 		);
 
 		// Invalid date range should return false.
@@ -180,31 +180,31 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'to'   => gmdate( 'Y-m-d', strtotime( '+2 day' ) ),
 			'days' => 3,
 		];
-		$this->assertEquals(
-			false,
-			Marketplace\Product_Cart::validate_item_data( $invalid_date_range, $price, false )
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( $invalid_date_range, $price, false ),
+			'Invalid date range should return false.'
 		);
 
 		// Cannot purchase for same day.
 		$today = [
 			'from' => gmdate( 'Y-m-d' ),
 			'to'   => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
-			'days' => 5,
+			'days' => 6,
 		];
-		$this->assertEquals(
-			false,
-			Marketplace\Product_Cart::validate_item_data( $today, $price, false )
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( $today, $price, false ),
+			'Cannot purchase for same day.'
 		);
 
 		// Valid future date should return true.
 		$valid_date = [
 			'from' => gmdate( 'Y-m-d', strtotime( '+1 day' ) ),
 			'to'   => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
-			'days' => 4,
+			'days' => 5,
 		];
-		$this->assertEquals(
-			true,
-			Marketplace\Product_Cart::validate_item_data( $valid_date, $price, false )
+		$this->assertTrue(
+			Marketplace\Product_Cart::validate_item_data( $valid_date, $price, false ),
+			'Valid date range should return true.'
 		);
 	}
 }
