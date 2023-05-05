@@ -22,6 +22,7 @@ final class Product_Cart {
 		\add_filter( 'woocommerce_get_item_data', [ __CLASS__, 'get_item_data' ], 10, 2 );
 		\add_action( 'woocommerce_cart_updated', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
 		\add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
+		\add_action( 'woocommerce_check_cart_items', [ __CLASS__, 'check_cart_items' ] );
 	}
 
 	/**
@@ -51,7 +52,6 @@ final class Product_Cart {
 		];
 		return $cart_item_data;
 	}
-
 
 	/**
 	 * Get cart item data for display.
@@ -93,9 +93,70 @@ final class Product_Cart {
 			if ( empty( $cart_content_value['newspack_ads'] ) ) {
 				continue;
 			}
-			$data  = $cart_content_value['newspack_ads'];
-			$price = $data['days'] * Marketplace::get_product_meta( $cart_content_value['product_id'], 'price' );
-			$cart_content_value['data']->set_price( $price );
+			$data          = $cart_content_value['newspack_ads'];
+			$product_price = Marketplace::get_product_meta( $cart_content_value['product_id'], 'price' );
+			$total_price   = $data['days'] * $product_price;
+			$cart_content_value['data']->set_price( $total_price );
+		}
+	}
+
+	/**
+	 * Validate cart item.
+	 *
+	 * @param array $data          Cart item data.
+	 * @param int   $product_price Product price.
+	 * @param bool  $add_notice    Whether to add a notice to the cart.
+	 *
+	 * @throws \Exception When the cart item is not a valid ad order.
+	 *
+	 * @return bool
+	 */
+	public static function validate_cart_data( $data, $product_price, $add_notice = true ) {
+		$is_valid = true;
+		try {
+			if ( empty( $data['from'] ) || empty( $data['to'] ) ) {
+				throw new \Exception( __( 'You must set a period to run the ads.', 'newspack-ads' ) );
+			}
+			$from = strtotime( $data['from'] );
+			$to   = strtotime( $data['to'] );
+			if ( $from < time() ) {
+				throw new \Exception( __( 'The start date must be in the future.', 'newspack-ads' ) );
+			}
+			if ( $to < $from ) {
+				throw new \Exception( __( 'The end date must be after the start date.', 'newspack-ads' ) );
+			}
+			$days = round( ( $to - $from ) / ( 60 * 60 * 24 ) );
+			if ( $days < 1 ) {
+				throw new \Exception( __( 'The period must be at least one day.', 'newspack-ads' ) );
+			}
+			$total_price = $days * $product_price;
+			if ( $total_price <= 0 ) {
+				throw new \Exception( __( 'Invalid total price.', 'newspack-ads' ) );
+			}
+		} catch ( \Exception $e ) {
+			if ( $add_notice ) {
+				\wc_add_notice( $e->getMessage(), 'error' );
+			}
+			$is_valid = false;
+		} finally {
+			if ( ! $is_valid ) {
+				\WC()->cart->remove_cart_item( $item['key'] );
+			}
+			return $is_valid;
+		}
+	}
+
+	/**
+	 * Check cart items.
+	 */
+	public static function check_cart_items() {
+		$items = WC()->cart->cart_contents;
+		foreach ( $items as $key => $item ) {
+			if ( ! Marketplace::is_ad_product( $item['product_id'] ) ) {
+				continue;
+			}
+			$price = Marketplace::get_product_meta( $item['product_id'], 'price' );
+			self::validate_cart_data( $item['newspack_ads'], $price );
 		}
 	}
 }
