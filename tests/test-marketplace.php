@@ -204,7 +204,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 		];
 		$this->assertEquals(
 			true,
-			Marketplace\Product_Cart::validate_item_data( $valid_future_date, $price, false )
+			Marketplace\Product_Cart::validate_item_data( $valid_date, $price, false )
 		);
 	}
 }
