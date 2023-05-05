@@ -48,7 +48,7 @@ final class Product_Cart {
 		$cart_item_data['newspack_ads'] = [
 			'from' => $from,
 			'to'   => $to,
-			'days' => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ),
+			'days' => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
 		];
 		return $cart_item_data;
 	}
@@ -101,7 +101,7 @@ final class Product_Cart {
 	}
 
 	/**
-	 * Validate cart item.
+	 * Validate item data.
 	 *
 	 * @param array $data          Cart item data.
 	 * @param int   $product_price Product price.
@@ -111,23 +111,37 @@ final class Product_Cart {
 	 *
 	 * @return bool
 	 */
-	public static function validate_cart_data( $data, $product_price, $add_notice = true ) {
+	public static function validate_item_data( $data, $product_price, $add_notice = true ) {
 		$is_valid = true;
 		try {
 			if ( empty( $data['from'] ) || empty( $data['to'] ) ) {
 				throw new \Exception( __( 'You must set a period to run the ads.', 'newspack-ads' ) );
 			}
+
+			$from_obj = \DateTime::createFromFormat( 'Y-m-d', $data['from'] );
+			if ( false === $from_obj ) {
+				throw new \Exception( __( 'Invalid start date.', 'newspack-ads' ) );
+			}
 			$from = strtotime( $data['from'] );
-			$to   = strtotime( $data['to'] );
-			if ( $from < time() ) {
+
+			$to_obj = \DateTime::createFromFormat( 'Y-m-d', $data['to'] );
+			if ( false === $to_obj ) {
+				throw new \Exception( __( 'Invalid end date.', 'newspack-ads' ) );
+			}
+			$to = strtotime( $data['to'] );
+
+			if ( gmdate( 'Y-m-d' ) === $data['from'] || $from < time() ) {
 				throw new \Exception( __( 'The start date must be in the future.', 'newspack-ads' ) );
 			}
 			if ( $to < $from ) {
 				throw new \Exception( __( 'The end date must be after the start date.', 'newspack-ads' ) );
 			}
-			$days = round( ( $to - $from ) / ( 60 * 60 * 24 ) );
+			$days = round( ( $to - $from ) / ( 60 * 60 * 24 ) ) + 1; // Include the last day.
 			if ( $days < 1 ) {
 				throw new \Exception( __( 'The period must be at least one day.', 'newspack-ads' ) );
+			}
+			if ( empty( $data['days'] ) || (int) $data['days'] !== (int) $days ) {
+				throw new \Exception( __( 'Invalid number of days.', 'newspack-ads' ) );
 			}
 			$total_price = $days * $product_price;
 			if ( $total_price <= 0 ) {
@@ -153,7 +167,7 @@ final class Product_Cart {
 				continue;
 			}
 			$price    = Marketplace::get_product_meta( $item['product_id'], 'price' );
-			$is_valid = self::validate_cart_data( $item['newspack_ads'], $price );
+			$is_valid = self::validate_item_data( $item['newspack_ads'], $price );
 			if ( ! $is_valid ) {
 				\WC()->cart->remove_cart_item( $item['key'] );
 			}

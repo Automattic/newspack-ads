@@ -169,6 +169,7 @@ final class Line_Items extends Api_Object {
 			}
 			if ( isset( $config['end_date_time'] ) ) {
 				$end_date_time = new DateTime( $config['end_date_time'], new DateTimeZone( $network->getTimeZone() ) );
+				$end_date_time->setTime( 23, 59, 59 ); // Set to end of day.
 				$line_item->setEndDateTime( AdManagerDateTimes::fromDateTime( $end_date_time ) );
 			}
 
