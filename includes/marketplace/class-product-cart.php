@@ -139,9 +139,6 @@ final class Product_Cart {
 			}
 			$is_valid = false;
 		} finally {
-			if ( ! $is_valid ) {
-				\WC()->cart->remove_cart_item( $item['key'] );
-			}
 			return $is_valid;
 		}
 	}
@@ -155,8 +152,11 @@ final class Product_Cart {
 			if ( ! Marketplace::is_ad_product( $item['product_id'] ) ) {
 				continue;
 			}
-			$price = Marketplace::get_product_meta( $item['product_id'], 'price' );
-			self::validate_cart_data( $item['newspack_ads'], $price );
+			$price    = Marketplace::get_product_meta( $item['product_id'], 'price' );
+			$is_valid = self::validate_cart_data( $item['newspack_ads'], $price );
+			if ( ! $is_valid ) {
+				\WC()->cart->remove_cart_item( $item['key'] );
+			}
 		}
 	}
 }
