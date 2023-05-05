@@ -94,7 +94,7 @@ final class Purchase_Block {
 						<input type="date" name="to" />
 					</p>
 				</div>
-				<button class="newspack-ads_marketplace__purchase">Proceed to payment</button>
+				<button class="newspack-ads_marketplace__purchase"><?php esc_html_e( 'Proceed to payment', 'newspack-ads' ); ?></button>
 			</form>
 		</div>
 		<?php
