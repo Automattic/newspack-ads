@@ -13,11 +13,6 @@ const settings = {
 		foreground: '#36f',
 	},
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
-	keywords: [
-		__( 'ad', 'newspack-ads' ),
-		__( 'advert', 'newspack-ads' ),
-		__( 'ads', 'newspack-ads' ),
-	],
 	description: __( 'Sell your ad slots.', 'newspack-ads' ),
 	attributes: {},
 	supports: {
