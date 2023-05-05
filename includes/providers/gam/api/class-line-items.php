@@ -8,6 +8,7 @@
 namespace Newspack_Ads\Providers\GAM\Api;
 
 use DateTime;
+use DateTimeZone;
 use Newspack_Ads\Providers\GAM\Api;
 use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202208\StatementBuilder;
@@ -163,10 +164,12 @@ final class Line_Items extends Api_Object {
 			}
 
 			if ( isset( $config['start_date_time'] ) ) {
-				$line_item->setStartDateTime( AdManagerDateTimes::fromDateTime( new DateTime( $config['start_date_time'] ) ) );
+				$start_date_time = new DateTime( $config['start_date_time'], new DateTimeZone( $network->getTimeZone() ) );
+				$line_item->setStartDateTime( AdManagerDateTimes::fromDateTime( $start_date_time ) );
 			}
 			if ( isset( $config['end_date_time'] ) ) {
-				$line_item->setEndDateTime( AdManagerDateTimes::fromDateTime( new DateTime( $config['end_date_time'] ) ) );
+				$end_date_time = new DateTime( $config['end_date_time'], new DateTimeZone( $network->getTimeZone() ) );
+				$line_item->setEndDateTime( AdManagerDateTimes::fromDateTime( $end_date_time ) );
 			}
 
 			// Cost options.
