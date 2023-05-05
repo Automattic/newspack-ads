@@ -39,6 +39,20 @@ final class GAM_Model {
 	private static $api = null;
 
 	/**
+	 * GAM Api fatal error message.
+	 *
+	 * @var string
+	 */
+	private static $api_fatal_error = null;
+
+	/**
+	 * GAM Api session error message.
+	 *
+	 * @var string
+	 */
+	private static $api_session_error = null;
+
+	/**
 	 * Custom post type
 	 *
 	 * @var string
@@ -95,14 +109,19 @@ final class GAM_Model {
 
 		$network_code = self::get_active_network_code();
 
+		$api = null;
 		try {
-			self::$api = new GAM_Api( $auth_method, $credentials, $network_code );
-			/** Test the connection once to ensure the session has GAM connection. */
-			self::$api->get_current_user();
+			$api = new GAM_Api( $auth_method, $credentials, $network_code );
 		} catch ( \Exception $e ) {
-			self::$api = false;
+			self::$api_fatal_error = $e->getMessage();
+			return false;
 		}
-
+		$init_res = $api->init();
+		if ( is_wp_error( $init_res ) ) {
+			self::$api_session_error = $init_res->get_error_message();
+			return false;
+		}
+		self::$api = $api;
 		return self::$api;
 	}
 
@@ -209,10 +228,9 @@ final class GAM_Model {
 			);
 		}
 
-		$unique_id    = $config['unique_id'] ?? uniqid();
-		$placement    = $config['placement'] ?? '';
-		$context      = $config['context'] ?? '';
-		$fixed_height = $config['fixed_height'] ?? false;
+		$unique_id = $config['unique_id'] ?? uniqid();
+		$placement = $config['placement'] ?? '';
+		$context   = $config['context'] ?? '';
 
 		$ad_units = self::get_ad_units( false );
 
@@ -228,9 +246,8 @@ final class GAM_Model {
 		}
 		$ad_unit = $ad_units[ $index ];
 
-		$ad_unit['placement']    = $placement;
-		$ad_unit['context']      = $context;
-		$ad_unit['fixed_height'] = $fixed_height;
+		$ad_unit['placement'] = $placement;
+		$ad_unit['context']   = $context;
 
 		$ad_unit['ad_code']     = self::get_ad_unit_code( $ad_unit, $unique_id );
 		$ad_unit['amp_ad_code'] = self::get_ad_unit_amp_code( $ad_unit, $unique_id );
@@ -1042,16 +1059,24 @@ final class GAM_Model {
 				$targeting['template'] = sanitize_title( basename( $template_slug, '.php' ) );
 			}
 
-			// Add the category slugs to targeting.
-			$categories = wp_get_post_categories( get_the_ID(), [ 'fields' => 'slugs' ] );
-			if ( ! empty( $categories ) ) {
-				$targeting['category'] = array_map( 'sanitize_text_field', $categories );
-			}
-
-			// Add tags slugs to targeting.
-			$tags = wp_get_post_tags( get_the_ID(), [ 'fields' => 'slugs' ] );
-			if ( ! empty( $tags ) ) {
-				$targeting['tag'] = array_map( 'sanitize_text_field', $tags );
+			// Add post taxonomy terms to targeting.
+			$taxonomy_name_map = [
+				'post_tag' => 'tag',
+			];
+			$taxonomies        = get_object_taxonomies( get_post_type(), 'objects' );
+			foreach ( $taxonomies as $taxonomy ) {
+				if ( $taxonomy->public && $taxonomy->show_ui ) {
+					$terms = get_the_terms( get_the_ID(), $taxonomy->name );
+					if ( ! empty( $terms ) ) {
+						$taxonomy_name               = isset( $taxonomy_name_map[ $taxonomy->name ] ) ? $taxonomy_name_map[ $taxonomy->name ] : $taxonomy->name;
+						$targeting[ $taxonomy_name ] = array_map(
+							function( $term ) {
+								return sanitize_text_field( $term->slug );
+							},
+							$terms
+						);
+					}
+				}
 			}
 
 			// Add the post authors to targeting.
@@ -1075,11 +1100,11 @@ final class GAM_Model {
 			// Add the post ID to targeting.
 			$targeting['ID'] = get_the_ID();
 
-			// Add the category slugs to targeting on category archives.
+			// Add the taxonomy slugs to targeting on category archives.
 		} elseif ( get_queried_object() ) {
 			$queried_object = get_queried_object();
-			if ( 'WP_Term' === get_class( $queried_object ) && 'category' === $queried_object->taxonomy ) {
-				$targeting['category'] = [ sanitize_text_field( $queried_object->slug ) ];
+			if ( 'WP_Term' === get_class( $queried_object ) ) {
+				$targeting[ $queried_object->taxonomy ] = [ sanitize_text_field( $queried_object->slug ) ];
 			}
 		}
 
@@ -1126,6 +1151,10 @@ final class GAM_Model {
 				update_option( self::OPTION_NAME_GAM_NETWORK_CODE, $network_code );
 			}
 			$status['is_network_code_matched'] = self::is_network_code_matched();
+		} elseif ( self::$api_fatal_error ) {
+			return new \WP_Error( 'newspack_ads_gam_api_fatal_error', self::$api_fatal_error );
+		} elseif ( self::$api_session_error ) {
+			return new \WP_Error( 'newspack_ads_gam_api_session_error', self::$api_session_error );
 		}
 		return $status;
 	}

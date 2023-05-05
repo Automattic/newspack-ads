@@ -94,23 +94,36 @@ class Api {
 				throw new \Exception( __( 'Invalid authentication method.', 'newspack-ads' ) );
 			}
 			$this->auth_method = $auth_method;
-			if ( ! $credentials ) {
-				throw new \Exception( __( 'Invalid credentials.', 'newspack-ads' ) );
-			}
 			$this->credentials = $credentials;
 		} else {
 			$this->session = $auth_method_or_session;
 		}
 		$this->network_code = $network_code;
+	}
 
-		$session = $this->get_session();
-
-		$this->advertisers    = new Api\Advertisers( $session, $this );
-		$this->creatives      = new Api\Creatives( $session, $this );
-		$this->targeting_keys = new Api\Targeting_Keys( $session, $this );
-		$this->ad_units       = new Api\Ad_Units( $session, $this );
-		$this->line_items     = new Api\Line_Items( $session, $this );
-		$this->orders         = new Api\Orders( $session, $this );
+	/**
+	 * Initialize the API instance with a session and its API objects.
+	 *
+	 * @return true|\WP_Error True if the API was initialized successfully, WP_Error otherwise.
+	 */
+	public function init() {
+		try {
+			$session = $this->get_session();
+			if ( \is_wp_error( $session ) ) {
+				return $session;
+			}
+			// Ensure there's a valid user.
+			$this->get_current_user();
+			$this->advertisers    = new Api\Advertisers( $session, $this );
+			$this->creatives      = new Api\Creatives( $session, $this );
+			$this->targeting_keys = new Api\Targeting_Keys( $session, $this );
+			$this->ad_units       = new Api\Ad_Units( $session, $this );
+			$this->line_items     = new Api\Line_Items( $session, $this );
+			$this->orders         = new Api\Orders( $session, $this );
+		} catch ( ApiException $e ) {
+			return $this->get_error( $e );
+		}
+		return true;
 	}
 
 	/**
@@ -130,18 +143,23 @@ class Api {
 				$errors[] = $error->getErrorString();
 			}
 		}
-		$network_code = $this->get_network_code();
-		$message_map  = [
-			'UniqueError.NOT_UNIQUE'                => __( 'Name must be unique.', 'newspack-ads' ),
-			'CommonError.CONCURRENT_MODIFICATION'   => __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' ),
-			'PermissionError.PERMISSION_DENIED'     => __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' ),
-			'AuthenticationError.NETWORK_NOT_FOUND' => __( 'The network code is invalid.', 'newspack-ads' ),
+		try {
+			$network_code = $this->get_network_code();
+		} catch ( \Exception $e ) {
+			$network_code = null;
+		}
+		$message_map = [
+			'UniqueError.NOT_UNIQUE'                    => __( 'Name must be unique.', 'newspack-ads' ),
+			'CommonError.CONCURRENT_MODIFICATION'       => __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' ),
+			'PermissionError.PERMISSION_DENIED'         => __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' ),
+			'AuthenticationError.NETWORK_NOT_FOUND'     => __( 'The network code is invalid.', 'newspack-ads' ),
 			'AuthenticationError.NETWORK_API_ACCESS_DISABLED' => sprintf(
 				'%s <a href="%s" target="_blank">%s</a>',
 				__( 'API access for this GAM account is disabled.', 'newspack-ads' ),
 				"https://admanager.google.com/${network_code}#admin/settings/network",
 				__( 'Enable API access in your GAM settings.', 'newspack-ads' )
 			),
+			'AuthenticationError.NO_NETWORKS_TO_ACCESS' => __( 'You do not have access to any GAM networks.', 'newspack-ads' ),
 		];
 		foreach ( $message_map as $error_type => $message ) {
 			if ( in_array( $error_type, $errors, true ) ) {
@@ -175,11 +193,14 @@ class Api {
 	/**
 	 * Get GAM session for making API requests.
 	 *
-	 * @return AdManagerSession
+	 * @return AdManagerSession|\WP_Error Session object or WP_Error if the session could not be created.
 	 */
 	public function get_session() {
 		if ( $this->session ) {
 			return $this->session;
+		}
+		if ( ! $this->credentials ) {
+			return new \WP_Error( 'newspack_ads_gam_error', __( 'No credentials provided.', 'newspack-ads' ) );
 		}
 		$config = [
 			'AD_MANAGER' => [

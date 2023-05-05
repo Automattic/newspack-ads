@@ -1,3 +1,96 @@
+## [1.42.5](https://github.com/Automattic/newspack-ads/compare/v1.42.4...v1.42.5) (2023-04-11)
+
+
+### Bug Fixes
+
+* **gam:** handle sticky ads without amp ([#641](https://github.com/Automattic/newspack-ads/issues/641)) ([1e50b1c](https://github.com/Automattic/newspack-ads/commit/1e50b1cec2142c04cbc8f1963888f9db95407691))
+
+## [1.42.4](https://github.com/Automattic/newspack-ads/compare/v1.42.3...v1.42.4) (2023-03-27)
+
+
+### Bug Fixes
+
+* **gam:** handle account without networks ([#622](https://github.com/Automattic/newspack-ads/issues/622)) ([ef0fc9f](https://github.com/Automattic/newspack-ads/commit/ef0fc9f28027505bbae3925724fe53e04ca7a16d))
+* **placements:** suppress render for inactive providers ([#610](https://github.com/Automattic/newspack-ads/issues/610)) ([c6a00df](https://github.com/Automattic/newspack-ads/commit/c6a00df793fa64df842632690e599ccc872e50ad))
+* proper usage of useEffect cleanup function ([#620](https://github.com/Automattic/newspack-ads/issues/620)) ([9e7562c](https://github.com/Automattic/newspack-ads/commit/9e7562c6a886a7ca20862bf3563a3cad48c28aed))
+
+## [1.42.4-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.42.3...v1.42.4-alpha.1) (2023-03-23)
+
+
+### Bug Fixes
+
+* **gam:** handle account without networks ([#622](https://github.com/Automattic/newspack-ads/issues/622)) ([ef0fc9f](https://github.com/Automattic/newspack-ads/commit/ef0fc9f28027505bbae3925724fe53e04ca7a16d))
+* **placements:** suppress render for inactive providers ([#610](https://github.com/Automattic/newspack-ads/issues/610)) ([c6a00df](https://github.com/Automattic/newspack-ads/commit/c6a00df793fa64df842632690e599ccc872e50ad))
+* proper usage of useEffect cleanup function ([#620](https://github.com/Automattic/newspack-ads/issues/620)) ([9e7562c](https://github.com/Automattic/newspack-ads/commit/9e7562c6a886a7ca20862bf3563a3cad48c28aed))
+
+## [1.42.3](https://github.com/Automattic/newspack-ads/compare/v1.42.2...v1.42.3) (2023-03-23)
+
+
+### Bug Fixes
+
+* **gam:** handle account without networks ([#622](https://github.com/Automattic/newspack-ads/issues/622)) ([#626](https://github.com/Automattic/newspack-ads/issues/626)) ([ff2972c](https://github.com/Automattic/newspack-ads/commit/ff2972c2c17b90355db62b65970fab38db2e53c2))
+
+## [1.42.2](https://github.com/Automattic/newspack-ads/compare/v1.42.1...v1.42.2) (2023-03-14)
+
+
+### Bug Fixes
+
+* **gam:** handle API fatal and session errors ([#601](https://github.com/Automattic/newspack-ads/issues/601)) ([faebc56](https://github.com/Automattic/newspack-ads/commit/faebc565cec364ddb511794a7d1a6dedad20596d))
+
+## [1.42.2-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.42.1...v1.42.2-alpha.1) (2023-03-03)
+
+
+### Bug Fixes
+
+* **gam:** handle API fatal and session errors ([#601](https://github.com/Automattic/newspack-ads/issues/601)) ([faebc56](https://github.com/Automattic/newspack-ads/commit/faebc565cec364ddb511794a7d1a6dedad20596d))
+
+## [1.42.1](https://github.com/Automattic/newspack-ads/compare/v1.42.0...v1.42.1) (2023-03-01)
+
+
+### Bug Fixes
+
+* **broadstreet:** disable "fixed height" support ([#608](https://github.com/Automattic/newspack-ads/issues/608)) ([b9e9467](https://github.com/Automattic/newspack-ads/commit/b9e9467102382a8cd2288a199c798a1199e564b1))
+
+# [1.42.0](https://github.com/Automattic/newspack-ads/compare/v1.41.0...v1.42.0) (2023-02-28)
+
+
+### Features
+
+* "fixed height" a global setting with max threshold ([#590](https://github.com/Automattic/newspack-ads/issues/590)) ([5f56f36](https://github.com/Automattic/newspack-ads/commit/5f56f36e91c8fd47c5dd41fbefd8235914b8cc06))
+* **gam:** support "tag" key-val targeting their archive pages ([#595](https://github.com/Automattic/newspack-ads/issues/595)) ([3596c42](https://github.com/Automattic/newspack-ads/commit/3596c427587cdb2caf05cd44bc32695c438f14f1))
+
+# [1.42.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.41.0...v1.42.0-alpha.1) (2023-02-17)
+
+
+### Features
+
+* "fixed height" a global setting with max threshold ([#590](https://github.com/Automattic/newspack-ads/issues/590)) ([5f56f36](https://github.com/Automattic/newspack-ads/commit/5f56f36e91c8fd47c5dd41fbefd8235914b8cc06))
+* **gam:** support "tag" key-val targeting their archive pages ([#595](https://github.com/Automattic/newspack-ads/issues/595)) ([3596c42](https://github.com/Automattic/newspack-ads/commit/3596c427587cdb2caf05cd44bc32695c438f14f1))
+
+# [1.41.0](https://github.com/Automattic/newspack-ads/compare/v1.40.0...v1.41.0) (2023-02-16)
+
+
+### Bug Fixes
+
+* merge conflicts with master ([f398a90](https://github.com/Automattic/newspack-ads/commit/f398a9008b8bef6bd9f871c66939169f9c32bbcc))
+
+
+### Features
+
+* enable filtering of FE JS ([#586](https://github.com/Automattic/newspack-ads/issues/586)) ([19ec4ea](https://github.com/Automattic/newspack-ads/commit/19ec4ea967360cdcc93161646d41812b3e55d9d7))
+
+# [1.41.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.40.0...v1.41.0-alpha.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* merge conflicts with master ([f398a90](https://github.com/Automattic/newspack-ads/commit/f398a9008b8bef6bd9f871c66939169f9c32bbcc))
+
+
+### Features
+
+* enable filtering of FE JS ([#586](https://github.com/Automattic/newspack-ads/issues/586)) ([19ec4ea](https://github.com/Automattic/newspack-ads/commit/19ec4ea967360cdcc93161646d41812b3e55d9d7))
+
 # [1.40.0](https://github.com/Automattic/newspack-ads/compare/v1.39.4...v1.40.0) (2022-11-14)
 
 
