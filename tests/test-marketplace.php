@@ -149,7 +149,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 		$empty_data = [];
 		$this->assertEquals(
 			false,
-			Marketplace\Product_Cart::validate_item_data( $data, $price, false )
+			Marketplace\Product_Cart::validate_item_data( $empty_data, $price, false )
 		);
 
 		// Past date should return false.
