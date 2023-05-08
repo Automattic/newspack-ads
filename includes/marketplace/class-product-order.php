@@ -83,21 +83,29 @@ final class Product_Order {
 	 */
 	public static function create_gam_order( $order_id ) {
 		$order = \wc_get_order( $order_id );
+
 		$items = $order->get_items();
 		foreach ( $items as $i => $item ) {
 			if ( ! Marketplace::is_ad_product( $item->get_product()->get_id() ) ) {
 				unset( $items[ $i ] );
 			}
 		}
+
 		$items = array_values( $items );
 		if ( empty( $items ) ) {
 			return;
 		}
+
 		$advertiser = self::get_gam_advertiser( $order );
-		if ( is_wp_error( $advertiser ) ) {
+		if ( \is_wp_error( $advertiser ) ) {
 			return;
 		}
-		$api          = GAM_Model::get_api();
+
+		$api = GAM_Model::get_api();
+
+		$network_code = $api->get_network_code();
+		$order->update_meta_data( 'newspack_ads_gam_network_code', $network_code );
+
 		$gam_order_id = $order->get_meta( 'newspack_ads_gam_order_id' );
 		if ( ! $gam_order_id ) {
 			$gam_order = $api->orders->create_order(
@@ -108,13 +116,14 @@ final class Product_Order {
 				),
 				$advertiser['id']
 			);
-			if ( is_wp_error( $gam_order ) ) {
+			if ( \is_wp_error( $gam_order ) ) {
 				return;
 			}
 			$gam_order_id = $gam_order['id'];
 			$order->update_meta_data( 'newspack_ads_gam_order_id', $gam_order_id );
 			$order->save_meta_data();
 		}
+
 		$line_item_configs = [];
 		foreach ( $items as $item ) {
 			$product             = $item->get_product();
