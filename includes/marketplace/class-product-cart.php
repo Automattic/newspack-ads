@@ -42,13 +42,43 @@ final class Product_Cart {
 			wp_die( esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
 		}
 
+		if ( ! isset( $_FILES['creatives'] ) || empty( $_FILES['creatives']['name'] ) ) {
+			wp_die( esc_html__( 'No creatives selected.', 'newspack-ads' ) );
+		}
+
+		// Upload creatives.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		$creatives     = $_FILES['creatives']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$creatives_ids = [];
+		if ( ! is_array( $creatives['name'] ) ) {
+			$creatives_ids = [ media_handle_upload( 'creatives', 0 ) ];
+		} else {
+			foreach ( $creatives['name'] as $key => $value ) {
+				$file             = [
+					'name'     => $creatives['name'][ $key ],
+					'type'     => $creatives['type'][ $key ],
+					'tmp_name' => $creatives['tmp_name'][ $key ],
+					'error'    => $creatives['error'][ $key ],
+					'size'     => $creatives['size'][ $key ],
+				];
+				$_FILES['images'] = $file;
+				$creatives_ids[]  = media_handle_upload( 'images', 0 );
+			}
+		}
+		if ( empty( $creatives_ids ) || \is_wp_error( $creatives_ids ) ) {
+			wp_die( esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+		}
+
 		$from = isset( $_POST['from'] ) ? \sanitize_text_field( \wp_unslash( $_POST['from'] ) ) : '';
 		$to   = isset( $_POST['to'] ) ? \sanitize_text_field( \wp_unslash( $_POST['to'] ) ) : '';
 
 		$cart_item_data['newspack_ads'] = [
-			'from' => $from,
-			'to'   => $to,
-			'days' => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
+			'creatives' => $creatives_ids,
+			'from'      => $from,
+			'to'        => $to,
+			'days'      => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
 		];
 		return $cart_item_data;
 	}
@@ -63,6 +93,11 @@ final class Product_Cart {
 		if ( empty( $cart_item['newspack_ads'] ) ) {
 			return $item_data;
 		}
+		$item_data[] = [
+			'key'     => __( 'Creatives', 'newspack-ads' ),
+			'value'   => $cart_item['newspack_ads']['creatives'],
+			'display' => implode( ', ', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
+		];
 		$item_data[] = [
 			'key'     => __( 'From', 'newspack-ads' ),
 			'value'   => \date_i18n( \get_option( 'date_format' ), strtotime( $cart_item['newspack_ads']['from'] ) ),

@@ -34,6 +34,7 @@ final class Product_Order {
 	 */
 	public static function create_meta( $item, $cart_item_key, $values, $order ) {
 		if ( ! empty( $values['newspack_ads'] ) ) {
+			$item->add_meta_data( 'newspack_ads_creatives', $values['newspack_ads']['creatives'] );
 			$item->add_meta_data( 'newspack_ads_from', $values['newspack_ads']['from'] );
 			$item->add_meta_data( 'newspack_ads_to', $values['newspack_ads']['to'] );
 			$item->add_meta_data( 'newspack_ads_days', $values['newspack_ads']['days'] );
@@ -162,6 +163,9 @@ final class Product_Order {
 	 * @return string
 	 */
 	public static function display_meta_key( $key ) {
+		if ( 'newspack_ads_creatives' === $key ) {
+			return __( 'Creatives', 'newspack-ads' );
+		}
 		if ( 'newspack_ads_from' === $key ) {
 			return __( 'From', 'newspack-ads' );
 		}
@@ -184,7 +188,10 @@ final class Product_Order {
 	 */
 	public static function display_meta_value( $value, $meta ) {
 		if ( ! empty( $meta ) ) {
-			if ( 'newspack_ads_from' == $meta->key || 'newspack_ads_to' == $meta->key ) {
+			if ( 'newspack_ads_creatives' === $meta->key ) {
+				return implode( ', ', $value );
+			}
+			if ( 'newspack_ads_from' === $meta->key || 'newspack_ads_to' === $meta->key ) {
 				return \date_i18n( \get_option( 'date_format' ), strtotime( $value ) );
 			}
 		}
