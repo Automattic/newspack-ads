@@ -46,23 +46,43 @@ final class Product_Cart {
 			wp_die( esc_html__( 'No creatives selected.', 'newspack-ads' ) );
 		}
 
+		$validate_file = function( $file ) {
+			$allowed_extensions = [ 'jpg', 'jpeg', 'png' ];
+			$file_type          = wp_check_filetype( $file['name'] );
+			$file_extension     = $file_type['ext'];
+			if ( ! in_array( $file_extension, $allowed_extensions ) ) {
+				wp_die(
+					esc_html(
+						sprintf(
+							/* translators: %s: allowed file extensions. */
+							__( 'Invalid file extension, only allowed: %s', 'newspack-ads' ),
+							implode( ', ', $allowed_extensions )
+						)
+					)
+				);
+			}
+		};
+
 		// Upload creatives.
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
-		$creatives     = $_FILES['creatives']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$creatives_ids = [];
+		$allowed_extensions = [ 'jpg', 'jpeg', 'png' ];
+		$creatives          = $_FILES['creatives']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$creatives_ids      = [];
 		if ( ! is_array( $creatives['name'] ) ) {
+			$validate_file( $creatives );
 			$creatives_ids = [ media_handle_upload( 'creatives', 0 ) ];
 		} else {
 			foreach ( $creatives['name'] as $key => $value ) {
-				$file             = [
+				$file = [
 					'name'     => $creatives['name'][ $key ],
 					'type'     => $creatives['type'][ $key ],
 					'tmp_name' => $creatives['tmp_name'][ $key ],
 					'error'    => $creatives['error'][ $key ],
 					'size'     => $creatives['size'][ $key ],
 				];
+				$validate_file( $file );
 				$_FILES['images'] = $file;
 				$creatives_ids[]  = media_handle_upload( 'images', 0 );
 			}
@@ -95,8 +115,8 @@ final class Product_Cart {
 		}
 		$item_data[] = [
 			'key'     => __( 'Creatives', 'newspack-ads' ),
-			'value'   => $cart_item['newspack_ads']['creatives'],
-			'display' => implode( ', ', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
+			'value'   => implode( ',', $cart_item['newspack_ads']['creatives'] ),
+			'display' => implode( '', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
 		];
 		$item_data[] = [
 			'key'     => __( 'From', 'newspack-ads' ),
