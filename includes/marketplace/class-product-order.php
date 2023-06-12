@@ -85,12 +85,14 @@ final class Product_Order {
 		$order = \wc_get_order( $order_id );
 
 		$items = $order->get_items();
+
+		// Filter out non-ad products.
 		foreach ( $items as $i => $item ) {
 			if ( ! Marketplace::is_ad_product( $item->get_product()->get_id() ) ) {
 				unset( $items[ $i ] );
 			}
 		}
-
+		// Bail if order has no ad products.
 		$items = array_values( $items );
 		if ( empty( $items ) ) {
 			return;
@@ -98,6 +100,12 @@ final class Product_Order {
 
 		$advertiser = self::get_gam_advertiser( $order );
 		if ( \is_wp_error( $advertiser ) ) {
+			$note = sprintf(
+				// translators: %s is the error message.
+				__( 'Failed to create GAM Order: %s', 'newspack-ads' ),
+				$advertiser->get_error_message()
+			);
+			$order->add_order_note( $note );
 			return;
 		}
 
@@ -105,6 +113,7 @@ final class Product_Order {
 
 		$network_code = $api->get_network_code();
 		$order->update_meta_data( 'newspack_ads_gam_network_code', $network_code );
+		$order->save_meta_data();
 
 		$gam_order_id = $order->get_meta( 'newspack_ads_gam_order_id' );
 		if ( ! $gam_order_id ) {
@@ -117,9 +126,21 @@ final class Product_Order {
 				$advertiser['id']
 			);
 			if ( \is_wp_error( $gam_order ) ) {
+				$note = sprintf(
+					// translators: %s is the error message.
+					__( 'Failed to create GAM Order: %s', 'newspack-ads' ),
+					$gam_order->get_error_message()
+				);
+				$order->add_order_note( $note );
 				return;
 			}
 			$gam_order_id = $gam_order['id'];
+			$note         = sprintf(
+				// translators: %s is the GAM order ID.
+				__( 'GAM order created. (ID: %s)', 'newspack-ads' ),
+				$gam_order_id
+			);
+			$order->add_order_note( $note );
 			$order->update_meta_data( 'newspack_ads_gam_order_id', $gam_order_id );
 			$order->save_meta_data();
 		}
