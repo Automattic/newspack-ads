@@ -23,8 +23,6 @@ final class Marketplace {
 
 	const PRODUCT_META_PREFIX = '_ad_';
 
-	const PURCHASE_ACTION = 'newspack_ads_purchase';
-
 	/**
 	 * Initialize hooks.
 	 */
@@ -32,6 +30,9 @@ final class Marketplace {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		\add_filter( 'post_row_actions', [ __CLASS__, 'post_row_actions' ], PHP_INT_MAX, 2 );
 		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );
+		require_once 'class-purchase-block.php';
+		require_once 'class-product-cart.php';
+		require_once 'class-product-order.php';
 	}
 
 	/**
@@ -388,6 +389,33 @@ final class Marketplace {
 	}
 
 	/**
+	 * Get product sizes.
+	 *
+	 * @param WC_Product_Simple|array $product The product object or data to get sizes for.
+	 *
+	 * @return array Sizes.
+	 */
+	public static function get_product_sizes( $product ) {
+		if ( $product instanceof WC_Product_Simple ) {
+			$product = self::get_product_data( $product );
+		}
+		$placements = self::get_product_placements( $product );
+		$ad_units   = GAM_Model::get_ad_units( false );
+		$sizes      = [];
+		foreach ( $placements as $placement ) {
+			$ad_unit_idx   = array_search( $placement['data']['ad_unit'], array_column( $ad_units, 'id' ), true );
+			$ad_unit_sizes = array_map(
+				function( $size ) {
+					return implode( 'x', $size );
+				},
+				$ad_units[ $ad_unit_idx ]['sizes']
+			);
+			$sizes         = array_merge( $sizes, $ad_unit_sizes );
+		}
+		return array_unique( $sizes );
+	}
+
+	/**
 	 * Get product title
 	 *
 	 * @param WC_Product_Simple|array $product The product object or data to get title for.
@@ -446,7 +474,7 @@ final class Marketplace {
 	 *
 	 * @return mixed
 	 */
-	private static function get_product_meta( $product_id, $key ) {
+	public static function get_product_meta( $product_id, $key ) {
 		return \get_post_meta( $product_id, self::PRODUCT_META_PREFIX . $key, true );
 	}
 
