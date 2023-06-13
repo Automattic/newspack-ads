@@ -96,6 +96,12 @@ final class Purchase_Block {
 				</div>
 				<div class="newspack-ads_marketplace__creatives">
 					<p>
+						<label>
+							<?php _e( 'Destination URL', 'newspack-ads' ); ?><br />
+							<input type="url" name="destination_url" placeholder="<?php _e( 'Enter a destination URL', 'newspack-ads' ); ?>" required />
+						</label>
+					</p>
+					<p>
 						<input type="file" name="creatives[]" accept="image/*" multiple required />
 					</p>
 				</div>

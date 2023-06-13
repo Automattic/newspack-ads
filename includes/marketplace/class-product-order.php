@@ -34,10 +34,11 @@ final class Product_Order {
 	 */
 	public static function create_meta( $item, $cart_item_key, $values, $order ) {
 		if ( ! empty( $values['newspack_ads'] ) ) {
-			$item->add_meta_data( 'newspack_ads_creatives', $values['newspack_ads']['creatives'] );
 			$item->add_meta_data( 'newspack_ads_from', $values['newspack_ads']['from'] );
 			$item->add_meta_data( 'newspack_ads_to', $values['newspack_ads']['to'] );
 			$item->add_meta_data( 'newspack_ads_days', $values['newspack_ads']['days'] );
+			$item->add_meta_data( 'newspack_ads_creatives', $values['newspack_ads']['creatives'] );
+			$item->add_meta_data( 'newspack_ads_destination_url', $values['newspack_ads']['destination_url'] );
 		}
 	}
 
@@ -67,7 +68,8 @@ final class Product_Order {
 		}
 		/** Create advertiser */
 		try {
-			$advertiser = $api->advertisers->create_advertiser( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+			$advertiser_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+			$advertiser      = $api->advertisers->create_advertiser( 'Newspack: ' . $advertiser_name );
 			if ( $advertiser && ! is_wp_error( $advertiser ) ) {
 				update_user_meta( $customer_id, 'newspack_ads_gam_advertiser_id', $advertiser['id'] );
 				return $advertiser;
@@ -210,7 +212,7 @@ final class Product_Order {
 	public static function display_meta_value( $value, $meta ) {
 		if ( ! empty( $meta ) ) {
 			if ( 'newspack_ads_creatives' === $meta->key ) {
-				return implode( ', ', $value );
+				return $value;
 			}
 			if ( 'newspack_ads_from' === $meta->key || 'newspack_ads_to' === $meta->key ) {
 				return \date_i18n( \get_option( 'date_format' ), strtotime( $value ) );

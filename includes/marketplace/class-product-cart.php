@@ -42,6 +42,18 @@ final class Product_Cart {
 			wp_die( esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
 		}
 
+		$from = isset( $_POST['from'] ) ? \sanitize_text_field( \wp_unslash( $_POST['from'] ) ) : '';
+		$to   = isset( $_POST['to'] ) ? \sanitize_text_field( \wp_unslash( $_POST['to'] ) ) : '';
+
+		if ( empty( $from ) || empty( $to ) ) {
+			wp_die( esc_html__( 'Invalid dates.', 'newspack-ads' ) );
+		}
+
+		$destination_url = isset( $_POST['destination_url'] ) ? \esc_url_raw( \wp_unslash( $_POST['destination_url'] ) ) : '';
+		if ( empty( $destination_url ) ) {
+			wp_die( esc_html__( 'Invalid destination URL.', 'newspack-ads' ) );
+		}
+
 		if ( ! isset( $_FILES['creatives'] ) || empty( $_FILES['creatives']['name'] ) ) {
 			wp_die( esc_html__( 'No creatives selected.', 'newspack-ads' ) );
 		}
@@ -91,14 +103,12 @@ final class Product_Cart {
 			wp_die( esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
 		}
 
-		$from = isset( $_POST['from'] ) ? \sanitize_text_field( \wp_unslash( $_POST['from'] ) ) : '';
-		$to   = isset( $_POST['to'] ) ? \sanitize_text_field( \wp_unslash( $_POST['to'] ) ) : '';
-
 		$cart_item_data['newspack_ads'] = [
-			'creatives' => $creatives_ids,
-			'from'      => $from,
-			'to'        => $to,
-			'days'      => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
+			'from'            => $from,
+			'to'              => $to,
+			'days'            => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
+			'destination_url' => $destination_url,
+			'creatives'       => $creatives_ids,
 		];
 		return $cart_item_data;
 	}
@@ -114,11 +124,6 @@ final class Product_Cart {
 			return $item_data;
 		}
 		$item_data[] = [
-			'key'     => __( 'Creatives', 'newspack-ads' ),
-			'value'   => implode( ',', $cart_item['newspack_ads']['creatives'] ),
-			'display' => implode( '', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
-		];
-		$item_data[] = [
 			'key'     => __( 'From', 'newspack-ads' ),
 			'value'   => \date_i18n( \get_option( 'date_format' ), strtotime( $cart_item['newspack_ads']['from'] ) ),
 			'display' => '',
@@ -131,6 +136,16 @@ final class Product_Cart {
 		$item_data[] = [
 			'key'     => __( 'Days', 'newspack-ads' ),
 			'value'   => $cart_item['newspack_ads']['days'],
+			'display' => '',
+		];
+		$item_data[] = [
+			'key'     => __( 'Creatives', 'newspack-ads' ),
+			'value'   => implode( ',', $cart_item['newspack_ads']['creatives'] ),
+			'display' => implode( '', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
+		];
+		$item_data[] = [
+			'key'     => __( 'Destination URL', 'newspack-ads' ),
+			'value'   => $cart_item['newspack_ads']['destination_url'],
 			'display' => '',
 		];
 		return $item_data;
@@ -201,6 +216,19 @@ final class Product_Cart {
 			$total_price = $days * $product_price;
 			if ( $total_price <= 0 ) {
 				throw new \Exception( __( 'Invalid total price.', 'newspack-ads' ) );
+			}
+
+			// Validate destination URL.
+			if ( empty( $data['destination_url'] ) ) {
+				throw new \Exception( __( 'You must set a destination URL.', 'newspack-ads' ) );
+			}
+			if ( ! \esc_url_raw( $data['destination_url'] ) ) {
+				throw new \Exception( __( 'Invalid destination URL.', 'newspack-ads' ) );
+			}
+
+			// Validate uploaded creatives.
+			if ( empty( $data['creatives'] ) ) {
+				throw new \Exception( __( 'You must upload at least one creative.', 'newspack-ads' ) );
 			}
 		} catch ( \Exception $e ) {
 			if ( $add_notice ) {
