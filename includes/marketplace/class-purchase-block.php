@@ -46,7 +46,7 @@ final class Purchase_Block {
 		}
 		$nonce = \sanitize_text_field( \wp_unslash( $_POST[ self::PURCHASE_ACTION ] ) );
 		if ( ! \wp_verify_nonce( $nonce, self::PURCHASE_ACTION ) ) {
-			wp_die( esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
+			\wp_die( esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
 		}
 
 		$products = isset( $_POST['products'] ) ? array_map( 'sanitize_text_field', \wp_unslash( $_POST['products'] ) ) : [];
