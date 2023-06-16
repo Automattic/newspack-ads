@@ -149,10 +149,19 @@ final class Product_Order {
 			$order->save_meta_data();
 		}
 
-		$creatives_configs = [];
-		$line_item_configs = [];
+		$line_item_configs   = [];
+		$line_item_creatives = [];
 
-		foreach ( $items as $item ) {
+		foreach ( $items as $i => $item ) {
+			$product           = $item->get_product();
+			$sizes_str         = Marketplace::get_product_sizes( $product );
+			$sizes             = array_map(
+				function ( $size ) {
+					return explode( 'x', $size );
+				},
+				$sizes_str
+			);
+			$creatives_configs = [];
 			if ( $item->get_meta( 'newspack_ads_images' ) ) {
 				$images = $item->get_meta( 'newspack_ads_images' );
 				foreach ( $images as $attachment_id ) {
@@ -162,6 +171,9 @@ final class Product_Order {
 					}
 					$image = wp_get_attachment_image_src( $attachment_id, 'full' );
 					if ( ! $image ) {
+						continue;
+					}
+					if ( ! in_array( "$image[1]x$image[2]", $sizes_str, true ) ) {
 						continue;
 					}
 					$creatives_configs[] = [
@@ -175,8 +187,16 @@ final class Product_Order {
 						'image_data'      => file_get_contents( $path ), // phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 					];
 				}
+				$line_item_creatives[ $i ] = $api->creatives->create_creatives( $creatives_configs );
+				$order->add_order_note(
+					sprintf(
+						// translators: %1$d is the number of creatives. %2$s is the line item name.
+						__( 'Uploaded %1$d creative(s) for line item %2$s', 'newspack-ads' ),
+						count( $line_item_creatives[ $i ] ),
+						$item->get_name()
+					)
+				);
 			}
-			$product             = $item->get_product();
 			$line_item_config    = [
 				'name'                  => $product->get_name(),
 				'order_id'              => $gam_order_id,
@@ -192,38 +212,27 @@ final class Product_Order {
 					'goal_type' => 'IMPRESSIONS',
 					'units'     => 100,
 				],
-				'creative_placeholders' => array_map(
-					function ( $size ) {
-						return explode( 'x', $size );
-					},
-					Marketplace::get_product_sizes( $product )
-				),
+				'creative_placeholders' => $sizes,
 			];
 			$line_item_configs[] = $line_item_config;
 		}
-
-		$creatives = $api->creatives->create_creatives( $creatives_configs );
-		$order->add_order_note(
-			sprintf(
-				// translators: %d is the number of creatives.
-				__( 'Uploaded %d creatives to GAM', 'newspack-ads' ),
-				count( $creatives )
-			)
-		);
 
 		$line_items = $api->line_items->create_or_update_line_items( $line_item_configs );
 		$order->add_order_note(
 			sprintf(
 				// translators: %d is the number of creatives.
-				__( 'Added %d line items to the GAM order', 'newspack-ads' ),
+				__( 'Added %d line item(s) to the GAM order', 'newspack-ads' ),
 				count( $line_items )
 			)
 		);
 
 		// Line Item Creative Association.
 		$licas = [];
-		foreach ( $line_items as $line_item ) {
-			foreach ( $creatives as $creative ) {
+		foreach ( $line_items as $i => $line_item ) {
+			if ( empty( $line_item_creatives[ $i ] ) ) {
+				continue;
+			}
+			foreach ( $line_item_creatives[ $i ] as $creative ) {
 				$licas[] = [
 					'line_item_id' => $line_item->getId(),
 					'creative_id'  => $creative['id'],
@@ -231,13 +240,6 @@ final class Product_Order {
 			}
 		}
 		$lica_result = $api->line_items->associate_creatives_to_line_items( $licas );
-		$order->add_order_note(
-			sprintf(
-				// translators: %d is the number of creatives.
-				__( 'Created %d line items and creatives associations', 'newspack-ads' ),
-				count( $lica_result )
-			)
-		);
 	}
 
 	/**
