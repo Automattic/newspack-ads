@@ -32,7 +32,7 @@
     }
   },
   "require": {
-    "googleads/googleads-php-lib": "^60.0"
+    "googleads/googleads-php-lib": "^61.0"
   },
   "config": {
     "platform": {
