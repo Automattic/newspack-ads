@@ -26,6 +26,13 @@ final class Product_Cart {
 	}
 
 	/**
+	 * Uploaded image creatives.
+	 *
+	 * @var string[] Uploaded image creatives.
+	 */
+	private static $uploaded_creatives = [];
+
+	/**
 	 * Update cart item data.
 	 *
 	 * @param array $cart_item_data Cart item data.
@@ -39,32 +46,32 @@ final class Product_Cart {
 		}
 		$nonce = \sanitize_text_field( \wp_unslash( $_POST[ Purchase_Block::PURCHASE_ACTION ] ) );
 		if ( ! \wp_verify_nonce( $nonce, Purchase_Block::PURCHASE_ACTION ) ) {
-			wp_die( esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
+			\wp_die( \esc_html__( 'Invalid nonce.', 'newspack-ads' ) );
 		}
 
 		$from = isset( $_POST['from'] ) ? \sanitize_text_field( \wp_unslash( $_POST['from'] ) ) : '';
 		$to   = isset( $_POST['to'] ) ? \sanitize_text_field( \wp_unslash( $_POST['to'] ) ) : '';
 
 		if ( empty( $from ) || empty( $to ) ) {
-			wp_die( esc_html__( 'Invalid dates.', 'newspack-ads' ) );
+			\wp_die( \esc_html__( 'Invalid dates.', 'newspack-ads' ) );
 		}
 
 		$destination_url = isset( $_POST['destination_url'] ) ? \esc_url_raw( \wp_unslash( $_POST['destination_url'] ) ) : '';
 		if ( empty( $destination_url ) ) {
-			wp_die( esc_html__( 'Invalid destination URL.', 'newspack-ads' ) );
+			\wp_die( \esc_html__( 'Invalid destination URL.', 'newspack-ads' ) );
 		}
 
 		if ( ! isset( $_FILES['creatives'] ) || empty( $_FILES['creatives']['name'] ) ) {
-			wp_die( esc_html__( 'No creatives selected.', 'newspack-ads' ) );
+			\wp_die( \esc_html__( 'No creatives selected.', 'newspack-ads' ) );
 		}
 
 		$validate_file = function( $file ) {
 			$allowed_extensions = [ 'jpg', 'jpeg', 'png' ];
-			$file_type          = wp_check_filetype( $file['name'] );
+			$file_type          = \wp_check_filetype( $file['name'] );
 			$file_extension     = $file_type['ext'];
 			if ( ! in_array( $file_extension, $allowed_extensions ) ) {
-				wp_die(
-					esc_html(
+				\wp_die(
+					\esc_html(
 						sprintf(
 							/* translators: %s: allowed file extensions. */
 							__( 'Invalid file extension, only allowed: %s', 'newspack-ads' ),
@@ -84,7 +91,15 @@ final class Product_Cart {
 		$creatives_ids      = [];
 		if ( ! is_array( $creatives['name'] ) ) {
 			$validate_file( $creatives );
-			$creatives_ids = [ media_handle_upload( 'creatives', 0 ) ];
+			$tmp_name = $creatives['tmp_name'];
+			if ( ! isset( self::$uploaded_creatives[ $tmp_name ] ) ) {
+				$file_id = \media_handle_upload( 'creatives', 0 );
+				if ( ! $file_id || is_wp_error( $file_id ) ) {
+					\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+				}
+				self::$uploaded_creatives[ $tmp_name ] = $file_id;
+			}
+			$creatives_ids = [ self::$uploaded_creatives[ $tmp_name ] ];
 		} else {
 			foreach ( $creatives['name'] as $key => $value ) {
 				$file = [
@@ -95,12 +110,20 @@ final class Product_Cart {
 					'size'     => $creatives['size'][ $key ],
 				];
 				$validate_file( $file );
-				$_FILES['images'] = $file;
-				$creatives_ids[]  = media_handle_upload( 'images', 0 );
+				$tmp_name = $file['tmp_name'];
+				if ( ! isset( self::$uploaded_creatives[ $tmp_name ] ) ) {
+					$_FILES['images'] = $file;
+					$file_id          = \media_handle_upload( 'images', 0 );
+					if ( ! $file_id || is_wp_error( $file_id ) ) {
+						\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+					}
+					self::$uploaded_creatives[ $tmp_name ] = $file_id;
+				}
+				$creatives_ids[] = self::$uploaded_creatives[ $tmp_name ];
 			}
 		}
-		if ( empty( $creatives_ids ) || \is_wp_error( $creatives_ids ) ) {
-			wp_die( esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+		if ( empty( $creatives_ids ) ) {
+			\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
 		}
 
 		$cart_item_data['newspack_ads'] = [
@@ -155,7 +178,7 @@ final class Product_Cart {
 	 * Update cart item prices according to ad product settings.
 	 */
 	public static function cart_updated() {
-		$cart = WC()->cart;
+		$cart = \WC()->cart;
 		if ( empty( $cart ) || empty( $cart->cart_contents ) ) {
 			return;
 		}

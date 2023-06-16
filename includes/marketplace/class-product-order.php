@@ -27,10 +27,10 @@ final class Product_Order {
 	/**
 	 * Create order line item meta.
 	 *
-	 * @param \WC_Order_Item_Product $item Order item.
+	 * @param \WC_Order_Item_Product $item          Order item.
 	 * @param string                 $cart_item_key Cart item key.
-	 * @param array                  $values Cart item values.
-	 * @param \WC_Order              $order Order.
+	 * @param array                  $values        Cart item values.
+	 * @param \WC_Order              $order         Order.
 	 */
 	public static function create_meta( $item, $cart_item_key, $values, $order ) {
 		if ( ! empty( $values['newspack_ads'] ) ) {
