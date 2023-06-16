@@ -23,14 +23,15 @@ final class Product_Cart {
 		\add_action( 'woocommerce_cart_updated', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
 		\add_action( 'woocommerce_before_calculate_totals', [ __CLASS__, 'cart_updated' ], PHP_INT_MAX );
 		\add_action( 'woocommerce_check_cart_items', [ __CLASS__, 'check_cart_items' ] );
+		\add_filter( 'wc_get_template', [ __CLASS__, 'cart_item_template' ], 10, 2 );
 	}
 
 	/**
-	 * Uploaded image creatives.
+	 * Uploaded image images.
 	 *
-	 * @var string[] Uploaded image creatives.
+	 * @var string[] Uploaded image images.
 	 */
-	private static $uploaded_creatives = [];
+	private static $uploaded_images = [];
 
 	/**
 	 * Update cart item data.
@@ -61,8 +62,8 @@ final class Product_Cart {
 			\wp_die( \esc_html__( 'Invalid destination URL.', 'newspack-ads' ) );
 		}
 
-		if ( ! isset( $_FILES['creatives'] ) || empty( $_FILES['creatives']['name'] ) ) {
-			\wp_die( \esc_html__( 'No creatives selected.', 'newspack-ads' ) );
+		if ( ! isset( $_FILES['images'] ) || empty( $_FILES['images']['name'] ) ) {
+			\wp_die( \esc_html__( 'No images selected.', 'newspack-ads' ) );
 		}
 
 		$validate_file = function( $file ) {
@@ -82,48 +83,48 @@ final class Product_Cart {
 			}
 		};
 
-		// Upload creatives.
+		// Upload images.
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		$allowed_extensions = [ 'jpg', 'jpeg', 'png' ];
-		$creatives          = $_FILES['creatives']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$creatives_ids      = [];
-		if ( ! is_array( $creatives['name'] ) ) {
-			$validate_file( $creatives );
-			$tmp_name = $creatives['tmp_name'];
-			if ( ! isset( self::$uploaded_creatives[ $tmp_name ] ) ) {
-				$file_id = \media_handle_upload( 'creatives', 0 );
+		$images             = $_FILES['images']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$images_ids         = [];
+		if ( ! is_array( $images['name'] ) ) {
+			$validate_file( $images );
+			$tmp_name = $images['tmp_name'];
+			if ( ! isset( self::$uploaded_images[ $tmp_name ] ) ) {
+				$file_id = \media_handle_upload( 'images', 0 );
 				if ( ! $file_id || is_wp_error( $file_id ) ) {
-					\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+					\wp_die( \esc_html__( 'Error uploading images.', 'newspack-ads' ) );
 				}
-				self::$uploaded_creatives[ $tmp_name ] = $file_id;
+				self::$uploaded_images[ $tmp_name ] = $file_id;
 			}
-			$creatives_ids = [ self::$uploaded_creatives[ $tmp_name ] ];
+			$images_ids = [ self::$uploaded_images[ $tmp_name ] ];
 		} else {
-			foreach ( $creatives['name'] as $key => $value ) {
+			foreach ( $images['name'] as $key => $value ) {
 				$file = [
-					'name'     => $creatives['name'][ $key ],
-					'type'     => $creatives['type'][ $key ],
-					'tmp_name' => $creatives['tmp_name'][ $key ],
-					'error'    => $creatives['error'][ $key ],
-					'size'     => $creatives['size'][ $key ],
+					'name'     => $images['name'][ $key ],
+					'type'     => $images['type'][ $key ],
+					'tmp_name' => $images['tmp_name'][ $key ],
+					'error'    => $images['error'][ $key ],
+					'size'     => $images['size'][ $key ],
 				];
 				$validate_file( $file );
 				$tmp_name = $file['tmp_name'];
-				if ( ! isset( self::$uploaded_creatives[ $tmp_name ] ) ) {
+				if ( ! isset( self::$uploaded_images[ $tmp_name ] ) ) {
 					$_FILES['images'] = $file;
 					$file_id          = \media_handle_upload( 'images', 0 );
 					if ( ! $file_id || is_wp_error( $file_id ) ) {
-						\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+						\wp_die( \esc_html__( 'Error uploading images.', 'newspack-ads' ) );
 					}
-					self::$uploaded_creatives[ $tmp_name ] = $file_id;
+					self::$uploaded_images[ $tmp_name ] = $file_id;
 				}
-				$creatives_ids[] = self::$uploaded_creatives[ $tmp_name ];
+				$images_ids[] = self::$uploaded_images[ $tmp_name ];
 			}
 		}
-		if ( empty( $creatives_ids ) ) {
-			\wp_die( \esc_html__( 'Error uploading creatives.', 'newspack-ads' ) );
+		if ( empty( $images_ids ) ) {
+			\wp_die( \esc_html__( 'Error uploading images.', 'newspack-ads' ) );
 		}
 
 		$cart_item_data['newspack_ads'] = [
@@ -131,7 +132,7 @@ final class Product_Cart {
 			'to'              => $to,
 			'days'            => round( ( strtotime( $to ) - strtotime( $from ) ) / ( 60 * 60 * 24 ) ) + 1, // Include the last day.
 			'destination_url' => $destination_url,
-			'creatives'       => $creatives_ids,
+			'images'          => $images_ids,
 		];
 		return $cart_item_data;
 	}
@@ -162,9 +163,9 @@ final class Product_Cart {
 			'display' => '',
 		];
 		$item_data[] = [
-			'key'     => __( 'Creatives', 'newspack-ads' ),
-			'value'   => implode( ',', $cart_item['newspack_ads']['creatives'] ),
-			'display' => implode( '', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['creatives'] ) ),
+			'key'     => __( 'Images', 'newspack-ads' ),
+			'value'   => $cart_item['newspack_ads']['images'],
+			'display' => implode( '', array_map( 'wp_get_attachment_image', $cart_item['newspack_ads']['images'] ) ),
 		];
 		$item_data[] = [
 			'key'     => __( 'Destination URL', 'newspack-ads' ),
@@ -249,9 +250,9 @@ final class Product_Cart {
 				throw new \Exception( __( 'Invalid destination URL.', 'newspack-ads' ) );
 			}
 
-			// Validate uploaded creatives.
-			if ( empty( $data['creatives'] ) ) {
-				throw new \Exception( __( 'You must upload at least one creative.', 'newspack-ads' ) );
+			// Validate uploaded images.
+			if ( empty( $data['images'] ) ) {
+				throw new \Exception( __( 'You must upload at least one image.', 'newspack-ads' ) );
 			}
 		} catch ( \Exception $e ) {
 			if ( $add_notice ) {
@@ -278,6 +279,22 @@ final class Product_Cart {
 				\WC()->cart->remove_cart_item( $item['key'] );
 			}
 		}
+	}
+
+	/**
+	 * TODO: Custom template for cart item data.
+	 *
+	 * @param string $template      Full template path.
+	 * @param string $template_name Template name.
+	 * @param array  $args          Template arguments.
+	 *
+	 * @return string Filtered template path.
+	 */
+	public static function cart_item_template( $template, $template_name, $args = [] ) {
+		if ( 'cart/cart-item-data.php' !== $template_name ) {
+			return $template;
+		}
+		return $template;
 	}
 }
 Product_Cart::init();

@@ -94,7 +94,7 @@ final class Purchase_Block {
 						<input type="date" name="to" />
 					</p>
 				</div>
-				<div class="newspack-ads_marketplace__creatives">
+				<div class="newspack-ads_marketplace__images">
 					<p>
 						<label>
 							<?php _e( 'Destination URL', 'newspack-ads' ); ?><br />
@@ -102,7 +102,7 @@ final class Purchase_Block {
 						</label>
 					</p>
 					<p>
-						<input type="file" name="creatives[]" accept="image/*" multiple required />
+						<input type="file" name="images[]" accept="image/*" multiple required />
 					</p>
 				</div>
 				<p>

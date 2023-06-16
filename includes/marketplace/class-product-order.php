@@ -37,7 +37,7 @@ final class Product_Order {
 			$item->add_meta_data( 'newspack_ads_from', $values['newspack_ads']['from'] );
 			$item->add_meta_data( 'newspack_ads_to', $values['newspack_ads']['to'] );
 			$item->add_meta_data( 'newspack_ads_days', $values['newspack_ads']['days'] );
-			$item->add_meta_data( 'newspack_ads_creatives', $values['newspack_ads']['creatives'] );
+			$item->add_meta_data( 'newspack_ads_images', $values['newspack_ads']['images'] );
 			$item->add_meta_data( 'newspack_ads_destination_url', $values['newspack_ads']['destination_url'] );
 		}
 	}
@@ -138,18 +138,44 @@ final class Product_Order {
 				return;
 			}
 			$gam_order_id = $gam_order['id'];
-			$note         = sprintf(
-				// translators: %s is the GAM order ID.
-				__( 'GAM order created. (ID: %s)', 'newspack-ads' ),
-				$gam_order_id
+			$order->add_order_note(
+				sprintf(
+					// translators: %s is the GAM order ID.
+					__( 'GAM order created. (ID: %s)', 'newspack-ads' ),
+					$gam_order_id
+				)
 			);
-			$order->add_order_note( $note );
 			$order->update_meta_data( 'newspack_ads_gam_order_id', $gam_order_id );
 			$order->save_meta_data();
 		}
 
+		$creatives_configs = [];
 		$line_item_configs = [];
+
 		foreach ( $items as $item ) {
+			if ( $item->get_meta( 'newspack_ads_images' ) ) {
+				$images = $item->get_meta( 'newspack_ads_images' );
+				foreach ( $images as $attachment_id ) {
+					$path = get_attached_file( $attachment_id );
+					if ( ! $path ) {
+						continue;
+					}
+					$image = wp_get_attachment_image_src( $attachment_id, 'full' );
+					if ( ! $image ) {
+						continue;
+					}
+					$creatives_configs[] = [
+						'advertiser_id'   => $advertiser['id'],
+						'xsi_type'        => 'ImageCreative',
+						'name'            => $item->get_name(),
+						'file_name'       => basename( $path ),
+						'width'           => $image[1],
+						'height'          => $image[2],
+						'destination_url' => $item->get_meta( 'newspack_ads_destination_url' ),
+						'image_data'      => file_get_contents( $path ), // phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
+					];
+				}
+			}
 			$product             = $item->get_product();
 			$line_item_config    = [
 				'name'                  => $product->get_name(),
@@ -175,7 +201,43 @@ final class Product_Order {
 			];
 			$line_item_configs[] = $line_item_config;
 		}
-		$api->line_items->create_or_update_line_items( $line_item_configs );
+
+		$creatives = $api->creatives->create_creatives( $creatives_configs );
+		$order->add_order_note(
+			sprintf(
+				// translators: %d is the number of creatives.
+				__( 'Uploaded %d creatives to GAM', 'newspack-ads' ),
+				count( $creatives )
+			)
+		);
+
+		$line_items = $api->line_items->create_or_update_line_items( $line_item_configs );
+		$order->add_order_note(
+			sprintf(
+				// translators: %d is the number of creatives.
+				__( 'Added %d line items to the GAM order', 'newspack-ads' ),
+				count( $line_items )
+			)
+		);
+
+		// Line Item Creative Association.
+		$licas = [];
+		foreach ( $line_items as $line_item ) {
+			foreach ( $creatives as $creative ) {
+				$licas[] = [
+					'line_item_id' => $line_item->getId(),
+					'creative_id'  => $creative['id'],
+				];
+			}
+		}
+		$lica_result = $api->line_items->associate_creatives_to_line_items( $licas );
+		$order->add_order_note(
+			sprintf(
+				// translators: %d is the number of creatives.
+				__( 'Created %d line items and creatives associations', 'newspack-ads' ),
+				count( $lica_result )
+			)
+		);
 	}
 
 	/**
@@ -186,9 +248,6 @@ final class Product_Order {
 	 * @return string
 	 */
 	public static function display_meta_key( $key ) {
-		if ( 'newspack_ads_creatives' === $key ) {
-			return __( 'Creatives', 'newspack-ads' );
-		}
 		if ( 'newspack_ads_from' === $key ) {
 			return __( 'From', 'newspack-ads' );
 		}
@@ -197,6 +256,12 @@ final class Product_Order {
 		}
 		if ( 'newspack_ads_days' === $key ) {
 			return __( 'Days', 'newspack-ads' );
+		}
+		if ( 'newspack_ads_destination_url' === $key ) {
+			return __( 'Destination URL', 'newspack-ads' );
+		}
+		if ( 'newspack_ads_images' === $key ) {
+			return __( 'Images', 'newspack-ads' );
 		}
 		return $key;
 	}
@@ -211,8 +276,8 @@ final class Product_Order {
 	 */
 	public static function display_meta_value( $value, $meta ) {
 		if ( ! empty( $meta ) ) {
-			if ( 'newspack_ads_creatives' === $meta->key ) {
-				return $value;
+			if ( 'newspack_ads_images' === $meta->key ) {
+				return implode( ', ', $value );
 			}
 			if ( 'newspack_ads_from' === $meta->key || 'newspack_ads_to' === $meta->key ) {
 				return \date_i18n( \get_option( 'date_format' ), strtotime( $value ) );
