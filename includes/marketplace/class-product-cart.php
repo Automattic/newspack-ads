@@ -113,8 +113,8 @@ final class Product_Cart {
 				$validate_file( $file );
 				$tmp_name = $file['tmp_name'];
 				if ( ! isset( self::$uploaded_images[ $tmp_name ] ) ) {
-					$_FILES['images'] = $file;
-					$file_id          = \media_handle_upload( 'images', 0 );
+					$_FILES['image'] = $file;
+					$file_id         = \media_handle_upload( 'image', 0 );
 					if ( ! $file_id || is_wp_error( $file_id ) ) {
 						\wp_die( \esc_html__( 'Error uploading images.', 'newspack-ads' ) );
 					}
