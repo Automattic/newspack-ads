@@ -175,6 +175,7 @@ final class Product_Order {
 					if ( ! $image ) {
 						continue;
 					}
+					// Check if image size is supported by the product.
 					if ( ! in_array( "$image[1]x$image[2]", $sizes_str, true ) ) {
 						continue;
 					}
