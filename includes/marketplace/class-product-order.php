@@ -22,6 +22,7 @@ final class Product_Order {
 		\add_action( 'woocommerce_checkout_order_processed', [ __CLASS__, 'create_gam_order' ], PHP_INT_MAX );
 		\add_filter( 'woocommerce_order_item_display_meta_key', [ __CLASS__, 'display_meta_key' ] );
 		\add_filter( 'woocommerce_order_item_display_meta_value', [ __CLASS__, 'display_meta_value' ], 10, 2 );
+		\add_action( 'woocommerce_admin_order_data_after_shipping_address', [ __CLASS__, 'display_order_details' ] );
 	}
 
 	/**
@@ -115,6 +116,7 @@ final class Product_Order {
 		$api = GAM_Model::get_api();
 
 		$network_code = $api->get_network_code();
+		$order->update_meta_data( 'newspack_ads_is_ad_order', true );
 		$order->update_meta_data( 'newspack_ads_gam_network_code', $network_code );
 		$order->save_meta_data();
 
@@ -286,6 +288,69 @@ final class Product_Order {
 			}
 		}
 		return $value;
+	}
+
+	/**
+	 * Get the Ad Manager order URL.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return string The order URL.
+	 */
+	public static function get_gam_order_url( $order ) {
+		return sprintf(
+			'https://admanager.google.com/%1$d#delivery/order/order_overview/order_id=%2$d',
+			$order->get_meta( 'newspack_ads_gam_network_code', true ),
+			$order->get_meta( 'newspack_ads_gam_order_id', true )
+		);
+	}
+
+	/**
+	 * Get the Ad Manager order status.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return string The order status. 'Unknown' if not found or unavailable.
+	 */
+	private static function get_gam_order_status( $order ) {
+		$api          = GAM_Model::get_api();
+		$gam_order_id = $order->get_meta( 'newspack_ads_gam_order_id', true );
+		if ( empty( $gam_order_id ) ) {
+			return __( 'Unknown', 'newspack-ads' );
+		}
+		$gam_order = $api->orders->get_orders_by_id( [ $gam_order_id ] );
+		if ( empty( $gam_order ) ) {
+			return __( 'Unknown', 'newspack-ads' );
+		}
+		return $gam_order[0]->getStatus();
+	}
+
+	/**
+	 * Display order details
+	 *
+	 * @param \WC_Order $order Order object.
+	 */
+	public static function display_order_details( $order ) {
+		$order_id = $order->get_meta( 'newspack_ads_gam_order_id', true );
+		if ( ! $order_id ) {
+			return;
+		}
+		$order_url    = self::get_gam_order_url( $order );
+		$order_status = self::get_gam_order_status( $order );
+		?>
+		<h3>
+			<?php esc_html_e( 'Google Ad Manager', 'newspack-ads' ); ?>
+		</h3>
+		<p><a href="<?php echo esc_url( $order_url ); ?>" target="_blank" rel="external"><?php _e( 'Go to the Ad Manager', 'newspack-ads' ); ?></a></p>
+		<p>
+			<strong><?php esc_html_e( 'Order ID', 'newspack-ads' ); ?>:</strong>
+			<code><?php echo esc_html( $order_id ); ?></code>
+		</p>
+		<p>
+			<strong><?php esc_html_e( 'Order status', 'newspack-ads' ); ?>:</strong>
+			<code><?php echo esc_html( $order_status ); ?></code>
+		</p>
+		<?php
 	}
 }
 Product_Order::init();
