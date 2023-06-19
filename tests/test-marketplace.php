@@ -145,6 +145,14 @@ class MarketplaceTest extends WP_UnitTestCase {
 		$product = $this->create_product()->get_data();
 		$price   = $product['price'];
 
+		$base_item = [
+			'from'            => gmdate( 'Y-m-d', strtotime( '+1 day' ) ),
+			'to'              => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+			'days'            => 5,
+			'destination_url' => 'https://example.com',
+			'images'          => [ 1, 2, 3 ],
+		];
+
 		// Empty data should return false.
 		$empty_data = [];
 		$this->assertFalse(
@@ -159,7 +167,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'days' => 3,
 		];
 		$this->assertFalse(
-			Marketplace\Product_Cart::validate_item_data( $past_date, $price, false ),
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $past_date ), $price, false ),
 			'Past date should return false.'
 		);
 
@@ -170,7 +178,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'days' => 3,
 		];
 		$this->assertFalse(
-			Marketplace\Product_Cart::validate_item_data( $invalid_date, $price, false ),
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $invalid_date ), $price, false ),
 			'Invalid date format should return false.'
 		);
 
@@ -181,7 +189,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'days' => 3,
 		];
 		$this->assertFalse(
-			Marketplace\Product_Cart::validate_item_data( $invalid_date_range, $price, false ),
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $invalid_date_range ), $price, false ),
 			'Invalid date range should return false.'
 		);
 
@@ -192,7 +200,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'days' => 6,
 		];
 		$this->assertFalse(
-			Marketplace\Product_Cart::validate_item_data( $today, $price, false ),
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $today ), $price, false ),
 			'Cannot purchase for same day.'
 		);
 
@@ -203,8 +211,44 @@ class MarketplaceTest extends WP_UnitTestCase {
 			'days' => 5,
 		];
 		$this->assertTrue(
-			Marketplace\Product_Cart::validate_item_data( $valid_date, $price, false ),
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $valid_date ), $price, false ),
 			'Valid date range should return true.'
+		);
+
+		// Invalid destination URL should return false.
+		$invalid_destination_url = [
+			'destination_url' => 'invalid',
+		];
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $invalid_destination_url ), $price, false ),
+			'Invalid destination URL should return false.'
+		);
+
+		// Valid destination URL should return true.
+		$valid_destination_url = [
+			'destination_url' => 'https://example.com',
+		];
+		$this->assertTrue(
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $valid_destination_url ), $price, false ),
+			'Valid destination URL should return true.'
+		);
+
+		// Invalid images should return false.
+		$invalid_images = [
+			'images' => false,
+		];
+		$this->assertFalse(
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $invalid_images ), $price, false ),
+			'Invalid images should return false.'
+		);
+
+		// Valid images should return true.
+		$valid_images = [
+			'images' => [ 1, 2, 3 ],
+		];
+		$this->assertTrue(
+			Marketplace\Product_Cart::validate_item_data( array_merge( $base_item, $valid_images ), $price, false ),
+			'Valid images should return true.'
 		);
 	}
 }
