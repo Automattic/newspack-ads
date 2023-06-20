@@ -313,7 +313,7 @@ final class Product_Cart {
 			if ( empty( $data['destination_url'] ) ) {
 				throw new \Exception( __( 'You must set a destination URL.', 'newspack-ads' ) );
 			}
-			if ( ! \wp_http_validate_url( $data['destination_url'] ) ) {
+			if ( \esc_url_raw( $data['destination_url'] ) !== $data['destination_url'] ) {
 				throw new \Exception( __( 'Invalid destination URL.', 'newspack-ads' ) );
 			}
 
