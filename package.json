@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.21",
-    "newspack-components": "^2.1.0",
+    "newspack-components": "^2.2.1",
     "prebid.js": "^7.53.0"
   }
 }
