@@ -42,7 +42,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 	 * @return WP_REST_Response
 	 */
 	private function get_product( $id ) {
-		$request = new WP_REST_Request( 'GET', '/newspack-ads/v1/products/' . $id );
+		$request = new WP_REST_Request( 'GET', '/newspack-ads/v1/marketplace/products/' . $id );
 		return $this->server->dispatch( $request );
 	}
 
@@ -61,7 +61,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 				'price'          => '5',
 			];
 		}
-		$request = new WP_REST_Request( 'POST', '/newspack-ads/v1/products' );
+		$request = new WP_REST_Request( 'POST', '/newspack-ads/v1/marketplace/products' );
 		$request->set_body_params( $params );
 		return $this->server->dispatch( $request );
 	}
@@ -75,7 +75,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 	 * @return WP_REST_Response
 	 */
 	private function update_product( $id, $params ) {
-		$request = new WP_REST_Request( 'PUT', '/newspack-ads/v1/products/' . $id );
+		$request = new WP_REST_Request( 'PUT', '/newspack-ads/v1/marketplace/products/' . $id );
 		$request->set_body_params( $params );
 		return $this->server->dispatch( $request );
 	}
@@ -88,7 +88,7 @@ class MarketplaceTest extends WP_UnitTestCase {
 	 * @return WP_REST_Response
 	 */
 	private function delete_product( $id ) {
-		$request = new WP_REST_Request( 'DELETE', '/newspack-ads/v1/products/' . $id );
+		$request = new WP_REST_Request( 'DELETE', '/newspack-ads/v1/marketplace/products/' . $id );
 		return $this->server->dispatch( $request );
 	}
 

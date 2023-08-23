@@ -7,7 +7,6 @@
 
 namespace Newspack_Ads\Marketplace;
 
-use Newspack_Ads\Marketplace;
 use Newspack_Ads\Providers\GAM_Model;
 
 /**
@@ -92,7 +91,7 @@ final class Product_Order {
 
 		// Filter out non-ad products.
 		foreach ( $items as $i => $item ) {
-			if ( ! Marketplace::is_ad_product( $item->get_product()->get_id() ) ) {
+			if ( ! Product::is_ad_product( $item->get_product()->get_id() ) ) {
 				unset( $items[ $i ] );
 			}
 		}
@@ -148,6 +147,7 @@ final class Product_Order {
 				)
 			);
 			$order->update_meta_data( 'newspack_ads_gam_order_id', $gam_order_id );
+			$order->update_meta_data( 'newspack_ads_gam_order_status', $gam_order['status'] );
 			$order->save_meta_data();
 		}
 
@@ -156,7 +156,7 @@ final class Product_Order {
 
 		foreach ( $items as $i => $item ) {
 			$product           = $item->get_product();
-			$sizes_str         = Marketplace::get_product_sizes( $product );
+			$sizes_str         = Product::get_product_sizes( $product );
 			$sizes             = array_map(
 				function ( $size ) {
 					return explode( 'x', $size );
@@ -309,21 +309,28 @@ final class Product_Order {
 	/**
 	 * Get the Ad Manager order status.
 	 *
-	 * @param \WC_Order $order The order.
+	 * @param \WC_Order $order   The order.
+	 * @param bool      $refresh Whether to attempt a refresh of the order status.
 	 *
 	 * @return string The order status. 'Unknown' if not found or unavailable.
 	 */
-	private static function get_gam_order_status( $order ) {
+	public static function get_gam_order_status( $order, $refresh = false ) {
 		$api          = GAM_Model::get_api();
 		$gam_order_id = $order->get_meta( 'newspack_ads_gam_order_id', true );
 		if ( empty( $gam_order_id ) ) {
 			return __( 'Unknown', 'newspack-ads' );
 		}
-		$gam_order = $api->orders->get_orders_by_id( [ $gam_order_id ] );
-		if ( empty( $gam_order ) ) {
-			return __( 'Unknown', 'newspack-ads' );
+		$status = $order->get_meta( 'newspack_ads_gam_order_status', true );
+		if ( true === $refresh || empty( $status ) ) {
+			$gam_order = $api->orders->get_orders_by_id( [ $gam_order_id ] );
+			if ( empty( $gam_order ) ) {
+				return __( 'Unknown', 'newspack-ads' );
+			}
+			$status = $gam_order[0]->getStatus();
+			$order->update_meta_data( 'newspack_ads_gam_order_status', $status );
+			$order->save_meta_data();
 		}
-		return $gam_order[0]->getStatus();
+		return $status;
 	}
 
 	/**
@@ -337,7 +344,7 @@ final class Product_Order {
 			return;
 		}
 		$order_url    = self::get_gam_order_url( $order );
-		$order_status = self::get_gam_order_status( $order );
+		$order_status = self::get_gam_order_status( $order, true );
 		?>
 		<h3>
 			<?php esc_html_e( 'Google Ad Manager', 'newspack-ads' ); ?>
@@ -352,6 +359,88 @@ final class Product_Order {
 			<code><?php echo esc_html( $order_status ); ?></code>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Get order item images data.
+	 *
+	 * @param \WC_Order_Item_Product $order_item Order item product.
+	 *
+	 * @return array
+	 */
+	public static function get_order_item_images_data( $order_item ) {
+		$images = $order_item->get_meta( 'newspack_ads_images' );
+		if ( empty( $images ) ) {
+			return [];
+		}
+		$data = [];
+		foreach ( $images as $attachment_id ) {
+			$image = wp_get_attachment_image_src( $attachment_id, 'full' );
+			if ( ! $image ) {
+				continue;
+			}
+			$data[] = [
+				'id'     => $attachment_id,
+				'url'    => $image[0],
+				'width'  => $image[1],
+				'height' => $image[2],
+			];
+		}
+		return $data;
+	}
+
+	/**
+	 * Get order data
+	 *
+	 * @param \WC_Order $order Order object.
+	 *
+	 * @return array
+	 */
+	public static function get_order_data( $order ) {
+		$data             = [];
+		$data['id']       = $order->get_id();
+		$data['status']   = $order->get_status();
+		$data['edit_url'] = $order->get_edit_order_url();
+		$data['currency'] = $order->get_currency();
+		$data['subtotal'] = $order->get_subtotal();
+		$data['customer'] = [
+			'id'    => $order->get_customer_id(),
+			'name'  => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'email' => $order->get_billing_email(),
+		];
+		$data['gam']      = [
+			'url'    => self::get_gam_order_url( $order ),
+			'status' => self::get_gam_order_status( $order ),
+		];
+		$data['items']    = [];
+		foreach ( $order->get_items() as $item ) {
+			$product = $item->get_product();
+			if ( ! Product::is_ad_product( $product->get_id() ) ) {
+				continue;
+			}
+			$data['items'][] = [
+				'product' => Product::get_product_data( $product ),
+				'from'    => $item->get_meta( 'newspack_ads_from' ),
+				'to'      => $item->get_meta( 'newspack_ads_to' ),
+				'days'    => $item->get_meta( 'newspack_ads_days' ),
+				'images'  => self::get_order_item_images_data( $item ),
+			];
+		}
+		return $data;
+	}
+
+	/**
+	 * Get all ad orders.
+	 */
+	public static function get_orders() {
+		$orders = wc_get_orders(
+			[
+				'limit'      => -1,
+				'meta_key'   => 'newspack_ads_is_ad_order',
+				'meta_value' => true, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			]
+		);
+		return array_map( [ __CLASS__, 'get_order_data' ], $orders );
 	}
 }
 Product_Order::init();

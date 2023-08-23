@@ -7,9 +7,6 @@
 
 namespace Newspack_Ads\Marketplace;
 
-use Newspack_Ads\Marketplace;
-use Newspack_Ads\Marketplace\Purchase_Block;
-
 /**
  * Newspack Ads Marketplace Product Cart Class.
  */
@@ -74,7 +71,7 @@ final class Product_Cart {
 		}
 
 		$product      = \wc_get_product( $product_id );
-		$product_data = Marketplace::get_product_data( $product );
+		$product_data = Product::get_product_data( $product );
 
 		$validate_file = function( $file ) {
 			$allowed_extensions = [ 'jpg', 'jpeg', 'png' ];
@@ -164,7 +161,7 @@ final class Product_Cart {
 
 		$product = \wc_get_product( $product_id );
 		// Remove images unsupported by the product.
-		$product_sizes = Marketplace::get_product_sizes( $product );
+		$product_sizes = Product::get_product_sizes( $product );
 		foreach ( $images_ids as $i => $image_id ) {
 			$image = \wp_get_attachment_image_src( $image_id, 'full' );
 			if ( ! in_array( "$image[1]x$image[2]", $product_sizes, true ) ) {
@@ -255,7 +252,7 @@ final class Product_Cart {
 				continue;
 			}
 			$data          = $cart_content_value['newspack_ads'];
-			$product_price = Marketplace::get_product_meta( $cart_content_value['product_id'], 'price' );
+			$product_price = Product::get_product_meta( $cart_content_value['product_id'], 'price' );
 			$total_price   = $data['days'] * $product_price;
 			$cart_content_value['data']->set_price( $total_price );
 		}
@@ -337,10 +334,10 @@ final class Product_Cart {
 	public static function check_cart_items() {
 		$items = WC()->cart->cart_contents;
 		foreach ( $items as $key => $item ) {
-			if ( ! Marketplace::is_ad_product( $item['product_id'] ) ) {
+			if ( ! Product::is_ad_product( $item['product_id'] ) ) {
 				continue;
 			}
-			$price    = Marketplace::get_product_meta( $item['product_id'], 'price' );
+			$price    = Product::get_product_meta( $item['product_id'], 'price' );
 			$is_valid = self::validate_item_data( $item['newspack_ads'], $price );
 			if ( ! $is_valid ) {
 				\WC()->cart->remove_cart_item( $item['key'] );

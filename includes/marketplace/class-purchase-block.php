@@ -7,7 +7,6 @@
 
 namespace Newspack_Ads\Marketplace;
 
-use Newspack_Ads\Marketplace;
 use Newspack_Ads\Placements;
 
 /**
@@ -72,7 +71,7 @@ final class Purchase_Block {
 	 */
 	public static function render_marketplace_purchase() {
 		$placements = Placements::get_placements();
-		$products   = array_map( [ 'Newspack_Ads\Marketplace', 'get_product_data' ], Marketplace::get_products() );
+		$products   = array_map( [ 'Newspack_Ads\Marketplace\Product', 'get_product_data' ], Product::get_products() );
 		ob_start();
 		?>
 		<div class="newspack-ads__marketplace">
@@ -83,7 +82,7 @@ final class Purchase_Block {
 						<p>
 							<label>
 								<input type="checkbox" name="products[]" value="<?php echo esc_attr( $product['id'] ); ?>" />
-								<?php echo esc_html( Marketplace::get_product_title( $product ) ); ?>
+								<?php echo esc_html( Product::get_product_title( $product ) ); ?>
 							</label>
 						</p>
 					<?php endforeach; ?>
