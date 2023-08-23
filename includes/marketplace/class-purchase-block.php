@@ -76,7 +76,7 @@ final class Purchase_Block {
 		ob_start();
 		?>
 		<div class="newspack-ads__marketplace">
-			<form method="POST" target="_top">
+			<form method="POST" target="_top" enctype="multipart/form-data">
 				<?php wp_nonce_field( self::PURCHASE_ACTION, self::PURCHASE_ACTION ); ?>
 				<div class="newspack-ads__marketplace__products">
 					<?php foreach ( $products as $product ) : ?>
@@ -94,7 +94,20 @@ final class Purchase_Block {
 						<input type="date" name="to" />
 					</p>
 				</div>
-				<button class="newspack-ads_marketplace__purchase"><?php esc_html_e( 'Proceed to payment', 'newspack-ads' ); ?></button>
+				<div class="newspack-ads_marketplace__images">
+					<p>
+						<label>
+							<?php _e( 'Destination URL', 'newspack-ads' ); ?><br />
+							<input type="url" name="destination_url" placeholder="<?php _e( 'Enter a destination URL', 'newspack-ads' ); ?>" required />
+						</label>
+					</p>
+					<p>
+						<input type="file" name="images[]" accept="image/*" multiple required />
+					</p>
+				</div>
+				<p>
+					<button class="newspack-ads_marketplace__purchase"><?php esc_html_e( 'Proceed to payment', 'newspack-ads' ); ?></button>
+				</p>
 			</form>
 		</div>
 		<?php

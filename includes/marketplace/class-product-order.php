@@ -22,21 +22,24 @@ final class Product_Order {
 		\add_action( 'woocommerce_checkout_order_processed', [ __CLASS__, 'create_gam_order' ], PHP_INT_MAX );
 		\add_filter( 'woocommerce_order_item_display_meta_key', [ __CLASS__, 'display_meta_key' ] );
 		\add_filter( 'woocommerce_order_item_display_meta_value', [ __CLASS__, 'display_meta_value' ], 10, 2 );
+		\add_action( 'woocommerce_admin_order_data_after_shipping_address', [ __CLASS__, 'display_order_details' ] );
 	}
 
 	/**
 	 * Create order line item meta.
 	 *
-	 * @param \WC_Order_Item_Product $item Order item.
+	 * @param \WC_Order_Item_Product $item          Order item.
 	 * @param string                 $cart_item_key Cart item key.
-	 * @param array                  $values Cart item values.
-	 * @param \WC_Order              $order Order.
+	 * @param array                  $values        Cart item values.
+	 * @param \WC_Order              $order         Order.
 	 */
 	public static function create_meta( $item, $cart_item_key, $values, $order ) {
 		if ( ! empty( $values['newspack_ads'] ) ) {
 			$item->add_meta_data( 'newspack_ads_from', $values['newspack_ads']['from'] );
 			$item->add_meta_data( 'newspack_ads_to', $values['newspack_ads']['to'] );
 			$item->add_meta_data( 'newspack_ads_days', $values['newspack_ads']['days'] );
+			$item->add_meta_data( 'newspack_ads_images', $values['newspack_ads']['images'] );
+			$item->add_meta_data( 'newspack_ads_destination_url', $values['newspack_ads']['destination_url'] );
 		}
 	}
 
@@ -66,7 +69,8 @@ final class Product_Order {
 		}
 		/** Create advertiser */
 		try {
-			$advertiser = $api->advertisers->create_advertiser( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+			$advertiser_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+			$advertiser      = $api->advertisers->create_advertiser( 'Newspack: ' . $advertiser_name );
 			if ( $advertiser && ! is_wp_error( $advertiser ) ) {
 				update_user_meta( $customer_id, 'newspack_ads_gam_advertiser_id', $advertiser['id'] );
 				return $advertiser;
@@ -112,6 +116,7 @@ final class Product_Order {
 		$api = GAM_Model::get_api();
 
 		$network_code = $api->get_network_code();
+		$order->update_meta_data( 'newspack_ads_is_ad_order', true );
 		$order->update_meta_data( 'newspack_ads_gam_network_code', $network_code );
 		$order->save_meta_data();
 
@@ -135,19 +140,66 @@ final class Product_Order {
 				return;
 			}
 			$gam_order_id = $gam_order['id'];
-			$note         = sprintf(
-				// translators: %s is the GAM order ID.
-				__( 'GAM order created. (ID: %s)', 'newspack-ads' ),
-				$gam_order_id
+			$order->add_order_note(
+				sprintf(
+					// translators: %s is the GAM order ID.
+					__( 'GAM order created. (ID: %s)', 'newspack-ads' ),
+					$gam_order_id
+				)
 			);
-			$order->add_order_note( $note );
 			$order->update_meta_data( 'newspack_ads_gam_order_id', $gam_order_id );
 			$order->save_meta_data();
 		}
 
-		$line_item_configs = [];
-		foreach ( $items as $item ) {
-			$product             = $item->get_product();
+		$line_item_configs   = [];
+		$line_item_creatives = [];
+
+		foreach ( $items as $i => $item ) {
+			$product           = $item->get_product();
+			$sizes_str         = Marketplace::get_product_sizes( $product );
+			$sizes             = array_map(
+				function ( $size ) {
+					return explode( 'x', $size );
+				},
+				$sizes_str
+			);
+			$creatives_configs = [];
+			if ( $item->get_meta( 'newspack_ads_images' ) ) {
+				$images = $item->get_meta( 'newspack_ads_images' );
+				foreach ( $images as $attachment_id ) {
+					$path = get_attached_file( $attachment_id );
+					if ( ! $path ) {
+						continue;
+					}
+					$image = wp_get_attachment_image_src( $attachment_id, 'full' );
+					if ( ! $image ) {
+						continue;
+					}
+					// Check if image size is supported by the product.
+					if ( ! in_array( "$image[1]x$image[2]", $sizes_str, true ) ) {
+						continue;
+					}
+					$creatives_configs[] = [
+						'advertiser_id'   => $advertiser['id'],
+						'xsi_type'        => 'ImageCreative',
+						'name'            => $item->get_name(),
+						'file_name'       => basename( $path ),
+						'width'           => $image[1],
+						'height'          => $image[2],
+						'destination_url' => $item->get_meta( 'newspack_ads_destination_url' ),
+						'image_data'      => file_get_contents( $path ), // phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
+					];
+				}
+				$line_item_creatives[ $i ] = $api->creatives->create_creatives( $creatives_configs );
+				$order->add_order_note(
+					sprintf(
+						// translators: %1$d is the number of creatives. %2$s is the line item name.
+						__( 'Uploaded %1$d creative(s) for line item %2$s', 'newspack-ads' ),
+						count( $line_item_creatives[ $i ] ),
+						$item->get_name()
+					)
+				);
+			}
 			$line_item_config    = [
 				'name'                  => $product->get_name(),
 				'order_id'              => $gam_order_id,
@@ -163,16 +215,34 @@ final class Product_Order {
 					'goal_type' => 'IMPRESSIONS',
 					'units'     => 100,
 				],
-				'creative_placeholders' => array_map(
-					function ( $size ) {
-						return explode( 'x', $size );
-					},
-					Marketplace::get_product_sizes( $product )
-				),
+				'creative_placeholders' => $sizes,
 			];
 			$line_item_configs[] = $line_item_config;
 		}
-		$api->line_items->create_or_update_line_items( $line_item_configs );
+
+		$line_items = $api->line_items->create_or_update_line_items( $line_item_configs );
+		$order->add_order_note(
+			sprintf(
+				// translators: %d is the number of creatives.
+				__( 'Added %d line item(s) to the GAM order', 'newspack-ads' ),
+				count( $line_items )
+			)
+		);
+
+		// Line Item Creative Association.
+		$licas = [];
+		foreach ( $line_items as $i => $line_item ) {
+			if ( empty( $line_item_creatives[ $i ] ) ) {
+				continue;
+			}
+			foreach ( $line_item_creatives[ $i ] as $creative ) {
+				$licas[] = [
+					'line_item_id' => $line_item->getId(),
+					'creative_id'  => $creative['id'],
+				];
+			}
+		}
+		$lica_result = $api->line_items->associate_creatives_to_line_items( $licas );
 	}
 
 	/**
@@ -192,6 +262,12 @@ final class Product_Order {
 		if ( 'newspack_ads_days' === $key ) {
 			return __( 'Days', 'newspack-ads' );
 		}
+		if ( 'newspack_ads_destination_url' === $key ) {
+			return __( 'Destination URL', 'newspack-ads' );
+		}
+		if ( 'newspack_ads_images' === $key ) {
+			return __( 'Images', 'newspack-ads' );
+		}
 		return $key;
 	}
 
@@ -205,11 +281,77 @@ final class Product_Order {
 	 */
 	public static function display_meta_value( $value, $meta ) {
 		if ( ! empty( $meta ) ) {
-			if ( 'newspack_ads_from' == $meta->key || 'newspack_ads_to' == $meta->key ) {
+			if ( 'newspack_ads_images' === $meta->key ) {
+				return implode( ', ', $value );
+			}
+			if ( 'newspack_ads_from' === $meta->key || 'newspack_ads_to' === $meta->key ) {
 				return \date_i18n( \get_option( 'date_format' ), strtotime( $value ) );
 			}
 		}
 		return $value;
+	}
+
+	/**
+	 * Get the Ad Manager order URL.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return string The order URL.
+	 */
+	public static function get_gam_order_url( $order ) {
+		return sprintf(
+			'https://admanager.google.com/%1$d#delivery/order/order_overview/order_id=%2$d',
+			$order->get_meta( 'newspack_ads_gam_network_code', true ),
+			$order->get_meta( 'newspack_ads_gam_order_id', true )
+		);
+	}
+
+	/**
+	 * Get the Ad Manager order status.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return string The order status. 'Unknown' if not found or unavailable.
+	 */
+	private static function get_gam_order_status( $order ) {
+		$api          = GAM_Model::get_api();
+		$gam_order_id = $order->get_meta( 'newspack_ads_gam_order_id', true );
+		if ( empty( $gam_order_id ) ) {
+			return __( 'Unknown', 'newspack-ads' );
+		}
+		$gam_order = $api->orders->get_orders_by_id( [ $gam_order_id ] );
+		if ( empty( $gam_order ) ) {
+			return __( 'Unknown', 'newspack-ads' );
+		}
+		return $gam_order[0]->getStatus();
+	}
+
+	/**
+	 * Display order details
+	 *
+	 * @param \WC_Order $order Order object.
+	 */
+	public static function display_order_details( $order ) {
+		$order_id = $order->get_meta( 'newspack_ads_gam_order_id', true );
+		if ( ! $order_id ) {
+			return;
+		}
+		$order_url    = self::get_gam_order_url( $order );
+		$order_status = self::get_gam_order_status( $order );
+		?>
+		<h3>
+			<?php esc_html_e( 'Google Ad Manager', 'newspack-ads' ); ?>
+		</h3>
+		<p><a href="<?php echo esc_url( $order_url ); ?>" target="_blank" rel="external"><?php _e( 'Go to the Ad Manager', 'newspack-ads' ); ?></a></p>
+		<p>
+			<strong><?php esc_html_e( 'Order ID', 'newspack-ads' ); ?>:</strong>
+			<code><?php echo esc_html( $order_id ); ?></code>
+		</p>
+		<p>
+			<strong><?php esc_html_e( 'Order status', 'newspack-ads' ); ?>:</strong>
+			<code><?php echo esc_html( $order_status ); ?></code>
+		</p>
+		<?php
 	}
 }
 Product_Order::init();

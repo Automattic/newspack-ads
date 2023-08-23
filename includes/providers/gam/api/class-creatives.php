@@ -13,6 +13,7 @@ use Google\AdsApi\AdManager\Util\v202305\StatementBuilder;
 use Google\AdsApi\AdManager\v202305\ServiceFactory;
 use Google\AdsApi\AdManager\v202305\Creative;
 use Google\AdsApi\AdManager\v202305\Size;
+use Google\AdsApi\AdManager\v202305\CreativeAsset;
 
 /**
  * Newspack Ads GAM Creatives
@@ -110,6 +111,7 @@ final class Creatives extends Api_Object {
 	public static function build_creatives_from_config( $creatives_config ) {
 		$creatives = [];
 		$xsi_types = [
+			'ImageCreative',
 			'BaseDynamicAllocationCreative',
 			'BaseRichMediaStudioCreative',
 			'ClickTrackingCreative',
@@ -139,6 +141,13 @@ final class Creatives extends Api_Object {
 			$creative->setAdvertiserId( $creative_config['advertiser_id'] );
 			$creative->setSize( new Size( $creative_config['width'], $creative_config['height'] ) );
 			switch ( $creative_config['xsi_type'] ) {
+				case 'ImageCreative':
+					$creative->setDestinationUrl( $creative_config['destination_url'] );
+					$creative_asset = new CreativeAsset();
+					$creative_asset->setFileName( $creative_config['file_name'] );
+					$creative_asset->setAssetByteArray( $creative_config['image_data'] );
+					$creative->setPrimaryImageAsset( $creative_asset );
+					break;
 				case 'ThirdPartyCreative':
 					$creative_config = wp_parse_args(
 						$creative_config,
