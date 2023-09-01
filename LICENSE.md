@@ -53,7 +53,7 @@ obtain patent licenses, in effect making the program proprietary. To prevent
 this, we have made it clear that any patent must be licensed for everyone's free
 use or not licensed at all.
 
-The precise terms and conditions for copying, distribution and modification
+The precise terms and conditions for copying, distribution, and modification
 follow.
 
 
@@ -69,7 +69,7 @@ Program or a portion of it, either verbatim or with modifications and/or
 translated into another language. (Hereinafter, translation is included without
 limitation in the term "modification".) Each licensee is addressed as "you".
 
-Activities other than copying, distribution and modification are not covered by
+Activities other than copying, distribution, and modification are not covered by
 this License; they are outside its scope. The act of running the Program is not
 restricted, and the output from the Program is covered only if its contents
 constitute a work based on the Program (independent of having been made by
