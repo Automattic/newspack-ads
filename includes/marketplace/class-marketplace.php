@@ -18,6 +18,9 @@ defined( 'ABSPATH' ) || exit;
  * Newspack Ads Marketplace Class.
  */
 final class Marketplace {
+
+	const SETTINGS_OPTION_NAME = 'newspack_ads_marketplace_settings';
+
 	/**
 	 * Initialize hooks.
 	 */
@@ -66,6 +69,51 @@ final class Marketplace {
 			$link = admin_url( 'admin.php?page=newspack-advertising-wizard#/marketplace' );
 		}
 		return $link;
+	}
+
+	/**
+	 * Marketplace Settings REST Arguments.
+	 *
+	 * @return array
+	 */
+	public static function get_settings_args() {
+		return [
+			'enable_email_notification'  => [
+				'required'          => true,
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			],
+			'notification_email_address' => [
+				'required'          => true,
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_email',
+			],
+		];
+	}
+
+	/**
+	 * Get marketplace settings.
+	 *
+	 * @return array Settings.
+	 */
+	public static function get_settings() {
+		$default_settings = [
+			'enable_email_notification'  => true,
+			'notification_email_address' => get_option( 'admin_email' ),
+		];
+		$settings         = get_option( self::SETTINGS_OPTION_NAME, [] );
+		return wp_parse_args( $settings, $default_settings );
+	}
+
+	/**
+	 * Update marketplace settings.
+	 *
+	 * @param array $settings Settings.
+	 *
+	 * @return bool
+	 */
+	public static function update_settings( $settings ) {
+		return update_option( self::SETTINGS_OPTION_NAME, $settings );
 	}
 
 }
