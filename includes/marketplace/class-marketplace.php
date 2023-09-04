@@ -29,6 +29,7 @@ final class Marketplace {
 		require_once 'class-product.php';
 		require_once 'class-product-cart.php';
 		require_once 'class-product-order.php';
+		require_once 'class-email.php';
 		require_once 'class-api.php';
 
 		\add_filter( 'get_edit_post_link', [ __CLASS__, 'get_edit_post_link' ], PHP_INT_MAX, 3 );

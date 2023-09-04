@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Ads Marketplace
+ * Newspack Ads Marketplace API.
  *
  * @package Newspack
  */
