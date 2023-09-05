@@ -4,7 +4,7 @@
 
 A full suite of advertising functionality controls, allowing you to manage all ad placements and behaviors from within the WordPress admin. Connect to Google Ad Manager or Broadstreet for seamless inventory management, adjust load rules, and configure advanced programmatic practices such as header bidding – all with one click.
 
-Some features include:
+Some features include :
 - Two options for ad server connection (Google Ad Manager and Broadstreet)
 - Create and manage ad unit inventory
 - Place ads across the site by enabling global placements, or using Newspack Ad blocks where desired
