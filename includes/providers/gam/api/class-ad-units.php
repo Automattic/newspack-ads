@@ -140,7 +140,7 @@ final class Ad_Units extends Api_Object {
 	 */
 	private function get_serialized_ad_unit( $gam_ad_unit ) {
 		$parent_path = $gam_ad_unit->getParentPath();
-		if ( $parent_path) ) {
+		if ( $parent_path ) {
 			$path = array_map( [ __CLASS__, 'get_serialized_parent' ], $parent_path );
 		} else {
 			$path = [];
