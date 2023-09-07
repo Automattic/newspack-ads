@@ -145,7 +145,7 @@ final class Ad_Units extends Api_Object {
 		} else {
 			$path = [];
 		}
-		$path = array_map( [ __CLASS__, 'get_serialized_parent' ], $gam_ad_unit->getParentPath() );
+
 		// Remove path that matches `ca-pub-<int>` pattern.
 		$path = array_values(
 			array_filter(
