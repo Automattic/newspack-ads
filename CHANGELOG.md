@@ -1,3 +1,10 @@
+## [1.44.1](https://github.com/Automattic/newspack-ads/compare/v1.44.0...v1.44.1) (2023-09-11)
+
+
+### Bug Fixes
+
+* dont throw fatals if parentPath is null ([#721](https://github.com/Automattic/newspack-ads/issues/721)) ([5a6d3f6](https://github.com/Automattic/newspack-ads/commit/5a6d3f68bae5093688764bcad0d1932d677fa7e3))
+
 # [1.44.0](https://github.com/Automattic/newspack-ads/compare/v1.43.1...v1.44.0) (2023-08-24)
 
 
