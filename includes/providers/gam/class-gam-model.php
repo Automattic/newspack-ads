@@ -650,8 +650,11 @@ final class GAM_Model {
 		}
 
 		if ( isset( $settings['network_code'] ) && $serialised_ad_units && ! empty( $serialised_ad_units ) ) {
-			$synced_gam_items                              = get_option( self::OPTION_NAME_GAM_ITEMS, [] );
-			$network_code                                  = sanitize_text_field( $settings['network_code'] );
+			$synced_gam_items = get_option( self::OPTION_NAME_GAM_ITEMS, [] );
+			$network_code     = sanitize_text_field( $settings['network_code'] );
+			if ( empty( $synced_gam_items ) || ! is_array( $synced_gam_items ) ) {
+				$synced_gam_items = [];
+			}
 			$synced_gam_items[ $network_code ]['ad_units'] = $serialised_ad_units;
 			self::update_gam_config( $network_code, $synced_gam_items );
 		}
@@ -667,7 +670,7 @@ final class GAM_Model {
 	 */
 	private static function update_gam_config( $network_code, $gam_items ) {
 		update_option( self::OPTION_NAME_LEGACY_NETWORK_CODE, $network_code );
-		update_option( self::OPTION_NAME_GAM_ITEMS, $synced_gam_items );
+		update_option( self::OPTION_NAME_GAM_ITEMS, $gam_items );
 		// Avoid notoptions cache issue.
 		wp_cache_delete( 'notoptions', 'options' );
 		wp_cache_delete( 'alloptions', 'options' );
