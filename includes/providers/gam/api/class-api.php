@@ -217,27 +217,6 @@ class Api {
 	}
 
 	/**
-	 * Whether the given network code is valid for the authenticated user.
-	 *
-	 * @param int $network_code Network code to validate.
-	 *
-	 * @return bool Whether the network code is valid.
-	 */
-	public function validate_network_code( $network_code ) {
-		$session = $this->get_session();
-		if ( \is_wp_error( $session ) ) {
-			return $session;
-		}
-		$networks = $this->get_networks( $session );
-		foreach ( $networks as $network ) {
-			if ( $network_code === $network->getNetworkCode() ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Get GAM Connection User.
 	 *
 	 * @return User
