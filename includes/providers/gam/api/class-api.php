@@ -207,16 +207,12 @@ class Api {
 				'applicationName' => self::APP,
 			],
 		];
-		/** If a network code is not yet available, use first from list. */
-		if ( ! $this->network_code ) {
-			$session  = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
-			$networks = $this->get_networks( $session );
-			if ( ! empty( $networks ) ) {
-				$this->network_code = $networks[0]->getNetworkCode();
-			}
-		}
-		$config['AD_MANAGER']['networkCode'] = $this->network_code;
-		$this->session                       = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
+
+		// Get network code and add it to the session config.
+		$config['AD_MANAGER']['networkCode'] = $this->get_network_code( ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build() );
+
+		// Generate and return session.
+		$this->session = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
 		return $this->session;
 	}
 
@@ -269,12 +265,14 @@ class Api {
 	/**
 	 * Get user's GAM network. Defaults to the first found network if not found or empty.
 	 *
+	 * @param AdManagerSession $session Optional session to use.
+	 *
 	 * @return Network GAM network.
 	 *
 	 * @throws \Exception If there is no GAM network to use.
 	 */
-	public function get_network() {
-		$networks     = $this->get_networks();
+	public function get_network( $session = null ) {
+		$networks     = $this->get_networks( $session );
 		$network_code = $this->network_code;
 		if ( empty( $networks ) ) {
 			throw new \Exception( __( 'Missing GAM Ad network.', 'newspack-ads' ) );
@@ -292,10 +290,12 @@ class Api {
 	/**
 	 * Get user's GAM network code.
 	 *
+	 * @param AdManagerSession $session Optional session to use.
+	 *
 	 * @return int GAM network code.
 	 */
-	public function get_network_code() {
-		return $this->get_network()->getNetworkCode();
+	public function get_network_code( $session = null ) {
+		return $this->get_network( $session )->getNetworkCode();
 	}
 
 	/**
