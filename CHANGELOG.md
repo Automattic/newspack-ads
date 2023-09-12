@@ -1,3 +1,10 @@
+## [1.44.2](https://github.com/Automattic/newspack-ads/compare/v1.44.1...v1.44.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* sticky ad handling ([#727](https://github.com/Automattic/newspack-ads/issues/727)) ([39bc387](https://github.com/Automattic/newspack-ads/commit/39bc38792d5c82f2b8e3e6993b35fc7a3a32ab7f))
+
 ## [1.44.1](https://github.com/Automattic/newspack-ads/compare/v1.44.0...v1.44.1) (2023-09-11)
 
 
