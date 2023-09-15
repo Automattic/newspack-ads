@@ -1,3 +1,10 @@
+## [1.44.3](https://github.com/Automattic/newspack-ads/compare/v1.44.2...v1.44.3) (2023-09-15)
+
+
+### Bug Fixes
+
+* **gam:** default units array search matching ([#729](https://github.com/Automattic/newspack-ads/issues/729)) ([5c44dca](https://github.com/Automattic/newspack-ads/commit/5c44dca2c146f2e487294cf767b73a609f756b19))
+
 ## [1.44.2](https://github.com/Automattic/newspack-ads/compare/v1.44.1...v1.44.2) (2023-09-12)
 
 
