@@ -1,3 +1,10 @@
+## [1.44.4-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.44.3...v1.44.4-alpha.1) (2023-09-15)
+
+
+### Bug Fixes
+
+* **gam:** validate network code on session creation ([#726](https://github.com/Automattic/newspack-ads/issues/726)) ([9022e34](https://github.com/Automattic/newspack-ads/commit/9022e34ecb11abe42bac065cf0cb8ee4eb84c827))
+
 ## [1.44.3](https://github.com/Automattic/newspack-ads/compare/v1.44.2...v1.44.3) (2023-09-15)
 
 
