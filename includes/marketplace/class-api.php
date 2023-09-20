@@ -1,12 +1,13 @@
 <?php
 /**
- * Newspack Ads Marketplace
+ * Newspack Ads Marketplace API.
  *
  * @package Newspack
  */
 
 namespace Newspack_Ads\Marketplace;
 
+use Newspack_Ads\Marketplace;
 use Newspack_Ads\Settings;
 use WC_Product_Simple;
 
@@ -32,6 +33,28 @@ final class API {
 	 * Register API endpoints.
 	 */
 	public static function register_rest_routes() {
+		/**
+		 * Settings.
+		 */
+		\register_rest_route(
+			Settings::API_NAMESPACE,
+			'/marketplace/settings',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_settings' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
+			]
+		);
+		\register_rest_route(
+			Settings::API_NAMESPACE,
+			'/marketplace/settings',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_update_settings' ],
+				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
+				'args'                => Marketplace::get_settings_args(),
+			]
+		);
 		/**
 		 * Ad Product.
 		 */
@@ -112,6 +135,28 @@ final class API {
 				'permission_callback' => [ 'Newspack_Ads\Settings', 'api_permissions_check' ],
 			]
 		);
+	}
+
+	/**
+	 * Get marketplace settings.
+	 *
+	 * @return \WP_REST_Response containing the ad product data or error.
+	 */
+	public static function api_get_settings() {
+		return \rest_ensure_response( Marketplace::get_settings() );
+	}
+
+	/**
+	 * Update marketplace settings.
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 *
+	 * @return \WP_REST_Response containing the ad product data or error.
+	 */
+	public static function api_update_settings( $request ) {
+		$args = array_intersect_key( $request->get_params(), Marketplace::get_settings_args() );
+		Marketplace::update_settings( $args );
+		return \rest_ensure_response( Marketplace::get_settings() );
 	}
 
 	/**
