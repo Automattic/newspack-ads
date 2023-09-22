@@ -209,8 +209,12 @@ class Api {
 		];
 
 		// Get network code and add it to the session config.
-		$config['AD_MANAGER']['networkCode'] = $this->get_network_code( ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build() );
-
+		try {
+			// We're silencing errors here because the SDK throws a warning when the request config doesn't include a network code.
+			$config['AD_MANAGER']['networkCode'] = @$this->get_network_code( ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		} catch ( \Exception $e ) {
+			return $this->get_error( $e, __( 'Unable to fetch network code from GAM.', 'newspack-ads' ) );
+		}
 		// Generate and return session.
 		$this->session = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
 		return $this->session;
