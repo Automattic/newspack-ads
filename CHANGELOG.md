@@ -1,3 +1,10 @@
+## [1.44.5](https://github.com/Automattic/newspack-ads/compare/v1.44.4...v1.44.5) (2023-09-26)
+
+
+### Bug Fixes
+
+* **gam:** silence network code check warning ([#733](https://github.com/Automattic/newspack-ads/issues/733)) ([#738](https://github.com/Automattic/newspack-ads/issues/738)) ([de913a0](https://github.com/Automattic/newspack-ads/commit/de913a057f632587fc9934779de1aa3e53134ebb))
+
 ## [1.44.4](https://github.com/Automattic/newspack-ads/compare/v1.44.3...v1.44.4) (2023-09-25)
 
 
