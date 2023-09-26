@@ -129,26 +129,22 @@ class Api {
 	/**
 	 * Get a WP_Error object from an optional ApiException or message.
 	 *
-	 * @param ApiException $exception       Optional Google Ads API exception.
-	 * @param string       $default_message Optional default message to use.
+	 * @param \Exception|ApiException $exception       Optional PHP exception or Google API exception.
+	 * @param string                  $default_message Optional default message to use.
 	 *
 	 * @return WP_Error
 	 */
-	public function get_error( ApiException $exception = null, $default_message = null ) {
+	public function get_error( $exception = null, $default_message = null ) {
 		$error_message = $default_message;
 		$errors        = [];
-		if ( ! is_null( $exception ) ) {
+		if ( ! is_null( $exception ) && $exception instanceof ApiException ) {
 			$error_message = $error_message ?? $exception->getMessage();
 			foreach ( $exception->getErrors() as $error ) {
 				$errors[] = $error->getErrorString();
 			}
 		}
-		try {
-			$network_code = $this->get_network_code();
-		} catch ( \Exception $e ) {
-			$network_code = null;
-		}
-		$message_map = [
+		$network_code = $this->network_code;
+		$message_map  = [
 			'UniqueError.NOT_UNIQUE'                    => __( 'Name must be unique.', 'newspack-ads' ),
 			'CommonError.CONCURRENT_MODIFICATION'       => __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' ),
 			'PermissionError.PERMISSION_DENIED'         => __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' ),
@@ -212,7 +208,7 @@ class Api {
 		try {
 			// We're silencing errors here because the SDK throws a warning when the request config doesn't include a network code.
 			$config['AD_MANAGER']['networkCode'] = @$this->get_network_code( ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		} catch ( \Exception $e ) {
+		} catch ( \Exception | \ApiException $e ) {
 			return $this->get_error( $e, __( 'Unable to fetch network code from GAM.', 'newspack-ads' ) );
 		}
 		// Generate and return session.
