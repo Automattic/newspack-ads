@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.44.0",
+  "version": "1.44.5",
   "author": "Automattic",
   "private": true,
   "scripts": {
@@ -38,12 +38,12 @@
     "url": "https://github.com/Automattic/newspack-ads/issues"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.3.3",
+    "@rushstack/eslint-patch": "^1.4.0",
     "classnames": "^2.3.2",
-    "eslint": "^8.48.0",
+    "eslint": "^8.50.0",
     "lint-staged": "^13.2.3",
     "newspack-scripts": "^5.1.0",
-    "postcss-scss": "^4.0.7",
+    "postcss-scss": "^4.0.8",
     "prettier": "npm:wp-prettier@^2.6.2-beta-1",
     "stylelint": "^15.10.3"
   },
