@@ -37,8 +37,10 @@ final class Targeting_Keys extends Api_Object {
 	/**
 	 * Create a custom targeting key-val segmentation with optional sample values.
 	 *
-	 * @param string   $name   The name of the key.
-	 * @param string[] $values Optional sample values.
+	 * @param string   $name            The name of the key.
+	 * @param string[] $values          Optional sample values.
+	 * @param string   $type            The type of the key. Defaults to 'FREEFORM'.
+	 * @param string   $reportable_type The reportable type of the key. Defaults to null.
 	 *
 	 * @return array[
 	 *  'targeting_key'  => CustomTargetingKey,
@@ -48,7 +50,7 @@ final class Targeting_Keys extends Api_Object {
 	 *
 	 * @throws \Exception If there is an error while communicating with the API.
 	 */
-	public function create_targeting_key( $name, $values = [] ) {
+	public function create_targeting_key( $name, $values = [], $type = 'FREEFORM', $reportable_type = null ) {
 		$service = ( new ServiceFactory() )->createCustomTargetingService( $this->session );
 
 		$statement = new Statement(
@@ -70,7 +72,11 @@ final class Targeting_Keys extends Api_Object {
 		if ( empty( $found_keys ) ) {
 			$targeting_key = $service->createCustomTargetingKeys(
 				[
-					( new CustomTargetingKey() )->setName( $name )->setType( 'FREEFORM' )->setStatus( 'ACTIVE' ),
+					( new CustomTargetingKey() )
+						->setName( $name )
+						->setType( $type )
+						->setReportableType( $reportable_type )
+						->setStatus( 'ACTIVE' ),
 				]
 			)[0];
 		} else {
