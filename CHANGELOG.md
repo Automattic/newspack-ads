@@ -1,3 +1,117 @@
+## [1.44.7](https://github.com/Automattic/newspack-ads/compare/v1.44.6...v1.44.7) (2023-10-31)
+
+
+### Bug Fixes
+
+* **gam:** silence network code check warning ([#733](https://github.com/Automattic/newspack-ads/issues/733)) ([c047e95](https://github.com/Automattic/newspack-ads/commit/c047e954ff5f777d3ddc767c8e45207a7a3e23af))
+* newspack.pub > newspack.com ([#745](https://github.com/Automattic/newspack-ads/issues/745)) ([7a8c8e6](https://github.com/Automattic/newspack-ads/commit/7a8c8e6dd5ca1edd55210ff4aa458b9e4a8f0d14))
+
+## [1.44.7-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.44.6...v1.44.7-alpha.1) (2023-10-16)
+
+
+### Bug Fixes
+
+* **gam:** silence network code check warning ([#733](https://github.com/Automattic/newspack-ads/issues/733)) ([c047e95](https://github.com/Automattic/newspack-ads/commit/c047e954ff5f777d3ddc767c8e45207a7a3e23af))
+* newspack.pub > newspack.com ([#745](https://github.com/Automattic/newspack-ads/issues/745)) ([7a8c8e6](https://github.com/Automattic/newspack-ads/commit/7a8c8e6dd5ca1edd55210ff4aa458b9e4a8f0d14))
+
+## [1.44.6](https://github.com/Automattic/newspack-ads/compare/v1.44.5...v1.44.6) (2023-10-02)
+
+
+### Bug Fixes
+
+* **gam:** handle missing ad unit 'path' ([#742](https://github.com/Automattic/newspack-ads/issues/742)) ([f43473b](https://github.com/Automattic/newspack-ads/commit/f43473b28c62509c9e61b4e26f8083a720931fe6))
+
+## [1.44.5](https://github.com/Automattic/newspack-ads/compare/v1.44.4...v1.44.5) (2023-09-26)
+
+
+### Bug Fixes
+
+* **gam:** silence network code check warning ([#733](https://github.com/Automattic/newspack-ads/issues/733)) ([#738](https://github.com/Automattic/newspack-ads/issues/738)) ([de913a0](https://github.com/Automattic/newspack-ads/commit/de913a057f632587fc9934779de1aa3e53134ebb))
+
+## [1.44.4](https://github.com/Automattic/newspack-ads/compare/v1.44.3...v1.44.4) (2023-09-25)
+
+
+### Bug Fixes
+
+* **gam:** validate network code on session creation ([#726](https://github.com/Automattic/newspack-ads/issues/726)) ([9022e34](https://github.com/Automattic/newspack-ads/commit/9022e34ecb11abe42bac065cf0cb8ee4eb84c827))
+
+## [1.44.4-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.44.3...v1.44.4-alpha.1) (2023-09-15)
+
+
+### Bug Fixes
+
+* **gam:** validate network code on session creation ([#726](https://github.com/Automattic/newspack-ads/issues/726)) ([9022e34](https://github.com/Automattic/newspack-ads/commit/9022e34ecb11abe42bac065cf0cb8ee4eb84c827))
+
+## [1.44.3](https://github.com/Automattic/newspack-ads/compare/v1.44.2...v1.44.3) (2023-09-15)
+
+
+### Bug Fixes
+
+* **gam:** default units array search matching ([#729](https://github.com/Automattic/newspack-ads/issues/729)) ([5c44dca](https://github.com/Automattic/newspack-ads/commit/5c44dca2c146f2e487294cf767b73a609f756b19))
+
+## [1.44.2](https://github.com/Automattic/newspack-ads/compare/v1.44.1...v1.44.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* sticky ad handling ([#727](https://github.com/Automattic/newspack-ads/issues/727)) ([39bc387](https://github.com/Automattic/newspack-ads/commit/39bc38792d5c82f2b8e3e6993b35fc7a3a32ab7f))
+
+## [1.44.1](https://github.com/Automattic/newspack-ads/compare/v1.44.0...v1.44.1) (2023-09-11)
+
+
+### Bug Fixes
+
+* dont throw fatals if parentPath is null ([#721](https://github.com/Automattic/newspack-ads/issues/721)) ([5a6d3f6](https://github.com/Automattic/newspack-ads/commit/5a6d3f68bae5093688764bcad0d1932d677fa7e3))
+
+# [1.44.0](https://github.com/Automattic/newspack-ads/compare/v1.43.1...v1.44.0) (2023-08-24)
+
+
+### Features
+
+* **gam:** support parent ad unit path ([#701](https://github.com/Automattic/newspack-ads/issues/701)) ([3d2a51d](https://github.com/Automattic/newspack-ads/commit/3d2a51d5ecbe7cd428e24ab0756172111793f6c3))
+
+# [1.44.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.43.1...v1.44.0-alpha.1) (2023-08-17)
+
+
+### Features
+
+* **gam:** support parent ad unit path ([#701](https://github.com/Automattic/newspack-ads/issues/701)) ([3d2a51d](https://github.com/Automattic/newspack-ads/commit/3d2a51d5ecbe7cd428e24ab0756172111793f6c3))
+
+## [1.43.1](https://github.com/Automattic/newspack-ads/compare/v1.43.0...v1.43.1) (2023-08-07)
+
+
+### Bug Fixes
+
+* **gam:** update api version ([#676](https://github.com/Automattic/newspack-ads/issues/676)) ([6f3687d](https://github.com/Automattic/newspack-ads/commit/6f3687d7b4292e9553a2fbbb97ca54001a39a421))
+
+## [1.43.1-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.43.0...v1.43.1-alpha.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* **gam:** update api version ([#676](https://github.com/Automattic/newspack-ads/issues/676)) ([6f3687d](https://github.com/Automattic/newspack-ads/commit/6f3687d7b4292e9553a2fbbb97ca54001a39a421))
+
+# [1.43.0](https://github.com/Automattic/newspack-ads/compare/v1.42.5...v1.43.0) (2023-05-08)
+
+
+### Features
+
+* **gam:** support custom taxonomy targeting ([#647](https://github.com/Automattic/newspack-ads/issues/647)) ([3541e37](https://github.com/Automattic/newspack-ads/commit/3541e372e064eb2af0251f1a5797c15c9b778ce5))
+
+# [1.43.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.42.5...v1.43.0-alpha.1) (2023-04-28)
+
+
+### Features
+
+* **gam:** support custom taxonomy targeting ([#647](https://github.com/Automattic/newspack-ads/issues/647)) ([3541e37](https://github.com/Automattic/newspack-ads/commit/3541e372e064eb2af0251f1a5797c15c9b778ce5))
+
+## [1.42.5](https://github.com/Automattic/newspack-ads/compare/v1.42.4...v1.42.5) (2023-04-11)
+
+
+### Bug Fixes
+
+* **gam:** handle sticky ads without amp ([#641](https://github.com/Automattic/newspack-ads/issues/641)) ([1e50b1c](https://github.com/Automattic/newspack-ads/commit/1e50b1cec2142c04cbc8f1963888f9db95407691))
+
 ## [1.42.4](https://github.com/Automattic/newspack-ads/compare/v1.42.3...v1.42.4) (2023-03-27)
 
 

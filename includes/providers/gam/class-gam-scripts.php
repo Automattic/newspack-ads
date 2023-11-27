@@ -109,6 +109,7 @@ final class GAM_Scripts {
 				'unique_id'        => $unique_id,
 				'name'             => esc_attr( $ad_unit['name'] ),
 				'code'             => esc_attr( $ad_unit['code'] ),
+				'path'             => $ad_unit['path'] ?? '',
 				'sizes'            => $sizes,
 				'fluid'            => (bool) $ad_unit['fluid'],
 				'fixed_height'     => $fixed_height,
@@ -285,8 +286,16 @@ final class GAM_Scripts {
 							slotSizes = slotSizes.concat( 'fluid' );
 						}
 
+						var codeParts = [ ad_config['network_code'] ];
+						if ( ad_unit.path && ad_unit.path.length ) {
+							codeParts = codeParts.concat( ad_unit.path.map( function( parent ) {
+								return parent['code'];
+							} ) );
+						}
+						codeParts.push( ad_unit['code'] );
+						var code = '/' + codeParts.join( '/' );
 						defined_ad_units[ container_id ] = googletag.defineSlot(
-							'/' + ad_config['network_code'] + '/' + ad_unit['code'],
+							code,
 							slotSizes,
 							container_id
 						).addService( googletag.pubads() );
@@ -329,6 +338,15 @@ final class GAM_Scripts {
 						?>
 						if ( ad_unit['sticky'] ) {
 							mapping.addSize( [600, 0], baseSizes );
+							var stickyContainer = container.parentNode;
+							var stickyClose = stickyContainer.querySelector( 'button.newspack_sticky_ad__close' );
+							var initialBodyPadding = document.body.style.paddingBottom;
+							if ( stickyClose ) {
+								stickyClose.addEventListener( 'click', function() {
+									stickyContainer.parentNode.removeChild( stickyContainer );
+									document.body.style.paddingBottom = initialBodyPadding;
+								} );
+							}
 						}
 						<?php
 						// On viewports smaller than the smallest ad size, don't show any ads.
@@ -372,7 +390,7 @@ final class GAM_Scripts {
 						 * Handle slot visibility.
 						 */
 						?>
-						if ( event.isEmpty && ( ! ad_unit.fixed_height.active || ( ad_unit.fixed_height.active && ! ad_unit.in_viewport ) ) ) {
+						if ( event.isEmpty && ( ad_unit.sticky || ! ad_unit.fixed_height.active || ( ad_unit.fixed_height.active && ! ad_unit.in_viewport ) ) ) {
 							container.parentNode.style.display = 'none';
 						} else {
 							container.parentNode.style.display = 'flex';
@@ -397,6 +415,41 @@ final class GAM_Scripts {
 							}
 						}
 					} );
+					<?php
+					/**
+					 * Handle Sticky Ads Rendering.
+					 */
+					?>
+					googletag.pubads().addEventListener( 'slotRenderEnded', function( event ) {
+						var container = document.getElementById( event.slot.getSlotElementId() );
+						if ( ! container ) {
+							return;
+						}
+						var ad_unit = container.ad_unit;
+						if ( ! ad_unit || ! ad_unit.sticky ) {
+							return;
+						}
+						if ( ! event.isEmpty && document.body.clientWidth <= 600 ) {
+							stickyContainer.style.display = 'flex';
+							document.body.style.paddingBottom = stickyContainer.clientHeight + 'px';
+						}
+					} );
+					<?php
+					/**
+					 * Sticky header & sticky ad handling.
+					 *
+					 * If the site uses sticky header and a sticky ad, the ad should
+					 * be offset by the header height in order to stack the sticky
+					 * elements on top of each other.
+					 */
+					?>
+					( function () {
+						var stickyAd = document.querySelector( '.h-stk .stick-to-top:last-child' );
+						var siteHeader = document.querySelector( '.h-stk .site-header' );
+						if ( stickyAd && siteHeader ) {
+							stickyAd.style.top = 'calc(' + siteHeader.offsetHeight + 'px + 1rem)';
+						}
+					} )();
 				} );
 			} )();
 		</script>

@@ -9,18 +9,19 @@ namespace Newspack_Ads\Providers\GAM\Api;
 
 use Newspack_Ads\Providers\GAM\Api;
 use Newspack_Ads\Providers\GAM\Api\Api_Object;
-use Google\AdsApi\AdManager\Util\v202208\StatementBuilder;
-use Google\AdsApi\AdManager\v202208\ServiceFactory;
-use Google\AdsApi\AdManager\v202208\InventoryService;
-use Google\AdsApi\AdManager\v202208\Size;
-use Google\AdsApi\AdManager\v202208\EnvironmentType;
-use Google\AdsApi\AdManager\v202208\AdUnit;
-use Google\AdsApi\AdManager\v202208\AdUnitSize;
-use Google\AdsApi\AdManager\v202208\AdUnitTargetWindow;
-use Google\AdsApi\AdManager\v202208\ArchiveAdUnits as ArchiveAdUnitsAction;
-use Google\AdsApi\AdManager\v202208\ActivateAdUnits as ActivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202208\DeactivateAdUnits as DeactivateAdUnitsAction;
-use Google\AdsApi\AdManager\v202208\ApiException;
+use Google\AdsApi\AdManager\Util\v202305\StatementBuilder;
+use Google\AdsApi\AdManager\v202305\ServiceFactory;
+use Google\AdsApi\AdManager\v202305\InventoryService;
+use Google\AdsApi\AdManager\v202305\Size;
+use Google\AdsApi\AdManager\v202305\EnvironmentType;
+use Google\AdsApi\AdManager\v202305\AdUnit;
+use Google\AdsApi\AdManager\v202305\AdUnitParent;
+use Google\AdsApi\AdManager\v202305\AdUnitSize;
+use Google\AdsApi\AdManager\v202305\AdUnitTargetWindow;
+use Google\AdsApi\AdManager\v202305\ArchiveAdUnits as ArchiveAdUnitsAction;
+use Google\AdsApi\AdManager\v202305\ActivateAdUnits as ActivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202305\DeactivateAdUnits as DeactivateAdUnitsAction;
+use Google\AdsApi\AdManager\v202305\ApiException;
 
 /**
  * Newspack Ads GAM Ad Units
@@ -116,6 +117,21 @@ final class Ad_Units extends Api_Object {
 	}
 
 	/**
+	 * Get serialized ad unit parent.
+	 *
+	 * @param AdUnitParent $parent An ad unit parent.
+	 *
+	 * @return array
+	 */
+	public static function get_serialized_parent( $parent ) {
+		return [
+			'id'   => $parent->getId(),
+			'name' => $parent->getName(),
+			'code' => $parent->getAdUnitCode(),
+		];
+	}
+
+	/**
 	 * Serialize Ad Unit.
 	 *
 	 * @param AdUnit $gam_ad_unit An AdUnit.
@@ -123,8 +139,26 @@ final class Ad_Units extends Api_Object {
 	 * @return array Ad Unit configuration.
 	 */
 	private function get_serialized_ad_unit( $gam_ad_unit ) {
+		$parent_path = $gam_ad_unit->getParentPath();
+		if ( $parent_path ) {
+			$path = array_map( [ __CLASS__, 'get_serialized_parent' ], $parent_path );
+		} else {
+			$path = [];
+		}
+
+		// Remove path that matches `ca-pub-<int>` pattern.
+		$path = array_values(
+			array_filter(
+				$path,
+				function( $parent ) {
+					return ! preg_match( '/^ca-pub-\d+$/', $parent['code'] );
+				}
+			)
+		);
+
 		$ad_unit = [
 			'id'     => $gam_ad_unit->getId(),
+			'path'   => $path,
 			'code'   => $gam_ad_unit->getAdUnitCode(),
 			'status' => $gam_ad_unit->getStatus(),
 			'name'   => $gam_ad_unit->getName(),

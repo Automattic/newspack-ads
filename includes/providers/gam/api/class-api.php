@@ -14,10 +14,10 @@ use Google\Auth\OAuth2;
 use Google\AdsApi\Common\Configuration;
 use Google\AdsApi\AdManager\AdManagerSessionBuilder;
 use Google\AdsApi\AdManager\AdManagerSession;
-use Google\AdsApi\AdManager\v202208\ServiceFactory;
-use Google\AdsApi\AdManager\v202208\Network;
-use Google\AdsApi\AdManager\v202208\User;
-use Google\AdsApi\AdManager\v202208\ApiException;
+use Google\AdsApi\AdManager\v202305\ServiceFactory;
+use Google\AdsApi\AdManager\v202305\Network;
+use Google\AdsApi\AdManager\v202305\User;
+use Google\AdsApi\AdManager\v202305\ApiException;
 
 require_once NEWSPACK_ADS_COMPOSER_ABSPATH . 'autoload.php';
 require_once 'class-api-object.php';
@@ -35,7 +35,7 @@ class Api {
 	// https://developers.google.com/ad-manager/api/soap_xml: An arbitrary string name identifying your application. This will be shown in Google's log files.
 	const APP = 'Newspack';
 
-	const API_VERSION = 'v202208';
+	const API_VERSION = 'v202305';
 
 	/**
 	 * Codes of networks that the user has access to.
@@ -129,26 +129,22 @@ class Api {
 	/**
 	 * Get a WP_Error object from an optional ApiException or message.
 	 *
-	 * @param ApiException $exception       Optional Google Ads API exception.
-	 * @param string       $default_message Optional default message to use.
+	 * @param \Exception|ApiException $exception       Optional PHP exception or Google API exception.
+	 * @param string                  $default_message Optional default message to use.
 	 *
 	 * @return WP_Error
 	 */
-	public function get_error( ApiException $exception = null, $default_message = null ) {
+	public function get_error( $exception = null, $default_message = null ) {
 		$error_message = $default_message;
 		$errors        = [];
-		if ( ! is_null( $exception ) ) {
+		if ( ! is_null( $exception ) && $exception instanceof ApiException ) {
 			$error_message = $error_message ?? $exception->getMessage();
 			foreach ( $exception->getErrors() as $error ) {
 				$errors[] = $error->getErrorString();
 			}
 		}
-		try {
-			$network_code = $this->get_network_code();
-		} catch ( \Exception $e ) {
-			$network_code = null;
-		}
-		$message_map = [
+		$network_code = $this->network_code;
+		$message_map  = [
 			'UniqueError.NOT_UNIQUE'                    => __( 'Name must be unique.', 'newspack-ads' ),
 			'CommonError.CONCURRENT_MODIFICATION'       => __( 'Unexpected API error, please try again in 30 seconds.', 'newspack-ads' ),
 			'PermissionError.PERMISSION_DENIED'         => __( 'You do not have permission to perform this action. Make sure to connect an account with administrative access.', 'newspack-ads' ),
@@ -156,7 +152,7 @@ class Api {
 			'AuthenticationError.NETWORK_API_ACCESS_DISABLED' => sprintf(
 				'%s <a href="%s" target="_blank">%s</a>',
 				__( 'API access for this GAM account is disabled.', 'newspack-ads' ),
-				"https://admanager.google.com/${network_code}#admin/settings/network",
+				"https://admanager.google.com/{$network_code}#admin/settings/network",
 				__( 'Enable API access in your GAM settings.', 'newspack-ads' )
 			),
 			'AuthenticationError.NO_NETWORKS_TO_ACCESS' => __( 'You do not have access to any GAM networks.', 'newspack-ads' ),
@@ -207,16 +203,16 @@ class Api {
 				'applicationName' => self::APP,
 			],
 		];
-		/** If a network code is not yet available, use first from list. */
-		if ( ! $this->network_code ) {
-			$session  = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
-			$networks = $this->get_networks( $session );
-			if ( ! empty( $networks ) ) {
-				$this->network_code = $networks[0]->getNetworkCode();
-			}
+
+		// Get network code and add it to the session config.
+		try {
+			// We're silencing errors here because the SDK throws a warning when the request config doesn't include a network code.
+			$config['AD_MANAGER']['networkCode'] = @$this->get_network_code( ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		} catch ( \Exception | \ApiException $e ) {
+			return $this->get_error( $e, __( 'Unable to fetch network code from GAM.', 'newspack-ads' ) );
 		}
-		$config['AD_MANAGER']['networkCode'] = $this->network_code;
-		$this->session                       = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
+		// Generate and return session.
+		$this->session = ( new AdManagerSessionBuilder() )->from( new Configuration( $config ) )->withOAuth2Credential( $this->credentials )->build();
 		return $this->session;
 	}
 
@@ -269,12 +265,14 @@ class Api {
 	/**
 	 * Get user's GAM network. Defaults to the first found network if not found or empty.
 	 *
+	 * @param AdManagerSession $session Optional session to use.
+	 *
 	 * @return Network GAM network.
 	 *
 	 * @throws \Exception If there is no GAM network to use.
 	 */
-	public function get_network() {
-		$networks     = $this->get_networks();
+	public function get_network( $session = null ) {
+		$networks     = $this->get_networks( $session );
 		$network_code = $this->network_code;
 		if ( empty( $networks ) ) {
 			throw new \Exception( __( 'Missing GAM Ad network.', 'newspack-ads' ) );
@@ -292,10 +290,12 @@ class Api {
 	/**
 	 * Get user's GAM network code.
 	 *
+	 * @param AdManagerSession $session Optional session to use.
+	 *
 	 * @return int GAM network code.
 	 */
-	public function get_network_code() {
-		return $this->get_network()->getNetworkCode();
+	public function get_network_code( $session = null ) {
+		return $this->get_network( $session )->getNetworkCode();
 	}
 
 	/**
