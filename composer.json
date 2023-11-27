@@ -17,6 +17,7 @@
 		"post-install-cmd": [
 			"vendor/bin/cghooks add --no-lock"
 		],
+		"pre-push": "./.hooks/pre-push",
 		"post-update-cmd": [
 			"vendor/bin/cghooks update"
 		]
