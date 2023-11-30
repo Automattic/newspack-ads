@@ -1,3 +1,11 @@
+# [1.45.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.44.7...v1.45.0-alpha.1) (2023-11-30)
+
+
+### Features
+
+* **gam:** support custom type for targeting key-val ([#766](https://github.com/Automattic/newspack-ads/issues/766)) ([c64c01c](https://github.com/Automattic/newspack-ads/commit/c64c01cc8e6e130202a6f02ef726cde9501913aa))
+* **perf:** don't enqueue CSS if ads are not to be displayed ([2c70480](https://github.com/Automattic/newspack-ads/commit/2c70480684d172200dbe66b44269009a8f18eb4b))
+
 ## [1.44.7](https://github.com/Automattic/newspack-ads/compare/v1.44.6...v1.44.7) (2023-10-31)
 
 
