@@ -17,7 +17,7 @@
     "lint:scss": "stylelint '**/*.scss' --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:scss:staged": "stylelint --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:php": "./vendor/bin/phpcs .",
-    "lint:php:staged": "./vendor/bin/phpcs",
+    "lint:php:staged": "./vendor/bin/phpcs --filter=GitStaged",
     "format:js": "prettier 'src/**/*.{js,jsx}' --write",
     "format:scss": "prettier --write 'src/**/*.scss'",
     "format:php": "./vendor/bin/phpcbf .",
@@ -38,9 +38,9 @@
     "url": "https://github.com/Automattic/newspack-ads/issues"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.5.1",
+    "@rushstack/eslint-patch": "^1.6.0",
     "classnames": "^2.3.2",
-    "eslint": "^8.52.0",
+    "eslint": "^8.54.0",
     "lint-staged": "^13.2.3",
     "newspack-scripts": "^5.1.0",
     "postcss-scss": "^4.0.9",

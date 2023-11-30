@@ -200,6 +200,13 @@ final class GAM_Model {
 				return new \WP_Error( 'newspack_ads_setup_gam', $e->getMessage() );
 			}
 		}
+		/**
+		 * Runs after GAM setup.
+		 *
+		 * @param GAM_Api $api           GAM API.
+		 * @param array   $setup_results Setup results.
+		 */
+		do_action( 'newspack_ads_setup_gam', $api, $setup_results );
 		return $setup_results;
 	}
 
