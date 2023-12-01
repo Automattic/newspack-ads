@@ -1,3 +1,10 @@
+# [1.45.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.45.0-alpha.1...v1.45.0-alpha.2) (2023-12-01)
+
+
+### Features
+
+* **gam:** support custom "site" targeting key-val ([#770](https://github.com/Automattic/newspack-ads/issues/770)) ([fc1a8b2](https://github.com/Automattic/newspack-ads/commit/fc1a8b2252d6749509890b275a1869b2ca2e4171))
+
 # [1.45.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.44.7...v1.45.0-alpha.1) (2023-11-30)
 
 
