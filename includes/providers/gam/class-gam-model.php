@@ -1086,6 +1086,9 @@ final class GAM_Model {
 	public static function get_ad_targeting( $ad_unit ) {
 		$targeting = [];
 
+		// Add site url.
+		$targeting['site'] = \get_bloginfo( 'url' );
+
 		if ( is_singular() ) {
 			// Add the post slug to targeting.
 			$slug = get_post_field( 'post_name' );
