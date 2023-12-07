@@ -50,6 +50,11 @@ final class Targeting_Keys extends Api_Object {
 		$url = rtrim( $url, '/' );
 		// Remove the www. subdomain.
 		$url = str_replace( 'www.', '', $url );
+		// Truncate to 40 characters.
+		$length = strlen( $url );
+		if ( $length > 40 ) {
+			$url = substr( $url, 0, 20 ) . '...' . substr( $url, $length - 17 );
+		}
 		return $url;
 	}
 
