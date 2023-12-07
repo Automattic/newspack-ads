@@ -36,13 +36,13 @@ final class Targeting_Keys extends Api_Object {
 	];
 
 	/**
-	 * Parse site URL for targeting.
+	 * Parse URL to be used as targeting value.
 	 *
 	 * @param string $url The URL to parse.
 	 *
 	 * @return string The parsed URL.
 	 */
-	public static function parse_site_url( $url ) {
+	public static function parse_url( $url ) {
 		// Remove the protocol.
 		$url = str_replace( 'https://', '', $url );
 		$url = str_replace( 'http://', '', $url );
@@ -79,7 +79,7 @@ final class Targeting_Keys extends Api_Object {
 			case 'site':
 				$config['type']            = 'PREDEFINED';
 				$config['reportable_type'] = 'CUSTOM_DIMENSION';
-				$config['values']          = [ self::parse_site_url( \get_bloginfo( 'url' ) ) ];
+				$config['values']          = [ self::parse_url( \get_bloginfo( 'url' ) ) ];
 				break;
 		}
 		return $config;
