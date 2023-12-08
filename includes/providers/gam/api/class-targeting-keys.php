@@ -36,6 +36,29 @@ final class Targeting_Keys extends Api_Object {
 	];
 
 	/**
+	 * Sanitize URL to be used as targeting value.
+	 *
+	 * @param string $url The URL to sanitize.
+	 *
+	 * @return string The sanitized URL.
+	 */
+	public static function sanitize_url( $url ) {
+		// Remove the protocol.
+		$url = str_replace( 'https://', '', $url );
+		$url = str_replace( 'http://', '', $url );
+		// Remove the trailing slash.
+		$url = rtrim( $url, '/' );
+		// Remove the www. subdomain.
+		$url = str_replace( 'www.', '', $url );
+		// Truncate to 40 characters.
+		$length = strlen( $url );
+		if ( $length > 40 ) {
+			$url = substr( $url, 0, 20 ) . '...' . substr( $url, $length - 17 );
+		}
+		return $url;
+	}
+
+	/**
 	 * Get config for generating a targeting key-val.
 	 *
 	 * @param string $key The key name.
@@ -56,7 +79,7 @@ final class Targeting_Keys extends Api_Object {
 			case 'site':
 				$config['type']            = 'PREDEFINED';
 				$config['reportable_type'] = 'CUSTOM_DIMENSION';
-				$config['values']          = [ \get_bloginfo( 'url' ) ];
+				$config['values']          = [ self::sanitize_url( \get_bloginfo( 'url' ) ) ];
 				break;
 		}
 		return $config;
