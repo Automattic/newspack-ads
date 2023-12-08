@@ -1,3 +1,10 @@
+# [1.45.0-alpha.3](https://github.com/Automattic/newspack-ads/compare/v1.45.0-alpha.2...v1.45.0-alpha.3) (2023-12-08)
+
+
+### Bug Fixes
+
+* **gam:** parse targeting site url ([#777](https://github.com/Automattic/newspack-ads/issues/777)) ([034716a](https://github.com/Automattic/newspack-ads/commit/034716acbc36325a61e745348001e04a5ddd46bb))
+
 # [1.45.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.45.0-alpha.1...v1.45.0-alpha.2) (2023-12-01)
 
 
