@@ -1,6 +1,6 @@
 {
   "name": "newspack-ads",
-  "version": "1.44.7",
+  "version": "1.45.0-alpha.3",
   "author": "Automattic",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "lint:scss": "stylelint '**/*.scss' --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:scss:staged": "stylelint --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:php": "./vendor/bin/phpcs .",
-    "lint:php:staged": "./vendor/bin/phpcs",
+    "lint:php:staged": "./vendor/bin/phpcs --filter=GitStaged",
     "format:js": "prettier 'src/**/*.{js,jsx}' --write",
     "format:scss": "prettier --write 'src/**/*.scss'",
     "format:php": "./vendor/bin/phpcbf .",
@@ -38,14 +38,14 @@
     "url": "https://github.com/Automattic/newspack-ads/issues"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.5.1",
+    "@rushstack/eslint-patch": "^1.6.0",
     "classnames": "^2.3.2",
-    "eslint": "^8.51.0",
+    "eslint": "^8.55.0",
     "lint-staged": "^13.2.3",
     "newspack-scripts": "^5.1.0",
     "postcss-scss": "^4.0.9",
     "prettier": "npm:wp-prettier@^2.6.2-beta-1",
-    "stylelint": "^15.10.3"
+    "stylelint": "^15.11.0"
   },
   "dependencies": {
     "lodash": "^4.17.21",
