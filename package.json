@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.6.1",
-    "classnames": "^2.3.2",
+    "classnames": "^2.3.3",
     "eslint": "^8.56.0",
     "lint-staged": "^13.2.3",
     "newspack-scripts": "^5.1.0",
