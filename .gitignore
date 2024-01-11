@@ -12,3 +12,7 @@ dist/
 /vendor/
 release/
 codecov
+
+.phpdoc/cache
+docs
+ast.dump

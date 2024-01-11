@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor
+    configVersion="3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://www.phpdoc.org"
+    xsi:noNamespaceSchemaLocation="data/xsd/phpdoc.xsd"
+>
+    <title>Newspack Ads</title>
+    <version number="latest">
+        <api>
+            <ignore hidden="true" symlinks="true">
+                <path>tests/**/*</path>
+                <path>node_modules/**/*</path>
+                <path>dist/**/*</path>
+                <path>vendor/**/*</path>
+            </ignore>
+            <!-- Enable viewing source code in a modal by clicking on a "<>" icon -->
+           <include-source>true</include-source>
+        </api>
+        <guide>
+            <source dsn=".">
+                <path>includes</path>
+            </source>
+        </guide>
+    </version>
+    <setting name="guides.enabled" value="true"/>
+    <setting name="graphs.enabled" value="true"/>
+</phpdocumentor>
