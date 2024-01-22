@@ -38,7 +38,7 @@
     "url": "https://github.com/Automattic/newspack-ads/issues"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.6.1",
+    "@rushstack/eslint-patch": "^1.7.0",
     "classnames": "^2.5.1",
     "eslint": "^8.56.0",
     "lint-staged": "^13.2.3",
