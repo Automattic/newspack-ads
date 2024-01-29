@@ -1,9 +1,9 @@
-# [1.46.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.45.0...v1.46.0-alpha.1) (2024-01-26)
+## [1.45.1](https://github.com/Automattic/newspack-ads/compare/v1.45.0...v1.45.1) (2024-01-29)
 
 
-### Features
+### Bug Fixes
 
-* filter for settings access ([ca410c5](https://github.com/Automattic/newspack-ads/commit/ca410c5bdff80a6afcfc1fa840d1c5fa9239a1b5))
+* **gam:** sanitize URL for "site" targeting key-val ([e711562](https://github.com/Automattic/newspack-ads/commit/e711562ba47a19b3b2941d25e193225dfa285c5c))
 
 # [1.45.0](https://github.com/Automattic/newspack-ads/compare/v1.44.7...v1.45.0) (2023-12-11)
 
