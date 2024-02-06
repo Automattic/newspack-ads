@@ -1,3 +1,10 @@
+# [1.46.0](https://github.com/Automattic/newspack-ads/compare/v1.45.1...v1.46.0) (2024-02-06)
+
+
+### Features
+
+* filter for settings access ([ca410c5](https://github.com/Automattic/newspack-ads/commit/ca410c5bdff80a6afcfc1fa840d1c5fa9239a1b5))
+
 # [1.46.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.46.0-alpha.1...v1.46.0-alpha.2) (2024-01-29)
 
 
