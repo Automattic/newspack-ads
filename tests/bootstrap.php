@@ -42,7 +42,7 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 	 * Setup the unit testing environment.
 	 */
 	public function __construct() {
-		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions, WordPress.PHP.DevelopmentFunctions, WordPress.PHP.IniSet.display_errors_Blacklisted
+		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions, WordPress.PHP.DevelopmentFunctions, WordPress.PHP.IniSet.display_errors_Blacklisted, WordPress.PHP.IniSet.display_errors_Disallowed
 		ini_set( 'display_errors', 'on' );
 		error_reporting( E_ALL );
 		// phpcs:enable WordPress.PHP.DiscouragedPHPFunctions, WordPress.PHP.DevelopmentFunctions
@@ -54,7 +54,7 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 		}
 		// phpcs:enable WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 
-		$this->tests_dir    = dirname( __FILE__ );
+		$this->tests_dir    = __DIR__;
 		$this->plugin_dir   = dirname( $this->tests_dir );
 		$this->wp_tests_dir = getenv( 'WP_TESTS_DIR' );
 		if ( ! $this->wp_tests_dir ) {
@@ -97,7 +97,7 @@ class Newspack_Ads_Unit_Tests_Bootstrap {
 		// include $this->plugin_dir . '/uninstall.php';
 		// Install the plugin here if needed.
 		// Reload capabilities after install, see https://core.trac.wordpress.org/ticket/28374.
-		// phpcs:disable WordPress.WP.GlobalVariablesOverride.DeprecatedWhitelistCommentFound
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.DeprecatedWhitelistCommentFound, WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_roles'] = null; // WPCS: override ok.
 		wp_roles();
 
