@@ -1,3 +1,10 @@
+# [1.47.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.46.0...v1.47.0-alpha.1) (2024-02-08)
+
+
+### Features
+
+* **ci:** add `epic/*` release workflow and rename `master` to `trunk` ([#800](https://github.com/Automattic/newspack-ads/issues/800)) ([5e473ef](https://github.com/Automattic/newspack-ads/commit/5e473efbba26da39e39f14e205d62ed769086abc))
+
 # [1.46.0](https://github.com/Automattic/newspack-ads/compare/v1.45.1...v1.46.0) (2024-02-06)
 
 
