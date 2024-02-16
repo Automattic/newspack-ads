@@ -1,3 +1,10 @@
+# [1.47.0-alpha.2](https://github.com/Automattic/newspack-ads/compare/v1.47.0-alpha.1...v1.47.0-alpha.2) (2024-02-16)
+
+
+### Bug Fixes
+
+* avoid fatals on upserting target key values ([5575d91](https://github.com/Automattic/newspack-ads/commit/5575d91bf6ac042834de0368ec2df4b32723cdd8))
+
 # [1.47.0-alpha.1](https://github.com/Automattic/newspack-ads/compare/v1.46.0...v1.47.0-alpha.1) (2024-02-08)
 
 
