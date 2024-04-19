@@ -1096,6 +1096,11 @@ final class GAM_Model {
 			if ( method_exists( 'Newspack\Reader_Data', 'get_data' ) ) {
 				$reader_data = \Newspack\Reader_Data::get_data( get_current_user_id() );
 
+				// If the reader is signed up for any newsletters.
+				if ( ! empty( $reader_data['is_newsletter_subscriber'] ) ) {
+					$targeting['reader_status'][] = 'newsletter_subscriber';
+				}
+
 				// If reader has donated.
 				if ( ! empty( $reader_data['is_donor'] ) ) {
 					$targeting['reader_status'][] = 'donor';
