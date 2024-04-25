@@ -951,6 +951,9 @@ final class GAM_Model {
 			$sizes = $ad_unit['sizes'];
 		}
 
+		// Ensure that 1x1 is always available.
+		$sizes[] = [ 1, 1 ];
+
 		/**
 		 * Filters the ad unit size map difference ratio.
 		 *
