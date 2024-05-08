@@ -4879,90 +4879,77 @@
 		},
 		{
 			"name": "yoast/phpunit-polyfills",
-<<<<<<< HEAD
-            "version": "1.1.1",
+			"version": "2.0.1",
 			"source": {
 				"type": "git",
 				"url": "https://github.com/Yoast/PHPUnit-Polyfills.git",
-				"reference": "a0f7d708794a738f328d7b6c94380fd1d6c40446"
+				"reference": "4a088f125c970d6d6ea52c927f96fe39b330d0f1"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/a0f7d708794a738f328d7b6c94380fd1d6c40446",
-				"reference": "a0f7d708794a738f328d7b6c94380fd1d6c40446",
-=======
-            "version": "2.0.1",
-				"source": {
-					"type": "git",
-					"url": "https://github.com/Yoast/PHPUnit-Polyfills.git",
-					"reference": "4a088f125c970d6d6ea52c927f96fe39b330d0f1"
+				"url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/4a088f125c970d6d6ea52c927f96fe39b330d0f1",
+				"reference": "4a088f125c970d6d6ea52c927f96fe39b330d0f1",
+				"shasum": ""
+			},
+			"require": {
+				"php": ">=5.6",
+				"phpunit/phpunit": "^5.7.21 || ^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0"
+			},
+			"require-dev": {
+				"php-parallel-lint/php-console-highlighter": "^1.0.0",
+				"php-parallel-lint/php-parallel-lint": "^1.4.0",
+				"yoast/yoastcs": "^3.1.0"
+			},
+			"type": "library",
+			"extra": {
+				"branch-alias": {
+					"dev-main": "2.x-dev"
+				}
+			},
+			"autoload": {
+				"files": [
+					"phpunitpolyfills-autoload.php"
+				]
+			},
+			"notification-url": "https://packagist.org/downloads/",
+			"license": [
+				"BSD-3-Clause"
+			],
+			"authors": [
+				{
+					"name": "Team Yoast",
+					"email": "support@yoast.com",
+					"homepage": "https://yoast.com"
 				},
-				"dist": {
-					"type": "zip",
-					"url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/4a088f125c970d6d6ea52c927f96fe39b330d0f1",
-					"reference": "4a088f125c970d6d6ea52c927f96fe39b330d0f1",
->>>>>>> trunk
-                "shasum": ""
-				},
-				"require": {
-					"php": ">=5.6",
-					"phpunit/phpunit": "^5.7.21 || ^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0"
-				},
-				"require-dev": {
-					"php-parallel-lint/php-console-highlighter": "^1.0.0",
-					"php-parallel-lint/php-parallel-lint": "^1.4.0",
-					"yoast/yoastcs": "^3.1.0"
-				},
-				"type": "library",
-				"extra": {
-					"branch-alias": {
-						"dev-main": "2.x-dev"
-					}
-				},
-				"autoload": {
-					"files": [
-						"phpunitpolyfills-autoload.php"
-					]
-				},
-				"notification-url": "https://packagist.org/downloads/",
-				"license": [
-					"BSD-3-Clause"
-				],
-				"authors": [
-					{
-						"name": "Team Yoast",
-						"email": "support@yoast.com",
-						"homepage": "https://yoast.com"
-					},
-					{
-						"name": "Contributors",
-						"homepage": "https://github.com/Yoast/PHPUnit-Polyfills/graphs/contributors"
-					}
-				],
-				"description": "Set of polyfills for changed PHPUnit functionality to allow for creating PHPUnit cross-version compatible tests",
-				"homepage": "https://github.com/Yoast/PHPUnit-Polyfills",
-				"keywords": [
-					"phpunit",
-					"polyfill",
-					"testing"
-				],
-				"support": {
-					"issues": "https://github.com/Yoast/PHPUnit-Polyfills/issues",
-					"security": "https://github.com/Yoast/PHPUnit-Polyfills/security/policy",
-					"source": "https://github.com/Yoast/PHPUnit-Polyfills"
-				},
-				"time": "2024-04-05T16:36:44+00:00"
-			}
-		],
-		"aliases": [],
-		"minimum-stability": "stable",
-		"stability-flags": [],
-		"prefer-stable": false,
-		"prefer-lowest": false,
-		"platform": [],
-		"platform-dev": [],
-		"platform-overrides": {
-			"php": "7.4"
-		},
-		"plugin-api-version": "2.6.0"
-	}
+				{
+					"name": "Contributors",
+					"homepage": "https://github.com/Yoast/PHPUnit-Polyfills/graphs/contributors"
+				}
+			],
+			"description": "Set of polyfills for changed PHPUnit functionality to allow for creating PHPUnit cross-version compatible tests",
+			"homepage": "https://github.com/Yoast/PHPUnit-Polyfills",
+			"keywords": [
+				"phpunit",
+				"polyfill",
+				"testing"
+			],
+			"support": {
+				"issues": "https://github.com/Yoast/PHPUnit-Polyfills/issues",
+				"security": "https://github.com/Yoast/PHPUnit-Polyfills/security/policy",
+				"source": "https://github.com/Yoast/PHPUnit-Polyfills"
+			},
+			"time": "2024-04-05T16:36:44+00:00"
+		}
+	],
+	"aliases": [],
+	"minimum-stability": "stable",
+	"stability-flags": [],
+	"prefer-stable": false,
+	"prefer-lowest": false,
+	"platform": [],
+	"platform-dev": [],
+	"platform-overrides": {
+		"php": "7.4"
+	},
+	"plugin-api-version": "2.6.0"
+}
