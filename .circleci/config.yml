@@ -18,10 +18,6 @@ workflows:
           requires:
             - newspack/build
           archive-name: 'newspack-ads'
-          filters:
-            branches:
-              only:
-                - trunk
       - newspack/release:
           requires:
             - newspack/build

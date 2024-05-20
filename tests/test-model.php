@@ -102,29 +102,12 @@ class ModelTest extends WP_UnitTestCase {
 			$legacy_ad_unit['ad_code'],
 			'The ad code for the legacy ad unit contains a comment with network ID and ad unit code.'
 		);
-		self::assertStringContainsString(
-			'data-slot=\'/' . self::$network_code . '/' . self::$ad_code_1 . '\'',
-			$legacy_ad_unit['amp_ad_code'],
-			'The AMP ad code for the legacy ad unit contains an attribute with network ID and ad unit code.'
-		);
 
 		$gam_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[0]['id'] );
 		self::assertStringContainsString(
 			'<!-- /' . self::$network_code . '/' . $gam_ad_unit['code'] . ' -->',
 			$gam_ad_unit['ad_code'],
 			'The ad code contains a comment with network ID and ad unit code.'
-		);
-		self::assertStringContainsString(
-			'data-slot=\'/' . self::$network_code . '/' . $gam_ad_unit['code'] . '\'',
-			$gam_ad_unit['amp_ad_code'],
-			'The AMP ad code contains an attribute with network ID and ad unit code.'
-		);
-
-		$fluid_ad_unit = GAM_Model::get_ad_unit_for_display( self::$mock_gam_ad_units[1]['id'] );
-		self::assertStringContainsString(
-			'layout=\'fluid\'',
-			$fluid_ad_unit['amp_ad_code'],
-			'The AMP ad code for the fluid ad unit contains fluid layout.'
 		);
 	}
 
