@@ -3,6 +3,7 @@
   "version": "1.48.0",
   "author": "Automattic",
   "private": true,
+  "type": "module",
   "scripts": {
     "cm": "newspack-scripts commit",
     "semantic-release": "newspack-scripts release --files=newspack-ads.php",
@@ -12,8 +13,8 @@
     "clean": "rm -rf dist/",
     "test": "echo \"Error: no test specified\" && exit 0",
     "lint": "npm run lint:scss && npm run lint:js",
-    "lint:js": "eslint --ext .js,.jsx src",
-    "lint:js:staged": "eslint --ext .js,.jsx",
+    "lint:js": "eslint src",
+    "lint:js:staged": "eslint",
     "lint:scss": "stylelint '**/*.scss' --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:scss:staged": "stylelint --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
     "lint:php": "./vendor/bin/phpcs .",
