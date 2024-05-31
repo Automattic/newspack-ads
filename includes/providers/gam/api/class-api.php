@@ -125,9 +125,9 @@ class Api {
 	 * @throws \Exception If the credentials are invalid or the environment is incompatible.
 	 */
 	public function __construct( $auth_method_or_session, $credentials = null, $network_code = null ) {
-
-		if ( false === self::is_environment_compatible() ) {
-			throw new \Exception( esc_html__( 'The environment is not compatible with the GAM API.', 'newspack-ads' ) );
+		$environment_compatible = self::is_environment_compatible();
+		if ( is_wp_error( $environment_compatible ) ) {
+			throw new \Exception( esc_html( $environment_compatible->get_error_message() ) );
 		}
 
 		if ( 'string' === gettype( $auth_method_or_session ) ) {
@@ -218,12 +218,12 @@ class Api {
 	/**
 	 * Verify WP environment to make sure it's safe to use the GAM API.
 	 *
-	 * @return bool Whether it's safe to use GAM.
+	 * @return bool|WP_Erro True if it's safe to use GAM, error otherwise.
 	 */
 	private static function is_environment_compatible() {
 		// Constant Contact Form plugin loads an old version of Guzzle that breaks the SDK.
 		if ( class_exists( 'Constant_Contact' ) ) {
-			return false;
+			return new \WP_Error( 'newspack_ads_gam_error', __( 'The Constant Contact plugin is not compatible with the GAM API.', 'newspack-ads' ) );
 		}
 		return true;
 	}
