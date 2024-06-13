@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "14697564b46f9badc8a638abcee05703",
+    "content-hash": "1a0d6f81b7cfbbb796a398840c38fa31",
     "packages": [
         {
             "name": "doctrine/deprecations",
@@ -176,16 +176,16 @@
         },
         {
             "name": "googleads/googleads-php-lib",
-            "version": "61.0.0",
+            "version": "65.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/googleads-php-lib.git",
-                "reference": "ab57c1d71d282517293d0f8d533ef8e33fe84d95"
+                "reference": "6161b8caee7fbe23f60aaa2dab60ac44d7eb0a53"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/googleads-php-lib/zipball/ab57c1d71d282517293d0f8d533ef8e33fe84d95",
-                "reference": "ab57c1d71d282517293d0f8d533ef8e33fe84d95",
+                "url": "https://api.github.com/repos/googleads/googleads-php-lib/zipball/6161b8caee7fbe23f60aaa2dab60ac44d7eb0a53",
+                "reference": "6161b8caee7fbe23f60aaa2dab60ac44d7eb0a53",
                 "shasum": ""
             },
             "require": {
@@ -197,7 +197,7 @@
                 "guzzlehttp/guzzle": "^6.0 || ^7.0",
                 "guzzlehttp/psr7": "^1.7 || ^2.0",
                 "monolog/monolog": "^2.2.0 || ^3.0",
-                "php": ">=7.4",
+                "php": ">=8",
                 "phpdocumentor/reflection-docblock": "^3.0.3 || ^4.0 || ^5.0",
                 "symfony/serializer": "^3.0.3 || ^4.4.0 || ^5.0.0 || ^6.0.0"
             },
@@ -229,9 +229,9 @@
             "homepage": "https://github.com/googleads/googleads-php-lib",
             "support": {
                 "issues": "https://github.com/googleads/googleads-php-lib/issues",
-                "source": "https://github.com/googleads/googleads-php-lib/tree/61.0.0"
+                "source": "https://github.com/googleads/googleads-php-lib/tree/65.0.0"
             },
-            "time": "2023-05-23T14:54:33+00:00"
+            "time": "2024-05-21T20:13:27+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
