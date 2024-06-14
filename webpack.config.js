@@ -8,8 +8,9 @@
  * External dependencies
  */
 const fs = require( 'fs' );
-const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
 const path = require( 'path' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
+const loader = require.resolve( 'newspack-scripts/node_modules/babel-loader' );
 
 /**
  * Internal variables
@@ -50,22 +51,18 @@ const editorScript = [
 
 const suppressAdsScript = path.join( __dirname, 'src', 'suppress-ads' );
 
-const webpackConfig = getBaseWebpackConfig(
-	{ WP: true },
-	{
-		entry: {
-			editor: editorScript,
-			...viewBlocksScripts,
-			'suppress-ads': suppressAdsScript,
-			frontend,
-			'customizer-preview': customizerPreview,
-			'customizer-control': customizerControl,
-			'header-bidding-gam': headerBiddingGAM,
-			prebid,
-		},
-		'output-path': path.join( __dirname, 'dist' ),
-	}
-);
+const webpackConfig = getBaseWebpackConfig( {
+	entry: {
+		editor: editorScript,
+		...viewBlocksScripts,
+		'suppress-ads': suppressAdsScript,
+		frontend,
+		'customizer-preview': customizerPreview,
+		'customizer-control': customizerControl,
+		'header-bidding-gam': headerBiddingGAM,
+		prebid,
+	},
+} );
 
 /**
  * Custom babel config for Prebid.js.
@@ -75,7 +72,7 @@ webpackConfig.module.rules.push( {
 	test: /.js$/,
 	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
-		loader: 'babel-loader',
+		loader,
 		options: {
 			...require( 'prebid.js/.babelrc.js' ),
 			configFile: false,
