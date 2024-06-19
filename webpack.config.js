@@ -10,7 +10,7 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
-const loader = require.resolve( 'newspack-scripts/node_modules/babel-loader' );
+const loader = require.resolve( 'babel-loader' );
 
 /**
  * Internal variables
