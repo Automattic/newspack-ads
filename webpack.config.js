@@ -14,7 +14,10 @@ const path = require( 'path' );
 /**
  * Internal variables
  */
-const editorSetup = [ 'regenerator-runtime/runtime', path.join( __dirname, 'src', 'setup', 'editor' ) ];
+const editorSetup = [
+	'regenerator-runtime/runtime',
+	path.join( __dirname, 'src', 'setup', 'editor' ),
+];
 const viewSetup = [ 'regenerator-runtime/runtime', path.join( __dirname, 'src', 'setup', 'view' ) ];
 
 function blockScripts( type, inputDir, blocks ) {
@@ -37,12 +40,6 @@ const viewBlocksScripts = blocks.reduce( ( viewBlocks, block ) => {
 	return viewBlocks;
 }, {} );
 
-// Combines all the different blocks into one editor.js script
-const editorScript = [
-	...editorSetup,
-	...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
-];
-
 const entry = {
 	'suppress-ads': path.join( __dirname, 'src', 'suppress-ads' ),
 	frontend: path.join( __dirname, 'src', 'frontend' ),
@@ -56,12 +53,15 @@ Object.keys( entry ).forEach( key => {
 	entry[ key ] = [ 'regenerator-runtime/runtime', entry[ key ] ];
 } );
 
-entry.editor = editorScript;
-
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
 	{
 		entry: {
+			// Combines all the different blocks into one editor.js script
+			editor: [
+				...editorSetup,
+				...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
+			],
 			...entry,
 			...viewBlocksScripts,
 		},
