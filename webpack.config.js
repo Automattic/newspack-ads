@@ -14,13 +14,11 @@ const path = require( 'path' );
 /**
  * Internal variables
  */
-const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
-const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
-const frontend = path.join( __dirname, 'src', 'frontend' );
-const customizerPreview = path.join( __dirname, 'src', 'customizer', 'preview' );
-const customizerControl = path.join( __dirname, 'src', 'customizer', 'control' );
-const headerBiddingGAM = path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' );
-const prebid = path.join( __dirname, 'src', 'prebid' );
+const editorSetup = [
+	'regenerator-runtime/runtime',
+	path.join( __dirname, 'src', 'setup', 'editor' ),
+];
+const viewSetup = [ 'regenerator-runtime/runtime', path.join( __dirname, 'src', 'setup', 'view' ) ];
 
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
@@ -37,31 +35,35 @@ const blocks = fs
 const viewBlocksScripts = blocks.reduce( ( viewBlocks, block ) => {
 	const viewScriptPath = path.join( __dirname, 'src', 'blocks', block, 'view.js' );
 	if ( fs.existsSync( viewScriptPath ) ) {
-		viewBlocks[ block + '/view' ] = [ viewSetup, ...[ viewScriptPath ] ];
+		viewBlocks[ block + '/view' ] = [ ...viewSetup, ...[ viewScriptPath ] ];
 	}
 	return viewBlocks;
 }, {} );
 
-// Combines all the different blocks into one editor.js script
-const editorScript = [
-	editorSetup,
-	...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
-];
+const entry = {
+	'suppress-ads': path.join( __dirname, 'src', 'suppress-ads' ),
+	frontend: path.join( __dirname, 'src', 'frontend' ),
+	'customizer-preview': path.join( __dirname, 'src', 'customizer', 'preview' ),
+	'customizer-control': path.join( __dirname, 'src', 'customizer', 'control' ),
+	'header-bidding-gam': path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' ),
+	prebid: path.join( __dirname, 'src', 'prebid' ),
+};
 
-const suppressAdsScript = path.join( __dirname, 'src', 'suppress-ads' );
+Object.keys( entry ).forEach( key => {
+	entry[ key ] = [ 'regenerator-runtime/runtime', entry[ key ] ];
+} );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
 	{
 		entry: {
-			editor: editorScript,
+			// Combines all the different blocks into one editor.js script
+			editor: [
+				...editorSetup,
+				...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
+			],
+			...entry,
 			...viewBlocksScripts,
-			'suppress-ads': suppressAdsScript,
-			frontend,
-			'customizer-preview': customizerPreview,
-			'customizer-control': customizerControl,
-			'header-bidding-gam': headerBiddingGAM,
-			prebid,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
