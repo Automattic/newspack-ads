@@ -50,7 +50,7 @@
 		"postcss-scss": "^4.0.9"
 	},
 	"dependencies": {
-		"newspack-components": "^2.2.1",
+		"newspack-components": "^3.0.0",
 		"prebid.js": "^8.51.0"
 	}
 }
