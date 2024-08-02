@@ -8,17 +8,15 @@
  * External dependencies
  */
 const fs = require( 'fs' );
-const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
 const path = require( 'path' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
+const loader = require.resolve( 'babel-loader' );
 
 /**
  * Internal variables
  */
-const editorSetup = [
-	'regenerator-runtime/runtime',
-	path.join( __dirname, 'src', 'setup', 'editor' ),
-];
-const viewSetup = [ 'regenerator-runtime/runtime', path.join( __dirname, 'src', 'setup', 'view' ) ];
+const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
+const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 
 function blockScripts( type, inputDir, blocks ) {
 	return blocks
@@ -49,23 +47,17 @@ const entry = {
 	prebid: path.join( __dirname, 'src', 'prebid' ),
 };
 
-Object.keys( entry ).forEach( key => {
-	entry[ key ] = [ 'regenerator-runtime/runtime', entry[ key ] ];
-} );
-
 const webpackConfig = getBaseWebpackConfig(
-	{ WP: true },
 	{
 		entry: {
 			// Combines all the different blocks into one editor.js script
 			editor: [
-				...editorSetup,
+				editorSetup,
 				...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
 			],
 			...entry,
 			...viewBlocksScripts,
 		},
-		'output-path': path.join( __dirname, 'dist' ),
 	}
 );
 
@@ -77,7 +69,7 @@ webpackConfig.module.rules.push( {
 	test: /.js$/,
 	include: new RegExp( `\\${ path.sep }prebid\\.js` ),
 	use: {
-		loader: 'babel-loader',
+		loader,
 		options: {
 			...require( 'prebid.js/.babelrc.js' ),
 			configFile: false,
