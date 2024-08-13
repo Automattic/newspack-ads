@@ -51,6 +51,6 @@
 	},
 	"dependencies": {
 		"newspack-components": "^3.0.0",
-		"prebid.js": "^8.51.0"
+		"prebid.js": "^9.9.0"
 	}
 }
