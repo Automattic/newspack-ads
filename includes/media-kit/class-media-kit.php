@@ -29,6 +29,7 @@ final class Media_Kit {
 		register_deactivation_hook( NEWSPACK_ADS_PLUGIN_FILE, [ __CLASS__, 'deactivate' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notices' ] );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
+		add_action( 'init', [ __CLASS__, 'add_cli_commands' ] );
 	}
 
 	/**
@@ -66,19 +67,15 @@ final class Media_Kit {
 	 */
 	public static function activate() {
 		// Create a Media Kit page.
-		$page_created = self::create_media_kit_page();
-		if ( $page_created ) {
-			\flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
-		}
+		self::create_media_kit_page();
 	}
 
 	/**
-	 * A function to create a Publisher Media Kit page automatically.
+	 * Get existing Media Kit Page post ID.
 	 *
-	 * @throws \Exception Throws exception on Media Kit page creation failure.
-	 * @return bool True if the page was created.
+	 * @return int|false Post ID or false if the media kit page was not found.
 	 */
-	public static function create_media_kit_page() {
+	private static function get_existing_page_id() {
 		$args = [
 			'post_type'      => [ 'page' ],
 			'post_status'    => [ 'publish', 'pending', 'draft', 'auto-draft', 'future', 'private' ],
@@ -92,8 +89,18 @@ final class Media_Kit {
 		];
 
 		// The query to get the Media Kit page ID.
-		$query   = new \WP_Query( $args );
-		$post_ID = $query->posts[0] ?? '';
+		$query = new \WP_Query( $args );
+		return $query->posts[0] ?? false;
+	}
+
+	/**
+	 * A function to create a Publisher Media Kit page automatically.
+	 *
+	 * @throws \Exception Throws exception on Media Kit page creation failure.
+	 * @return int|false Post ID or false if the media kit page was not created.
+	 */
+	public static function create_media_kit_page() {
+		$post_ID = self::get_existing_page_id();
 
 		// Restore original Post Data.
 		wp_reset_postdata();
@@ -168,7 +175,9 @@ final class Media_Kit {
 		add_option( self::PAGE_META_NAME, $post_ID );
 
 		set_transient( self::ADMIN_NOTICE_TRANSIENT_NAME, true, 5 );
-		return true;
+
+		\flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+		return $post_ID;
 	}
 
 	/**
@@ -198,6 +207,43 @@ final class Media_Kit {
 				true
 			);
 		}
+	}
+
+	/**
+	 * Handle the Media Kit Page creation CLI command.
+	 */
+	public static function cli_create_media_kit_page() {
+		$post_id = self::create_media_kit_page();
+		if ( $post_id === false ) {
+			$existing_page_id = self::get_existing_page_id();
+			if ( $existing_page_id === false ) {
+				\WP_CLI::warning( __( 'Media Kit page creation failed, and no existing page was found.', 'newspack-ads' ) );
+				return;
+			}
+			/* translators: %d is the post ID. */
+			\WP_CLI::warning( sprintf( __( 'Media Kit page already created - post ID: %d.', 'newspack-ads' ), $existing_page_id ) );
+			return;
+		}
+		/* translators: %d is the post ID. */
+		\WP_CLI::success( sprintf( __( 'Media Kit page created successfully - post ID: %d', 'newspack-ads' ), $post_id ) );
+	}
+
+	/**
+	 * Register the 'newspack-listings import' WP CLI command.
+	 */
+	public static function add_cli_commands() {
+		if ( ! class_exists( 'WP_CLI' ) ) {
+			return;
+		}
+
+		\WP_CLI::add_command(
+			'newspack-ads create-media-kit-page',
+			[ __CLASS__, 'cli_create_media_kit_page' ],
+			[
+				'shortdesc' => 'Create a Media Kit page.',
+				'synopsis'  => [],
+			]
+		);
 	}
 }
 Media_Kit::init();
