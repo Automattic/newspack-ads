@@ -41,15 +41,16 @@
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.10.4",
-		"@wordpress/browserslist-config": "^6.5.0",
+		"@wordpress/browserslist-config": "^6.6.0",
 		"babel-loader": "^9.1.3",
 		"classnames": "^2.5.1",
 		"eslint": "^8.57.0",
-		"lint-staged": "^15.2.8",
+		"lint-staged": "^15.2.9",
 		"newspack-scripts": "^5.5.2",
 		"postcss-scss": "^4.0.9"
 	},
 	"dependencies": {
+		"@10up/component-tabs": "^2.0.1",
 		"newspack-components": "^3.0.0",
 		"prebid.js": "^8.51.0"
 	}

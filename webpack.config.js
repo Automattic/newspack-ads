@@ -45,6 +45,8 @@ const entry = {
 	'customizer-control': path.join( __dirname, 'src', 'customizer', 'control' ),
 	'header-bidding-gam': path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' ),
 	prebid: path.join( __dirname, 'src', 'prebid' ),
+	// Media Kit Page.
+	'media-kit-frontend': path.join( __dirname, 'src', 'media-kit','index.js' ),
 };
 
 const webpackConfig = getBaseWebpackConfig(
