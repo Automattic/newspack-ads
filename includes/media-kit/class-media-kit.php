@@ -75,7 +75,7 @@ final class Media_Kit {
 	 *
 	 * @return int|false Post ID or false if the media kit page was not found.
 	 */
-	private static function get_existing_page_id() {
+	public static function get_existing_page_id() {
 		$args = [
 			'post_type'      => [ 'page' ],
 			'post_status'    => [ 'publish', 'pending', 'draft', 'auto-draft', 'future', 'private' ],
@@ -91,6 +91,17 @@ final class Media_Kit {
 		// The query to get the Media Kit page ID.
 		$query = new \WP_Query( $args );
 		return $query->posts[0] ?? false;
+	}
+
+	/**
+	 * Get Media Kit page status.
+	 */
+	public static function get_page_status() {
+		$post_id = self::get_existing_page_id();
+		if ( ! $post_id ) {
+			return false;
+		}
+		return get_post_status( $post_id );
 	}
 
 	/**
