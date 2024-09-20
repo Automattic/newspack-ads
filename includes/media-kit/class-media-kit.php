@@ -99,7 +99,7 @@ final class Media_Kit {
 	public static function get_page_status() {
 		$post_id = self::get_existing_page_id();
 		if ( ! $post_id ) {
-			return false;
+			return 'non-existent';
 		}
 		return get_post_status( $post_id );
 	}
