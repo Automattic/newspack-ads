@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/Automattic/newspack-ads/compare/v3.0.2...v3.1.0) (2024-10-08)
+
+
+### Features
+
+* **media-kit:** add media kit (from publisher-media-kit plugin) ([#894](https://github.com/Automattic/newspack-ads/issues/894)) ([8c46acf](https://github.com/Automattic/newspack-ads/commit/8c46acf94d6dae77585df44d48374d9bc93a78e1))
+
 ## [3.0.2](https://github.com/Automattic/newspack-ads/compare/v3.0.1...v3.0.2) (2024-08-19)
 
 
