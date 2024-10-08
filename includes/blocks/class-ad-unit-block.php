@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Ads Block Management
+ * Newspack Ads Ad Unit Block
  *
  * @package Newspack
  */
@@ -12,9 +12,9 @@ use Newspack_Ads\Placements;
 use Newspack_Ads\Providers;
 
 /**
- * Newspack Ads Blocks Management
+ * Newspack Ads Ad Unit Block
  */
-final class Blocks {
+final class Ad_Unit_Block {
 
 	/**
 	 * Initialize blocks
@@ -191,4 +191,4 @@ final class Blocks {
 		return implode( ' ', $classes );
 	}
 }
-Blocks::init();
+Ad_Unit_Block::init();
