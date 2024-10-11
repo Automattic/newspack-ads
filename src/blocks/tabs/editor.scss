@@ -59,12 +59,17 @@
 				.wp-block-paragraph[data-empty="true"]
 				+ .block-list-appender
 			)
-		)
-		.block-list-appender {
-			display: flex;
-			flex-direction: row-reverse;
-			margin: 0;
-			position: relative;
+		) {
+			> *:first-child {
+				margin-top: 0;
+				padding-top: 10px;
+			}
+			.block-list-appender {
+				display: flex;
+				flex-direction: row-reverse;
+				margin: 0;
+				position: relative;
+			}
 		}
 
 		& .wp-block-paragraph.is-selected + .block-list-appender {
