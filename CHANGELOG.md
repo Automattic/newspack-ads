@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/Automattic/newspack-ads/compare/v3.2.0...v3.2.1) (2024-10-11)
+
+
+### Bug Fixes
+
+* disappearing inline block appender ([d36a788](https://github.com/Automattic/newspack-ads/commit/d36a7884a6b5189004bec2f0f2d096a1099b3cbb))
+
 # [3.2.0](https://github.com/Automattic/newspack-ads/compare/v3.1.0...v3.2.0) (2024-10-09)
 
 
