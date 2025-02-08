@@ -22,7 +22,7 @@ export const settings = {
 	title,
 	icon: {
 		src: pullquote,
-		foreground: '#36f',
+		foreground: '#406ebc',
 	},
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
 	keywords: [

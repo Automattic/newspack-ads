@@ -41,7 +41,7 @@ const tabsItem = {
 		...labels,
 		icon: {
 			src: icon,
-			foreground: '#36f',
+			foreground: '#406ebc',
 		},
 		edit,
 		save: () => <InnerBlocks.Content />,
