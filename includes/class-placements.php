@@ -285,6 +285,7 @@ final class Placements {
 		);
 
 		// This check is on purpose. The show_ui key we look for is either be absent or set to true.
+		// Placements without admin UI will not have config stored in WP options.
 		if ( ! isset( $config['show_ui'] ) || ! empty( $config['show_ui'] ) ) {
 			$data = wp_parse_args(
 				json_decode( get_option( self::get_option_name( $placement_key ) ), true ) ?? [],
