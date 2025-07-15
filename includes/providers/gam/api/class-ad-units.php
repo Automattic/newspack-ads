@@ -40,35 +40,79 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Create a statement builder for ad unit retrieval.
 	 *
+	 * @param int     $parent_id        Optional parent ad unit id.
 	 * @param int[]   $ids              Optional array of ad unit ids.
 	 * @param boolean $include_archived Whether to include archived ad units.
 	 *
 	 * @return StatementBuilder Statement builder.
 	 */
-	private static function get_statement_builder( $ids = [], $include_archived = false ) {
+	private static function get_statement_builder( $parent_id = null, $ids = [], $include_archived = false ) {
 		// Get all non-archived ad units, unless ids are specified.
 		$statement_builder = new StatementBuilder();
 		if ( ! empty( $ids ) ) {
 			$statement_builder->where( 'ID IN(' . implode( ', ', $ids ) . ')' );
 		} elseif ( ! $include_archived ) {
-			$statement_builder->where( "Status IN('ACTIVE')" );
+			if ( $parent_id ) {
+				$statement_builder->where( 'parentId = ' . $parent_id . " AND Status IN('ACTIVE')" );
+			} else {
+				$statement_builder->where( "Status IN('ACTIVE')" );
+			}
 		}
 		$statement_builder->orderBy( 'name ASC' )->limit( StatementBuilder::SUGGESTED_PAGE_LIMIT );
 		return $statement_builder;
 	}
 
 	/**
+	 * Get parent ad units with children.
+	 *
+	 * @return array Array of serialzied AdUnits.
+	 */
+	public function get_parent_ad_units() {
+		$statement_builder = self::get_statement_builder();
+		$statement_builder->where( 'hasChildren = TRUE' );
+		$inventory_service = $this->get_inventory_service();
+		$page = $inventory_service->getAdUnitsByStatement(
+			$statement_builder->toStatement()
+		);
+
+		$ad_units = [];
+				// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
+				$total_result_set_size = 0;
+		do {
+			$page = $inventory_service->getAdUnitsByStatement(
+				$statement_builder->toStatement()
+			);
+
+			if ( $page->getResults() !== null ) {
+				$total_result_set_size = $page->getTotalResultSetSize();
+				foreach ( $page->getResults() as $item ) {
+					$ad_unit_name = $item->getName();
+					if ( 0 === strpos( $ad_unit_name, 'ca-pub-' ) ) {
+						// There are these phantom ad units with 'ca-pub-<int>' names.
+						continue;
+					}
+					$ad_units[] = $item;
+				}
+			}
+			$statement_builder->increaseOffsetBy( StatementBuilder::SUGGESTED_PAGE_LIMIT );
+		} while ( $statement_builder->getOffset() < $total_result_set_size );
+
+		return array_map( [ __CLASS__, 'get_serialized_ad_unit' ], $ad_units );
+	}
+
+	/**
 	 * Get all GAM Ad Units in the user's network.
 	 * If $ids parameter is not specified, will return all ad units found.
 	 *
+	 * @param int     $parent_id        Optional parent ad unit id.
 	 * @param int[]   $ids              Optional array of ad unit ids.
 	 * @param boolean $include_archived Whether to include archived ad units.
 	 *
 	 * @return AdUnit[] Array of AdUnits.
 	 */
-	private function get_ad_units( $ids = [], $include_archived = false ) {
+	private function get_ad_units( $parent_id = null, $ids = [], $include_archived = false ) {
 		$gam_ad_units      = [];
-		$statement_builder = self::get_statement_builder( $ids, $include_archived );
+		$statement_builder = self::get_statement_builder( $parent_id, $ids, $include_archived );
 		$inventory_service = $this->get_inventory_service();
 
 		// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
@@ -98,14 +142,15 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Get all GAM Ad Units in the user's network, serialized.
 	 *
+	 * @param int     $parent_id        Optional parent ad unit id.
 	 * @param int[]   $ids              Optional array of ad unit ids.
 	 * @param boolean $include_archived Whether to include archived ad units.
 	 *
 	 * @return array[] Array of serialized ad units.
 	 */
-	public function get_serialized_ad_units( $ids = [], $include_archived = false ) {
+	public function get_serialized_ad_units( $parent_id = null, $ids = [], $include_archived = false ) {
 		try {
-			$ad_units            = $this->get_ad_units( $ids, $include_archived );
+			$ad_units            = $this->get_ad_units( $parent_id, $ids, $include_archived );
 			$ad_units_serialised = [];
 			foreach ( $ad_units as $ad_unit ) {
 				$ad_units_serialised[] = $this->get_serialized_ad_unit( $ad_unit );
@@ -157,13 +202,14 @@ final class Ad_Units extends Api_Object {
 		);
 
 		$ad_unit = [
-			'id'     => $gam_ad_unit->getId(),
-			'path'   => $path,
-			'code'   => $gam_ad_unit->getAdUnitCode(),
-			'status' => $gam_ad_unit->getStatus(),
-			'name'   => $gam_ad_unit->getName(),
-			'fluid'  => $gam_ad_unit->getIsFluid(),
-			'sizes'  => [],
+			'id'           => $gam_ad_unit->getId(),
+			'path'         => $path,
+			'code'         => $gam_ad_unit->getAdUnitCode(),
+			'status'       => $gam_ad_unit->getStatus(),
+			'name'         => $gam_ad_unit->getName(),
+			'fluid'        => $gam_ad_unit->getIsFluid(),
+			'has_children' => $gam_ad_unit->getHasChildren(),
+			'sizes'        => [],
 		];
 		$sizes   = $gam_ad_unit->getAdUnitSizes();
 		if ( $sizes ) {
