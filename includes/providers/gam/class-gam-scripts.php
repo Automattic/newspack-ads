@@ -253,7 +253,7 @@ final class GAM_Scripts {
 					 * outside of the viewport will have 'auto' height.
 					 */
 					?>
-					if ( ad_unit.fixed_height.active ) {
+					if ( ad_unit.fixed_height.active && ! ad_unit.sticky ) {
 						var height = 'auto';
 						var prop = 'height';
 						if ( ad_unit.in_viewport ) {
@@ -334,9 +334,6 @@ final class GAM_Scripts {
 							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
-						<?php
-						// Sticky ads should only be shown on mobile (screen width <=600px).
-						?>
 						if ( ad_unit['sticky'] ) {
 							mapping.addSize( [600, 0], baseSizes );
 							var stickyContainer = container.parentNode;
@@ -466,6 +463,10 @@ final class GAM_Scripts {
 	 */
 	public static function print_fixed_height_css( $placement_key, $hook_key, $placement_data ) {
 		if ( ! \newspack_ads_should_show_ads() ) {
+			return;
+		}
+		// The sticky placement doesn't cause layout shift to require fixed height.
+		if ( $placement_key === 'sticky' ) {
 			return;
 		}
 		if ( ! Providers::is_provider_active( 'gam' ) ) {

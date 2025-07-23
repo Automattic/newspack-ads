@@ -102,6 +102,7 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-suppression.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/media-kit/class-media-kit.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/functions.php';
+		include_once NEWSPACK_ADS_ABSPATH . '/includes/integrations/class-side-rail-placements.php';
 	}
 
 	/**
