@@ -26,7 +26,7 @@ final class GAM_Scripts {
 	 */
 	public static function init() {
 		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ], 1 );
-		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
+		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ], 11 );
 		add_action( 'newspack_ads_before_placement_ad', [ __CLASS__, 'print_fixed_height_css' ], 10, 3 );
 	}
 
@@ -100,6 +100,7 @@ final class GAM_Scripts {
 			$bounds_bleed = apply_filters( 'newspack_ads_gam_bounds_bleed', 40, $ad_unit, $sizes );
 
 			$prepared_unit_data[ $container_id ] = [
+				'placement'        => $ad_unit['placement'],
 				'unique_id'        => $unique_id,
 				'name'             => esc_attr( $ad_unit['name'] ),
 				'code'             => esc_attr( $ad_unit['code'] ),

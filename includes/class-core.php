@@ -59,10 +59,18 @@ final class Core {
 			return;
 		}
 
+		\wp_enqueue_script(
+			'newspack-ads-frontend',
+			plugins_url( '../dist/frontend.js', __FILE__ ),
+			[],
+			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.js' ),
+			true
+		);
+
 		\wp_register_style(
 			'newspack-ads-frontend',
 			plugins_url( '../dist/frontend.css', __FILE__ ),
-			null,
+			[],
 			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.css' )
 		);
 		\wp_style_add_data( 'newspack-ads-frontend', 'rtl', 'replace' );

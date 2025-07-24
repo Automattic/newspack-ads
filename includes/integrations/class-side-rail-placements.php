@@ -8,7 +8,6 @@
 namespace Newspack_Ads\Integrations;
 
 use Newspack_Ads\Placements;
-use Newspack_Ads\Providers\GAM_Model;
 
 /**
  * Side Rail Placements Class.
@@ -23,6 +22,7 @@ class Side_Rail_Placements {
 		}
 
 		add_action( 'init', [ __CLASS__, 'register_placements' ] );
+		add_filter( 'newspack_ads_gtag_ads_data', [ __CLASS__, 'filter_ad_units' ] );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Side_Rail_Placements {
 			[
 				'name'        => __( 'Left Side Rail', 'newspack-ads' ),
 				'description' => __( 'Choose an ad unit to display in the left side rail.', 'newspack-ads' ),
-				'hook_name'   => 'newspack_ads_left_side_rail',
+				'hook_name'   => 'wp_footer',
 			]
 		);
 
@@ -43,9 +43,26 @@ class Side_Rail_Placements {
 			[
 				'name'        => __( 'Right Side Rail', 'newspack-ads' ),
 				'description' => __( 'Choose an ad unit to display in the right side rail.', 'newspack-ads' ),
-				'hook_name'   => 'newspack_ads_right_side_rail',
+				'hook_name'   => 'wp_footer',
 			]
 		);
+	}
+
+	/**
+	 * Filter ad unit data
+	 *
+	 * @param array $ad_unit_data Ad unit data.
+	 *
+	 * @return array
+	 */
+	public static function filter_ad_units( $ad_unit_data ) {
+		foreach ( $ad_unit_data as $placement_key => $ad_unit ) {
+			if ( 'left_side_rail' === $ad_unit['placement'] || 'right_side_rail' === $ad_unit['placement'] ) {
+				$ad_unit['fixed_height'] = false;
+				$ad_unit_data[ $placement_key ] = $ad_unit;
+			}
+		}
+		return $ad_unit_data;
 	}
 }
 Side_Rail_Placements::init();
