@@ -23,6 +23,7 @@ class Side_Rail_Placements {
 
 		add_action( 'init', [ __CLASS__, 'register_placements' ] );
 		add_filter( 'newspack_ads_gtag_ads_data', [ __CLASS__, 'filter_ad_units' ] );
+		add_filter( 'newspack_ads_placement_classnames', [ __CLASS__, 'filter_classnames' ], 10, 2 );
 	}
 
 	/**
@@ -63,6 +64,21 @@ class Side_Rail_Placements {
 			}
 		}
 		return $ad_unit_data;
+	}
+
+	/**
+	 * Filter classnames.
+	 *
+	 * @param array  $classnames    Classnames.
+	 * @param string $placement_key Placement key.
+	 *
+	 * @return array
+	 */
+	public static function filter_classnames( $classnames, $placement_key ) {
+		if ( 'left_side_rail' === $placement_key || 'right_side_rail' === $placement_key ) {
+			$classnames['fixed-height'] = false;
+		}
+		return $classnames;
 	}
 }
 Side_Rail_Placements::init();

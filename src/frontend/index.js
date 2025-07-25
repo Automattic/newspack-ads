@@ -7,13 +7,18 @@ const margin = 32;
 const collidableElements = [
 	'#masthead',
 	'#main',
-	'.post-thumbnail',
-	'.entry-header',
-	'.main-content',
 	'.above-footer-widgets',
 	'#colophon',
 	'.newspack_global_ad.sticky',
 ];
+
+function debounce(fn, delay) {
+	let timeoutId;
+	return function (...args) {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => fn.apply(this, args), delay);
+	};
+}
 
 function checkCollision(rect, targetElement) {
 	const targetRect = targetElement.getBoundingClientRect();
@@ -25,7 +30,7 @@ function checkCollision(rect, targetElement) {
 	);
 }
 
-const handleCollisions = (element, elements, cb) => () => {
+const checkCollisions = (element, elements, cb) => {
 	const rect = element.getBoundingClientRect();
 	// Out of screen bounds.
 	if (
@@ -54,6 +59,9 @@ function initPlacement(selector, side) {
 	element.style.right = 'auto';
 
 	const ad = element.querySelector('div');
+	if (!ad) {
+		return;
+	}
 
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
@@ -66,15 +74,17 @@ function initPlacement(selector, side) {
 	refDiv.style.pointerEvents = 'none';
 	element.prepend(refDiv);
 
-	const collisionCb = collided => {
-		if (collided) {
-			ad.style.display = 'none';
-		} else {
-			ad.style.display = 'block';
-		}
+	const handleCollisions = () => {
+		checkCollisions(refDiv, collisionElements, collided => {
+			if (collided) {
+				ad.style.display = 'none';
+			} else {
+				ad.style.display = 'block';
+			}
+		});
 	};
 
-	const position = () => {
+	const fixPosition = () => {
 		const mainRect = main.getBoundingClientRect();
 		if (side === 'left') {
 			element.style.left = `${mainRect.left - element.offsetWidth - margin}px`;
@@ -82,22 +92,34 @@ function initPlacement(selector, side) {
 			element.style.left = `${mainRect.right + margin}px`;
 		}
 	};
-	position();
 
-	const collisionElements = document.querySelectorAll(
-		collidableElements.join(',')
-	);
+	const handlePlacement = () => {
+		fixPosition();
+		handleCollisions();
+	};
 
-	window.addEventListener(
-		'scroll',
-		handleCollisions(refDiv, collisionElements, collisionCb)
-	);
-	window.addEventListener(
-		'resize',
-		handleCollisions(refDiv, collisionElements, collisionCb)
-	);
-	window.addEventListener('resize', position);
+	window.addEventListener('scroll', debounce(handlePlacement, 75));
+	window.addEventListener('resize', debounce(handlePlacement, 75));
+
+	window.googletag = window.googletag || { cmd: [] };
+	window.googletag.cmd.push(function () {
+		window.googletag
+			.pubads()
+			.addEventListener('slotRenderEnded', function (event) {
+				const container = document.getElementById(
+					event.slot.getSlotElementId()
+				);
+				if (container.parentNode !== element) {
+					return;
+				}
+				container.parentNode.style.width = event.size[0] + 'px';
+				handlePlacement();
+			});
+	});
 }
 
+const collisionElements = document.querySelectorAll(
+	collidableElements.join(',')
+);
 initPlacement('.newspack_global_ad.left_side_rail', 'left');
 initPlacement('.newspack_global_ad.right_side_rail', 'right');
