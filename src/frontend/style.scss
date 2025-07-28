@@ -81,7 +81,9 @@
 .newspack_global_ad.left_side_rail,
 .newspack_global_ad.right_side_rail {
 	position: fixed;
-	top: 45px;
+	top: 10px;
+	padding: 32px;
+	box-sizing: content-box;
 }
 
 .newspack_global_ad.left_side_rail {

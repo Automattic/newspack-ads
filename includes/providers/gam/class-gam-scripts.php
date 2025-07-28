@@ -428,7 +428,7 @@ final class GAM_Scripts {
 						if ( ! ad_unit || ! ad_unit.sticky ) {
 							return;
 						}
-						if ( ! event.isEmpty && document.body.clientWidth <= 600 ) {
+						if ( ! event.isEmpty ) {
 							stickyContainer.style.display = 'flex';
 							document.body.style.paddingBottom = stickyContainer.clientHeight + 'px';
 						}
