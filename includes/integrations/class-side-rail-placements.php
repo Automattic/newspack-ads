@@ -60,6 +60,7 @@ class Side_Rail_Placements {
 		foreach ( $ad_unit_data as $placement_key => $ad_unit ) {
 			if ( 'left_side_rail' === $ad_unit['placement'] || 'right_side_rail' === $ad_unit['placement'] ) {
 				$ad_unit['fixed_height'] = false;
+				$ad_unit['bounds_bleed'] = 0;
 				$ad_unit_data[ $placement_key ] = $ad_unit;
 			}
 		}

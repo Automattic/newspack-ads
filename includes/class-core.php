@@ -58,12 +58,13 @@ final class Core {
 		if ( ! newspack_ads_should_show_ads() ) {
 			return;
 		}
+		$asset_file = require_once dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.asset.php';
 
 		\wp_enqueue_script(
 			'newspack-ads-frontend',
 			plugins_url( '../dist/frontend.js', __FILE__ ),
 			[],
-			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.js' ),
+			$asset_file['version'],
 			true
 		);
 
@@ -71,7 +72,7 @@ final class Core {
 			'newspack-ads-frontend',
 			plugins_url( '../dist/frontend.css', __FILE__ ),
 			[],
-			filemtime( dirname( NEWSPACK_ADS_PLUGIN_FILE ) . '/dist/frontend.css' )
+			$asset_file['version']
 		);
 		\wp_style_add_data( 'newspack-ads-frontend', 'rtl', 'replace' );
 		\wp_enqueue_style( 'newspack-ads-frontend' );

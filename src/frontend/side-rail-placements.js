@@ -46,6 +46,8 @@ function initPlacement(selector, side, elements) {
 		return;
 	}
 
+	ad.classList.add('ad-slot');
+
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
 	refDiv.style.position = 'absolute';
@@ -57,43 +59,62 @@ function initPlacement(selector, side, elements) {
 	refDiv.style.pointerEvents = 'none';
 	element.prepend(refDiv);
 
+	const hideAd = () => {
+		ad.classList.add('ad-hidden');
+		ad.classList.remove('ad-visible');
+	};
+	const showAd = () => {
+			ad.classList.remove('ad-hidden');
+			ad.classList.add('ad-visible');
+	};
+
 	const handleCollision = () => {
+		if (
+			ad.style.width &&
+			parseInt(ad.style.width.replace('px', '')) > element.offsetWidth
+		) {
+			hideAd();
+			return;
+		}
+
 		if (elementCollides(refDiv, elements)) {
-			ad.style.display = 'none';
+			hideAd();
 		} else {
-			ad.style.display = 'block';
+			showAd();
 		}
 	};
 
-	const fixPosition = () => {
+	const updateDimensions = () => {
 		const mainRect = main.getBoundingClientRect();
+		let newWidth = 0;
 		if (side === 'left') {
-			element.style.left = `${mainRect.left - element.offsetWidth}px`;
+			element.style.left = '0';
+			newWidth = mainRect.left;
 		} else {
 			element.style.left = `${mainRect.right}px`;
+			newWidth = window.innerWidth - mainRect.right;
 		}
+
+		element.style.width = `${newWidth}px`;
 	};
 
 	const handlePlacement = () => {
-		fixPosition();
+		updateDimensions();
 		handleCollision();
 	};
+	handlePlacement();
 
-	window.addEventListener('scroll', debounce(handlePlacement, 75));
-	window.addEventListener('resize', debounce(handlePlacement, 75));
+	window.addEventListener('scroll', debounce(handlePlacement, 50));
+	window.addEventListener('resize', debounce(handlePlacement, 200));
 
-	window.googletag = window.googletag || { cmd: [] };
 	window.googletag.cmd.push(function () {
 		window.googletag
 			.pubads()
 			.addEventListener('slotRenderEnded', function (event) {
-				const container = document.getElementById(
-					event.slot.getSlotElementId()
-				);
-				if (container.parentNode !== element) {
+				if (ad.id !== event.slot.getSlotElementId()) {
 					return;
 				}
-				container.parentNode.style.width = event.size[0] + 'px';
+				ad.style.width = event.size[0] + 'px';
 				handlePlacement();
 			});
 	});
@@ -101,6 +122,7 @@ function initPlacement(selector, side, elements) {
 
 domReady(() => {
 	const elements = document.querySelectorAll(collisionElements.join(','));
+
 	initPlacement('.newspack_global_ad.left_side_rail', 'left', elements);
 	initPlacement('.newspack_global_ad.right_side_rail', 'right', elements);
 });

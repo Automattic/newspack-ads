@@ -7,7 +7,6 @@
 
 namespace Newspack_Ads\Providers;
 
-use Newspack_Ads\Core;
 use Newspack_Ads\Settings;
 use Newspack_Ads\Providers;
 use Newspack_Ads\Providers\GAM_Model;
@@ -243,7 +242,7 @@ final class GAM_Scripts {
 						availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
 						for ( viewportWidth in ad_unit['size_map'] ) {
 							var width = parseInt( viewportWidth );
-							if ( shouldUseBounds && width > availableWidth ) {
+							if ( width > availableWidth ) {
 								delete ad_unit['size_map'][ viewportWidth ];
 							}
 						}
