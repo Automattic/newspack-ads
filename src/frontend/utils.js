@@ -22,6 +22,15 @@ export function domReady(callback) {
 }
 
 /**
+ * Check if the site has a sticky header.
+ *
+ * @return {boolean} Whether the site has a sticky header.
+ */
+export function hasStickyHeader() {
+	return document.body.classList.contains('h-stk');
+}
+
+/**
  * Debounce a function.
  *
  * @param {Function} fn    The function to debounce.

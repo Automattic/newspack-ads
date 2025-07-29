@@ -1,4 +1,4 @@
-import { domReady, debounce, elementCollides } from './utils';
+import { domReady, debounce, elementCollides, hasStickyHeader } from './utils';
 
 /**
  * Selector for the main element to place the side rail placements on.
@@ -48,6 +48,8 @@ function initPlacement(selector, side, elements) {
 
 	ad.classList.add('ad-slot');
 
+	const header = document.querySelector('#masthead');
+
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
 	refDiv.style.position = 'absolute';
@@ -64,8 +66,8 @@ function initPlacement(selector, side, elements) {
 		ad.classList.remove('ad-visible');
 	};
 	const showAd = () => {
-			ad.classList.remove('ad-hidden');
-			ad.classList.add('ad-visible');
+		ad.classList.remove('ad-hidden');
+		ad.classList.add('ad-visible');
 	};
 
 	const handleCollision = () => {
@@ -85,6 +87,11 @@ function initPlacement(selector, side, elements) {
 	};
 
 	const updateDimensions = () => {
+		if (hasStickyHeader()) {
+			const headerRect = header.getBoundingClientRect();
+			element.style.top = `${headerRect.bottom}px`;
+		}
+
 		const mainRect = main.getBoundingClientRect();
 		let newWidth = 0;
 		if (side === 'left') {
