@@ -2,14 +2,14 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Ads 3.5.4\n"
+"Project-Id-Version: Newspack Ads 3.5.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-29T09:45:44+00:00\n"
+"POT-Creation-Date: 2025-07-30T16:46:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-ads\n"
@@ -919,21 +919,21 @@ msgstr ""
 msgid "Media Kit page created successfully - post ID: %d"
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:115
+#: includes/providers/gam/api/class-ad-units.php:160
 msgid "Unable to fetch ad units."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:279
+#: includes/providers/gam/api/class-ad-units.php:325
 msgid "Ad Unit was not found."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:285
-#: includes/providers/gam/api/class-ad-units.php:289
+#: includes/providers/gam/api/class-ad-units.php:331
+#: includes/providers/gam/api/class-ad-units.php:335
 msgid "Ad Unit was not updated."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:306
-#: includes/providers/gam/api/class-ad-units.php:310
+#: includes/providers/gam/api/class-ad-units.php:352
+#: includes/providers/gam/api/class-ad-units.php:356
 msgid "Ad Unit was not created."
 msgstr ""
 
@@ -1041,23 +1041,23 @@ msgstr ""
 msgid "A multiplier applied to margins on mobile devices. This allows varying margins on mobile vs. desktop."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:610
+#: includes/providers/gam/class-gam-model.php:636
 msgid "Not connected to GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:654
+#: includes/providers/gam/class-gam-model.php:681
 msgid "Unable to synchronize with GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1091
+#: includes/providers/gam/class-gam-model.php:1118
 msgid "Invalid credentials configuration."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1098
+#: includes/providers/gam/class-gam-model.php:1125
 msgid "Unable to update GAM credentials"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1112
+#: includes/providers/gam/class-gam-model.php:1139
 msgid "Unable to remove GAM credentials"
 msgstr ""
 
