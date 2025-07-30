@@ -7,7 +7,6 @@
 
 namespace Newspack_Ads\Providers\GAM\Api;
 
-use Newspack_Ads\Providers\GAM\Api;
 use Newspack_Ads\Providers\GAM\Api\Api_Object;
 use Google\AdsApi\AdManager\Util\v202505\StatementBuilder;
 use Google\AdsApi\AdManager\v202505\ServiceFactory;
@@ -146,7 +145,7 @@ final class Ad_Units extends Api_Object {
 	 * @param int[]   $ids              Optional array of ad unit ids.
 	 * @param boolean $include_archived Whether to include archived ad units.
 	 *
-	 * @return array[] Array of serialized ad units.
+	 * @return array[]|\WP_Error Array of serialized ad units or error.
 	 */
 	public function get_serialized_ad_units( $parent_id = null, $ids = [], $include_archived = false ) {
 		try {
@@ -244,7 +243,7 @@ final class Ad_Units extends Api_Object {
 			}
 			$inventory_service = $this->get_inventory_service();
 
-			$statement_builder = self::get_statement_builder( [ $id ] );
+			$statement_builder = self::get_statement_builder( null, [ $id ] );
 			$result            = $inventory_service->performAdUnitAction(
 				$action,
 				$statement_builder->toStatement()
@@ -265,7 +264,7 @@ final class Ad_Units extends Api_Object {
 	 * Given a configuration object and an AdUnit instance, return modified AdUnit.
 	 * If the AdUnit is not provided, create a new one.
 	 *
-	 * @param object $config  Configuration for the Ad Unit.
+	 * @param array  $config  Configuration for the Ad Unit.
 	 * @param AdUnit $ad_unit Ad Unit.
 	 *
 	 * @return AdUnit Ad Unit.
@@ -280,7 +279,11 @@ final class Ad_Units extends Api_Object {
 			$ad_unit = new AdUnit();
 			$ad_unit->setAdUnitCode( uniqid( $slug . '-' ) );
 			$network = $this->api->get_network();
-			$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
+			if ( ! empty( $config['parent_id'] ) ) {
+				$ad_unit->setParentId( $config['parent_id'] );
+			} else {
+				$ad_unit->setParentId( $network->getEffectiveRootAdUnitId() );
+			}
 			$ad_unit->setTargetWindow( AdUnitTargetWindow::BLANK );
 		}
 
@@ -314,13 +317,14 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Update Ad Unit.
 	 *
-	 * @param object $config Ad Unit configuration.
-	 * @return AdUnit|WP_Error Updated AdUnit or error.
+	 * @param array $config Ad Unit configuration.
+	 *
+	 * @return AdUnit|\WP_Error Updated AdUnit or error.
 	 */
 	public function update_ad_unit( $config ) {
 		try {
 			$inventory_service = $this->get_inventory_service();
-			$found_ad_units    = $this->get_ad_units( [ $config['id'] ] );
+			$found_ad_units    = $this->get_ad_units( null, [ $config['id'] ] );
 			if ( empty( $found_ad_units ) ) {
 				return $this->api->get_error( null, __( 'Ad Unit was not found.', 'newspack-ads' ) );
 			}
@@ -339,12 +343,12 @@ final class Ad_Units extends Api_Object {
 	/**
 	 * Create a GAM Ad Unit.
 	 *
-	 * @param object $config Configuration of the ad unit.
-	 * @return AdUnit|WP_Error Created AdUnit or error.
+	 * @param array $config Configuration of the ad unit.
+	 *
+	 * @return array|\WP_Error Created ad unit or error.
 	 */
 	public function create_ad_unit( $config ) {
 		try {
-			$network           = $this->api->get_network();
 			$inventory_service = $this->get_inventory_service();
 			$ad_unit           = $this->modify_ad_unit( $config );
 			$created_ad_units  = $inventory_service->createAdUnits( [ $ad_unit ] );

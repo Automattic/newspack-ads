@@ -510,6 +510,10 @@ final class GAM_Model {
 	public static function add_ad_unit( $ad_unit ) {
 		if ( self::is_api_connected() ) {
 			$api    = self::get_api();
+			$parent_ad_unit_id = self::get_parent_ad_unit_id();
+			if ( $parent_ad_unit_id ) {
+				$ad_unit['parent_id'] = $parent_ad_unit_id;
+			}
 			$result = $api->ad_units->create_ad_unit( $ad_unit );
 			self::sync_gam_settings();
 		} else {
