@@ -59,7 +59,9 @@ final class GAM_Scripts {
 			return;
 		}
 
-		$network_code = GAM_Model::get_active_network_code();
+		$parent_network_code = GAM_Model::get_parent_network_code();
+		$network_code        = GAM_Model::get_active_network_code();
+
 		$fixed_height = Settings::get_settings( 'fixed_height' );
 
 		$prepared_unit_data = [];
@@ -132,7 +134,7 @@ final class GAM_Scripts {
 		}
 
 		$ad_config = [
-			'network_code'         => esc_attr( $network_code ),
+			'network_code'         => esc_attr( $parent_network_code ? $parent_network_code . ',' . $network_code : $network_code ),
 			'disable_initial_load' => (bool) apply_filters( 'newspack_ads_disable_gtag_initial_load', false ),
 		];
 
