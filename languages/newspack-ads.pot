@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-30T16:46:52+00:00\n"
+"POT-Creation-Date: 2025-07-30T17:16:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-ads\n"
@@ -919,21 +919,21 @@ msgstr ""
 msgid "Media Kit page created successfully - post ID: %d"
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:160
+#: includes/providers/gam/api/class-ad-units.php:159
 msgid "Unable to fetch ad units."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:325
+#: includes/providers/gam/api/class-ad-units.php:329
 msgid "Ad Unit was not found."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:331
 #: includes/providers/gam/api/class-ad-units.php:335
+#: includes/providers/gam/api/class-ad-units.php:339
 msgid "Ad Unit was not updated."
 msgstr ""
 
-#: includes/providers/gam/api/class-ad-units.php:352
 #: includes/providers/gam/api/class-ad-units.php:356
+#: includes/providers/gam/api/class-ad-units.php:360
 msgid "Ad Unit was not created."
 msgstr ""
 
@@ -1041,23 +1041,23 @@ msgstr ""
 msgid "A multiplier applied to margins on mobile devices. This allows varying margins on mobile vs. desktop."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:636
+#: includes/providers/gam/class-gam-model.php:640
 msgid "Not connected to GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:681
+#: includes/providers/gam/class-gam-model.php:685
 msgid "Unable to synchronize with GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1118
+#: includes/providers/gam/class-gam-model.php:1122
 msgid "Invalid credentials configuration."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1125
+#: includes/providers/gam/class-gam-model.php:1129
 msgid "Unable to update GAM credentials"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1139
+#: includes/providers/gam/class-gam-model.php:1143
 msgid "Unable to remove GAM credentials"
 msgstr ""
 
