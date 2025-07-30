@@ -75,8 +75,8 @@ final class Ad_Units extends Api_Object {
 		);
 
 		$ad_units = [];
-				// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
-				$total_result_set_size = 0;
+		// Retrieve a small amount of items at a time, paging through until all items have been retrieved.
+		$total_result_set_size = 0;
 		do {
 			$page = $inventory_service->getAdUnitsByStatement(
 				$statement_builder->toStatement()
