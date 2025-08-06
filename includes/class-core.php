@@ -80,7 +80,6 @@ final class Core {
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/gam/class-gam-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/providers/broadstreet/class-broadstreet-provider.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-settings.php';
-		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-scaip-block-settings.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-custom-label.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-fixed-height.php';
 		include_once NEWSPACK_ADS_ABSPATH . '/includes/class-providers.php';
