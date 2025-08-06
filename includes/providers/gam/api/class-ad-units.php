@@ -68,7 +68,7 @@ final class Ad_Units extends Api_Object {
 	 */
 	public function get_parent_ad_units() {
 		$statement_builder = self::get_statement_builder();
-		$statement_builder->where( 'hasChildren = TRUE' );
+		$statement_builder->where( "hasChildren = TRUE AND Status IN('ACTIVE')" );
 		$inventory_service = $this->get_inventory_service();
 		$page = $inventory_service->getAdUnitsByStatement(
 			$statement_builder->toStatement()
