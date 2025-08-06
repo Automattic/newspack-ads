@@ -1,3 +1,10 @@
+## [3.5.5](https://github.com/Automattic/newspack-ads/compare/v3.5.4...v3.5.5) (2025-07-28)
+
+
+### Bug Fixes
+
+* **ad-block:** handle missing ad unit ([#965](https://github.com/Automattic/newspack-ads/issues/965)) ([434d3e2](https://github.com/Automattic/newspack-ads/commit/434d3e2bafb83275b91eb7fe18256a7f90b21681))
+
 ## [3.5.4](https://github.com/Automattic/newspack-ads/compare/v3.5.3...v3.5.4) (2025-06-16)
 
 
