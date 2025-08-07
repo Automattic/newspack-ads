@@ -7,7 +7,6 @@
 
 namespace Newspack_Ads\Providers;
 
-use Newspack_Ads\Core;
 use Newspack_Ads\Settings;
 use Newspack_Ads\Providers;
 use Newspack_Ads\Providers\GAM_Model;
@@ -26,7 +25,7 @@ final class GAM_Scripts {
 	 */
 	public static function init() {
 		add_action( 'wp_head', [ __CLASS__, 'insert_gpt_header_script' ], 1 );
-		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ] );
+		add_action( 'wp_footer', [ __CLASS__, 'insert_gpt_footer_script' ], 11 );
 		add_action( 'newspack_ads_before_placement_ad', [ __CLASS__, 'print_fixed_height_css' ], 10, 3 );
 	}
 
@@ -100,6 +99,7 @@ final class GAM_Scripts {
 			$bounds_bleed = apply_filters( 'newspack_ads_gam_bounds_bleed', 40, $ad_unit, $sizes );
 
 			$prepared_unit_data[ $container_id ] = [
+				'placement'        => $ad_unit['placement'],
 				'unique_id'        => $unique_id,
 				'name'             => esc_attr( $ad_unit['name'] ),
 				'code'             => esc_attr( $ad_unit['code'] ),
@@ -242,7 +242,7 @@ final class GAM_Scripts {
 						availableWidth = Math.max( boundsWidth, containerWidth ) + parseInt( ad_unit['bounds_bleed'] );
 						for ( viewportWidth in ad_unit['size_map'] ) {
 							var width = parseInt( viewportWidth );
-							if ( shouldUseBounds && width > availableWidth ) {
+							if ( width > availableWidth ) {
 								delete ad_unit['size_map'][ viewportWidth ];
 							}
 						}
@@ -253,7 +253,7 @@ final class GAM_Scripts {
 					 * outside of the viewport will have 'auto' height.
 					 */
 					?>
-					if ( ad_unit.fixed_height.active ) {
+					if ( ad_unit.fixed_height.active && ! ad_unit.sticky ) {
 						var height = 'auto';
 						var prop = 'height';
 						if ( ad_unit.in_viewport ) {
@@ -334,9 +334,6 @@ final class GAM_Scripts {
 							var mappedSizes = ad_unit['size_map'][ viewportWidth ];
 							mapping.addSize( [ width, 0 ], baseSizes.concat( mappedSizes ) );
 						}
-						<?php
-						// Sticky ads should only be shown on mobile (screen width <=600px).
-						?>
 						if ( ad_unit['sticky'] ) {
 							mapping.addSize( [600, 0], baseSizes );
 							var stickyContainer = container.parentNode;
@@ -430,7 +427,7 @@ final class GAM_Scripts {
 						if ( ! ad_unit || ! ad_unit.sticky ) {
 							return;
 						}
-						if ( ! event.isEmpty && document.body.clientWidth <= 600 ) {
+						if ( ! event.isEmpty ) {
 							stickyContainer.style.display = 'flex';
 							document.body.style.paddingBottom = stickyContainer.clientHeight + 'px';
 						}
@@ -466,6 +463,10 @@ final class GAM_Scripts {
 	 */
 	public static function print_fixed_height_css( $placement_key, $hook_key, $placement_data ) {
 		if ( ! \newspack_ads_should_show_ads() ) {
+			return;
+		}
+		// The sticky placement doesn't cause layout shift to require fixed height.
+		if ( $placement_key === 'sticky' ) {
 			return;
 		}
 		if ( ! Providers::is_provider_active( 'gam' ) ) {
