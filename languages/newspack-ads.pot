@@ -2,14 +2,14 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Ads 3.5.5\n"
+"Project-Id-Version: Newspack Ads 3.6.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-06T14:46:41+00:00\n"
+"POT-Creation-Date: 2025-08-12T02:46:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-ads\n"
@@ -175,7 +175,6 @@ msgid "This placement does not exist."
 msgstr ""
 
 #: includes/class-placements.php:681
-#: dist/editor.js:6
 #: src/blocks/ad-unit/edit.js:115
 msgid "Unknown size"
 msgstr ""
@@ -220,7 +219,6 @@ msgstr ""
 
 #: includes/class-widget.php:101
 #: includes/customizer/class-placement-customize-control.php:220
-#: dist/editor.js:6
 #: src/blocks/ad-unit/edit.js:122
 #: src/blocks/ad-unit/index.js:19
 msgid "Ad Unit"
@@ -265,7 +263,6 @@ msgstr ""
 #. translators: %s is the bidder name
 #. Translators: Bidder name.
 #: includes/customizer/class-placement-customize-control.php:254
-#: dist/editor.js:4
 #: src/placements/placement-control.js:142
 #, php-format,js-format
 msgid "%s Placement ID"
@@ -1120,201 +1117,109 @@ msgstr ""
 msgid "Feature Phone Large Banner"
 msgstr ""
 
-#: dist/editor.js:1
-#: src/placements/placement-control.js:21
-msgid "Select a provider"
-msgstr ""
-
-#. Translators: Ad bidder name.
-#: dist/editor.js:4
-#: src/placements/placement-control.js:45
-msgid "Select an Ad Unit"
-msgstr ""
-
-#. Translators: Bidder name.
-#: dist/editor.js:6
-#: src/placements/placement-control.js:109
-msgid "There is no provider available."
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/ad-unit/index.js:29
-msgid "ad"
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/ad-unit/index.js:30
-msgid "advert"
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/ad-unit/index.js:31
-msgid "ads"
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/ad-unit/index.js:33
-msgid "Render an ad unit from your inventory."
-msgstr ""
-
-#: dist/editor.js:6
-#: dist/header-bidding-gam.js:1
 #: src/blocks/ad-unit/edit.js:87
 #: src/wizard-settings/header-bidding-gam/order-popover.js:47
 msgid "Edit"
 msgstr ""
 
-#: dist/editor.js:6
 #: src/blocks/ad-unit/edit.js:143
 msgid "Save"
 msgstr ""
 
-#: dist/editor.js:6
+#: src/blocks/ad-unit/index.js:29
+msgid "ad"
+msgstr ""
+
+#: src/blocks/ad-unit/index.js:30
+msgid "advert"
+msgstr ""
+
+#: src/blocks/ad-unit/index.js:31
+msgid "ads"
+msgstr ""
+
+#: src/blocks/ad-unit/index.js:33
+msgid "Render an ad unit from your inventory."
+msgstr ""
+
 #: src/blocks/tabs-item/edit.js:57
 #: src/blocks/tabs/edit.js:121
 #: src/blocks/tabs/edit.js:131
 msgid "Tab Header"
 msgstr ""
 
-#: dist/editor.js:6
-#: src/blocks/tabs/edit.js:176
-msgid "Add New Tab"
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/tabs/editor.js:18
-msgid "Tabs"
-msgstr ""
-
-#: dist/editor.js:6
-#: src/blocks/tabs/editor.js:19
-msgid "Add tabbed content."
-msgstr ""
-
-#: dist/editor.js:6
 #: src/blocks/tabs-item/editor.js:18
 msgid "Tab Item"
 msgstr ""
 
-#: dist/editor.js:6
 #: src/blocks/tabs-item/editor.js:19
 msgid "Add a new tab."
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:61
-msgid "Creating Order…"
+#: src/blocks/tabs/edit.js:176
+msgid "Add New Tab"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:63
-msgid "Creating Line Items…"
+#: src/blocks/tabs/editor.js:18
+msgid "Tabs"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:65
-msgid "Associating Creatives…"
+#: src/blocks/tabs/editor.js:19
+msgid "Add tabbed content."
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:236
-msgid "Create the order and line items on your Google Ad Manager network according to the pre-defined price bucket settings."
+#: src/placements/placement-control.js:21
+msgid "Select a provider"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:244
-msgid "Order name"
+#: src/placements/placement-control.js:45
+msgid "Select an Ad Unit"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:258
-msgid "Bidder Revenue Share"
+#: src/placements/placement-control.js:109
+msgid "There is no provider available."
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:259
-msgid "This is agreed upon revenue share between you and the bid partner. Input the percentage that goes to the bidder, i.e. 20 for 20%."
+#: src/suppress-ads/index.js:29
+msgid "Newspack Ads Settings"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:273
-msgid "Bidders"
+#: src/suppress-ads/index.js:33
+msgid "Don't show ads on this content"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:276
-msgid "Which bidders to include in this order. Select bidders that all have the same revenue share and make sure to not include the same bidder in more than one header bidding order."
+#: src/suppress-ads/index.js:41
+msgid "Suppress specific placements:"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:295
-msgid "Order exists but it's misconfigured."
+#: src/wizard-settings/header-bidding-gam/index.js:74
+msgid "Loading…"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:302
-msgid "This may take up to 15 minutes, please do not close the window."
+#: src/wizard-settings/header-bidding-gam/index.js:75
+msgid "There are no orders configured."
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: dist/header-bidding-gam.js:13
-#: src/wizard-settings/header-bidding-gam/index.js:233
-#: src/wizard-settings/header-bidding-gam/order.js:319
-msgid "Cancel"
+#: src/wizard-settings/header-bidding-gam/index.js:106
+msgid "Are you sure you want to leave this page?"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:334
-msgid "Fix issues"
+#: src/wizard-settings/header-bidding-gam/index.js:116
+#: src/wizard-settings/header-bidding-gam/index.js:150
+msgid "Manage Orders"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order.js:51
-msgid "Update Order"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
-#: dist/header-bidding-gam.js:13
 #: src/wizard-settings/header-bidding-gam/index.js:117
 #: src/wizard-settings/header-bidding-gam/index.js:246
 #: src/wizard-settings/header-bidding-gam/order.js:51
 msgid "Create Order"
 msgstr ""
 
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order-popover.js:37
-msgid "Close Popover"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order-popover.js:58
-msgid "Archive"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/order-popover.js:62
-msgid "GAM Dashboard"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
-#: src/wizard-settings/header-bidding-gam/index.js:106
-msgid "Are you sure you want to leave this page?"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
-#: dist/header-bidding-gam.js:4
-#: src/wizard-settings/header-bidding-gam/index.js:116
-#: src/wizard-settings/header-bidding-gam/index.js:150
-msgid "Manage Orders"
-msgstr ""
-
-#: dist/header-bidding-gam.js:1
 #: src/wizard-settings/header-bidding-gam/index.js:123
 msgid "Google Ad Manager Integration"
 msgstr ""
 
 #. Translators: Number of line items in the order.
-#: dist/header-bidding-gam.js:4
 #: src/wizard-settings/header-bidding-gam/index.js:133
 #, js-format
 msgid "There is %s available order."
@@ -1322,79 +1227,114 @@ msgid_plural "There are %s available orders."
 msgstr[0] ""
 msgstr[1] ""
 
-#: dist/header-bidding-gam.js:4
-#: src/wizard-settings/header-bidding-gam/index.js:74
-msgid "Loading…"
-msgstr ""
-
-#: dist/header-bidding-gam.js:4
-#: src/wizard-settings/header-bidding-gam/index.js:75
-msgid "There are no orders configured."
-msgstr ""
-
 #. Translators: the bidder revenue share for this order.
-#: dist/header-bidding-gam.js:7
 #: src/wizard-settings/header-bidding-gam/index.js:165
 #, js-format
 msgid "Bidder Revenue Share: %1$d%%"
 msgstr ""
 
 #. Translators: comma-separated list of adapters for the order or "any" if undefined.
-#: dist/header-bidding-gam.js:10
 #: src/wizard-settings/header-bidding-gam/index.js:171
 #, js-format
 msgid "Bidders: %s"
 msgstr ""
 
-#: dist/header-bidding-gam.js:10
 #: src/wizard-settings/header-bidding-gam/index.js:176
 msgid "any"
 msgstr ""
 
-#: dist/header-bidding-gam.js:10
 #: src/wizard-settings/header-bidding-gam/index.js:188
 msgid "Are you sure you'd like to archive this order?"
 msgstr ""
 
 #. Translators: %1 The name of the bidder. %2 The number of orders for the bidder.
-#: dist/header-bidding-gam.js:13
 #: src/wizard-settings/header-bidding-gam/index.js:222
 #, js-format
 msgid "%1$s is being targeted by %2$d orders."
 msgstr ""
 
-#: dist/header-bidding-gam.js:13
+#: src/wizard-settings/header-bidding-gam/index.js:233
+#: src/wizard-settings/header-bidding-gam/order.js:319
+msgid "Cancel"
+msgstr ""
+
 #: src/wizard-settings/header-bidding-gam/index.js:246
 msgid "Edit Order"
 msgstr ""
 
-#: dist/header-bidding-gam.js:13
 #: src/wizard-settings/header-bidding-gam/index.js:253
 msgid "We were unable to fix the issues with this order and have archived it. Please create a new order below."
 msgstr ""
 
-#: dist/suppress-ads.js:1
-#: src/suppress-ads/index.js:29
-msgid "Newspack Ads Settings"
+#: src/wizard-settings/header-bidding-gam/order-popover.js:37
+msgid "Close Popover"
 msgstr ""
 
-#: dist/suppress-ads.js:1
-#: src/suppress-ads/index.js:33
-msgid "Don't show ads on this content"
+#: src/wizard-settings/header-bidding-gam/order-popover.js:58
+msgid "Archive"
 msgstr ""
 
-#: dist/suppress-ads.js:1
-#: src/suppress-ads/index.js:41
-msgid "Suppress specific placements:"
+#: src/wizard-settings/header-bidding-gam/order-popover.js:62
+msgid "GAM Dashboard"
 msgstr ""
 
-#: dist/blocks/tabs/block.json
+#: src/wizard-settings/header-bidding-gam/order.js:51
+msgid "Update Order"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:61
+msgid "Creating Order…"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:63
+msgid "Creating Line Items…"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:65
+msgid "Associating Creatives…"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:236
+msgid "Create the order and line items on your Google Ad Manager network according to the pre-defined price bucket settings."
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:244
+msgid "Order name"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:258
+msgid "Bidder Revenue Share"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:259
+msgid "This is agreed upon revenue share between you and the bid partner. Input the percentage that goes to the bidder, i.e. 20 for 20%."
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:273
+msgid "Bidders"
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:276
+msgid "Which bidders to include in this order. Select bidders that all have the same revenue share and make sure to not include the same bidder in more than one header bidding order."
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:295
+msgid "Order exists but it's misconfigured."
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:302
+msgid "This may take up to 15 minutes, please do not close the window."
+msgstr ""
+
+#: src/wizard-settings/header-bidding-gam/order.js:334
+msgid "Fix issues"
+msgstr ""
+
 #: src/blocks/tabs/block.json
 msgctxt "block title"
 msgid "Tabs"
 msgstr ""
 
-#: dist/blocks/tabs/block.json
 #: src/blocks/tabs/block.json
 msgctxt "block description"
 msgid "Display sections of content with brief headings in a compact tab layout that shows one section at a time."
