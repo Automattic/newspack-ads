@@ -5,7 +5,7 @@ import { domReady, debounce, elementCollides, hasStickyHeader } from './utils';
  *
  * @type {string}
  */
-const mainElement = '#main';
+const mainElement = '#primary';
 
 /**
  * Selectors for elements to detect collisions with.
@@ -14,8 +14,9 @@ const mainElement = '#main';
  */
 const collisionElements = [
 	'#masthead',
-	'#main',
+	'#primary',
 	'.above-footer-widgets',
+	'.scaip .newspack_global_ad',
 	'#colophon',
 	'.newspack_global_ad.sticky',
 ];
