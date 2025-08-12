@@ -54,10 +54,6 @@ function initPlacement(selector, side, elements) {
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
 	refDiv.style.position = 'absolute';
-	refDiv.style.top = '0';
-	refDiv.style.left = '0';
-	refDiv.style.width = '100%';
-	refDiv.style.height = '100%';
 	refDiv.style.zIndex = '9999';
 	refDiv.style.pointerEvents = 'none';
 	element.prepend(refDiv);
@@ -122,7 +118,8 @@ function initPlacement(selector, side, elements) {
 				if (ad.id !== event.slot.getSlotElementId()) {
 					return;
 				}
-				ad.style.width = event.size[0] + 'px';
+				refDiv.style.width = event.size[0] + 'px';
+				refDiv.style.height = event.size[1] + 'px';
 				handlePlacement();
 			});
 	});
