@@ -53,6 +53,8 @@ function initPlacement(selector, side, elements) {
 
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
+	refDiv.style.width = ad.offsetWidth + 'px';
+	refDiv.style.height = ad.offsetHeight + 'px';
 	refDiv.style.position = 'absolute';
 	refDiv.style.zIndex = '9999';
 	refDiv.style.pointerEvents = 'none';
