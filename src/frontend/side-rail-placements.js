@@ -108,13 +108,16 @@ function initPlacement(selector, side, elements) {
 
 	const handleStickyAd = () => {
 		const stickyAd = document.querySelector('.newspack_global_ad.sticky');
-		const stickyAdClose = document.querySelector('.newspack_sticky_ad__close');
+		const stickyAdClose = document.querySelector(
+			'.newspack_sticky_ad__close'
+		);
 		if (stickyAd) {
 			element.style.bottom = `${stickyAd.offsetHeight}px`;
 		}
 		if (stickyAdClose) {
 			stickyAdClose.addEventListener('click', () => {
 				element.style.removeProperty('bottom');
+				handlePlacement();
 			});
 		}
 	};
