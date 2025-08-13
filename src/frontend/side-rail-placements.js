@@ -21,6 +21,8 @@ const collisionElements = [
 	'.newspack_global_ad.sticky',
 ];
 
+window.googletag = window.googletag || { cmd: [] };
+
 /**
  * Initialize a side rail placement.
  *
@@ -53,10 +55,9 @@ function initPlacement(selector, side, elements) {
 
 	// Prepend a reference div to the element.
 	const refDiv = document.createElement('div');
-	refDiv.style.width = ad.offsetWidth + 'px';
-	refDiv.style.height = ad.offsetHeight + 'px';
+	refDiv.style.width = (ad._size ? ad._size[0] : ad.offsetWidth) + 'px';
+	refDiv.style.height = (ad._size ? ad._size[1] : ad.offsetHeight) + 'px';
 	refDiv.style.position = 'absolute';
-	refDiv.style.zIndex = '9999';
 	refDiv.style.pointerEvents = 'none';
 	element.prepend(refDiv);
 
@@ -67,6 +68,7 @@ function initPlacement(selector, side, elements) {
 	const showAd = () => {
 		ad.classList.remove('ad-hidden');
 		ad.classList.add('ad-visible');
+		ad.style.removeProperty('display');
 	};
 
 	const handleCollision = () => {

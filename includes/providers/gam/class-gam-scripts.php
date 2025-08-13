@@ -112,6 +112,7 @@ final class GAM_Scripts {
 				'size_map'         => GAM_Model::get_ad_unit_size_map( $ad_unit ),
 				'bounds_selectors' => $bounds_selectors,
 				'bounds_bleed'     => (int) $bounds_bleed ?? 0,
+				'initial_display'  => apply_filters( 'newspack_ads_gam_ad_unit_initial_display', null, $ad_unit, $sizes ),
 			];
 		}
 
@@ -373,6 +374,9 @@ final class GAM_Scripts {
 						if ( ! ad_unit ) {
 							return;
 						}
+						if ( event.size ) {
+							container._size = event.size;
+						}
 						<?php
 						/**
 						 * Lock fixed height ad unit size mapping to prevent larger
@@ -388,6 +392,9 @@ final class GAM_Scripts {
 						 * Handle slot visibility.
 						 */
 						?>
+						if ( ad_unit.initial_display ) {
+							container.style.display = ad_unit.initial_display;
+						}
 						if ( event.isEmpty && ( ad_unit.sticky || ! ad_unit.fixed_height.active || ( ad_unit.fixed_height.active && ! ad_unit.in_viewport ) ) ) {
 							container.parentNode.style.display = 'none';
 						} else {
