@@ -2,14 +2,14 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Ads 3.5.5\n"
+"Project-Id-Version: Newspack Ads 3.6.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-30T20:25:16+00:00\n"
+"POT-Creation-Date: 2025-08-12T07:53:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-ads\n"
@@ -155,11 +155,11 @@ msgid "Choose an ad unit to display above the footer."
 msgstr ""
 
 #: includes/class-placements.php:385
-msgid "Mobile Sticky Footer"
+msgid "Sticky Footer"
 msgstr ""
 
 #: includes/class-placements.php:386
-msgid "Choose a sticky ad unit to display at the bottom of the viewport on mobile devices (recommended sizes are 320x50, 300x50)"
+msgid "Choose a sticky ad unit to display at the bottom of the viewport (recommended sizes are 728x90, 320x50, 300x50)"
 msgstr ""
 
 #: includes/class-placements.php:405
@@ -387,6 +387,22 @@ msgstr ""
 #: includes/integrations/class-scaip.php:188
 #, php-format
 msgid "Choose an ad unit to display in position #%s within your article content."
+msgstr ""
+
+#: includes/integrations/class-side-rail-placements.php:36
+msgid "Left Side Rail"
+msgstr ""
+
+#: includes/integrations/class-side-rail-placements.php:37
+msgid "Choose an ad unit to display in the left side rail."
+msgstr ""
+
+#: includes/integrations/class-side-rail-placements.php:45
+msgid "Right Side Rail"
+msgstr ""
+
+#: includes/integrations/class-side-rail-placements.php:46
+msgid "Choose an ad unit to display in the right side rail."
 msgstr ""
 
 #: includes/media-kit/block-patterns/ad-specs.php:4
@@ -1041,23 +1057,23 @@ msgstr ""
 msgid "A multiplier applied to margins on mobile devices. This allows varying margins on mobile vs. desktop."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:649
+#: includes/providers/gam/class-gam-model.php:640
 msgid "Not connected to GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:694
+#: includes/providers/gam/class-gam-model.php:685
 msgid "Unable to synchronize with GAM"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1131
+#: includes/providers/gam/class-gam-model.php:1112
 msgid "Invalid credentials configuration."
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1138
+#: includes/providers/gam/class-gam-model.php:1119
 msgid "Unable to update GAM credentials"
 msgstr ""
 
-#: includes/providers/gam/class-gam-model.php:1152
+#: includes/providers/gam/class-gam-model.php:1133
 msgid "Unable to remove GAM credentials"
 msgstr ""
 
