@@ -1,3 +1,12 @@
+# [3.7.0](https://github.com/Automattic/newspack-ads/compare/v3.6.2...v3.7.0) (2025-08-25)
+
+
+### Features
+
+* **gam:** parent ad unit inventory ([#967](https://github.com/Automattic/newspack-ads/issues/967)) ([a3c47f6](https://github.com/Automattic/newspack-ads/commit/a3c47f6ae4a75a3fefd5701050098913a3d8b952))
+* **gam:** support MCM (parent network code) ([#978](https://github.com/Automattic/newspack-ads/issues/978)) ([86af6d5](https://github.com/Automattic/newspack-ads/commit/86af6d558e1c97d705340e78930f7c9f9590073c))
+* **placements:** new sticky and side rail ([#975](https://github.com/Automattic/newspack-ads/issues/975)) ([6d38353](https://github.com/Automattic/newspack-ads/commit/6d38353b10eae37816af2e6dfb9e8e9bf514f471))
+
 ## [3.6.2](https://github.com/Automattic/newspack-ads/compare/v3.6.1...v3.6.2) (2025-08-13)
 
 
