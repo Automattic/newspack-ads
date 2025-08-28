@@ -1,3 +1,10 @@
+# [3.8.0](https://github.com/Automattic/newspack-ads/compare/v3.7.0...v3.8.0) (2025-08-28)
+
+
+### Features
+
+* **scaip:** add setting to filter after which blocks ads may be added ([#974](https://github.com/Automattic/newspack-ads/issues/974)) ([#988](https://github.com/Automattic/newspack-ads/issues/988)) ([ddb3020](https://github.com/Automattic/newspack-ads/commit/ddb30207c90e16943d11f4acf8f408000e4c4481))
+
 # [3.7.0](https://github.com/Automattic/newspack-ads/compare/v3.6.2...v3.7.0) (2025-08-25)
 
 
