@@ -1,3 +1,10 @@
+## [3.9.1](https://github.com/Automattic/newspack-ads/compare/v3.9.0...v3.9.1) (2025-10-27)
+
+
+### Bug Fixes
+
+* better positioning for side rail placements on large screens ([#998](https://github.com/Automattic/newspack-ads/issues/998)) ([d5b7d01](https://github.com/Automattic/newspack-ads/commit/d5b7d012306f3b4b488eda87969945a7e9bf02d4))
+
 # [3.9.0](https://github.com/Automattic/newspack-ads/compare/v3.8.0...v3.9.0) (2025-09-22)
 
 
