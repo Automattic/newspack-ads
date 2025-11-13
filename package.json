@@ -3,12 +3,20 @@
 	"version": "3.9.2",
 	"author": "Automattic",
 	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Automattic/newspack-ads.git"
+	},
+	"license": "GPL-3.0-or-later",
+	"bugs": {
+		"url": "https://github.com/Automattic/newspack-ads/issues"
+	},
 	"scripts": {
 		"cm": "newspack-scripts commit",
 		"semantic-release": "newspack-scripts release --files=newspack-ads.php",
 		"clean": "rm -rf dist",
 		"build": "npm run clean && newspack-scripts wp-scripts build",
-		"start": "npm ci --legacy-peer-deps && npm run watch",
+		"start": "npm ci && npm run watch",
 		"watch": "npm run clean && newspack-scripts wp-scripts start",
 		"test": "echo 'No JS unit tests in this repository.'",
 		"lint": "npm run lint:scss && npm run lint:js",
@@ -22,36 +30,24 @@
 		"lint:scss": "newspack-scripts wp-scripts lint-style '**/{src,includes}/**/*.scss' --customSyntax postcss-scss",
 		"lint:scss:staged": "newspack-scripts wp-scripts lint-style --customSyntax postcss-scss",
 		"format:scss": "newspack-scripts wp-scripts lint-style '**/{src,includes}/**/*.scss' --customSyntax postcss-scss --fix",
-		"typescript:check": "echo 'No TypeScript files in this repository.'",
 		"release": "npm run build && npm run semantic-release",
 		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-ads --exclude-from='./.distignore' && cd release && zip -r newspack-ads.zip newspack-ads"
 	},
+	"browserslist": [
+		"extends @wordpress/browserslist-config"
+	],
 	"lint-staged": {
-		"*.js": "npm run lint:js:staged",
+		"*.{js,jsx,ts,tsx}": "npm run lint:js:staged",
 		"*.scss": "npm run lint:scss:staged",
 		"*.php": "npm run lint:php:staged"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Automattic/newspack-ads.git"
-	},
-	"license": "GPL-3.0-or-later",
-	"bugs": {
-		"url": "https://github.com/Automattic/newspack-ads/issues"
-	},
-	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.10.4",
-		"@wordpress/browserslist-config": "^6.7.0",
-		"babel-loader": "^9.1.3",
-		"classnames": "^2.5.1",
-		"eslint": "^8.57.0",
-		"lint-staged": "^15.2.10",
-		"newspack-scripts": "^5.5.2",
-		"postcss-scss": "^4.0.9"
-	},
 	"dependencies": {
 		"@10up/component-tabs": "^2.0.1",
-		"newspack-components": "^3.0.0",
+		"newspack-components": "^4.1.0",
 		"prebid.js": "^8.51.0"
+	},
+	"devDependencies": {
+		"classnames": "^2.5.1",
+		"newspack-scripts": "github:Automattic/newspack-scripts#chore/refresh-dependencies"
 	}
 }
