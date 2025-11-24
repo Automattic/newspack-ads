@@ -19,15 +19,11 @@ const editorSetup = path.join( __dirname, 'src', 'setup', 'editor' );
 const viewSetup = path.join( __dirname, 'src', 'setup', 'view' );
 
 function blockScripts( type, inputDir, blocks ) {
-	return blocks
-		.map( block => path.join( inputDir, 'blocks', block, `${ type }.js` ) )
-		.filter( fs.existsSync );
+	return blocks.map( block => path.join( inputDir, 'blocks', block, `${ type }.js` ) ).filter( fs.existsSync );
 }
 
 const blocksDir = path.join( __dirname, 'src', 'blocks' );
-const blocks = fs
-	.readdirSync( blocksDir )
-	.filter( block => fs.existsSync( path.join( __dirname, 'src', 'blocks', block, 'editor.js' ) ) );
+const blocks = fs.readdirSync( blocksDir ).filter( block => fs.existsSync( path.join( __dirname, 'src', 'blocks', block, 'editor.js' ) ) );
 
 // Helps split up each block into its own folder view script
 const viewBlocksScripts = blocks.reduce( ( viewBlocks, block ) => {
@@ -46,22 +42,17 @@ const entry = {
 	'header-bidding-gam': path.join( __dirname, 'src', 'wizard-settings', 'header-bidding-gam' ),
 	prebid: path.join( __dirname, 'src', 'prebid' ),
 	// Media Kit Page.
-	'media-kit-frontend': path.join( __dirname, 'src', 'media-kit','index.js' ),
+	'media-kit-frontend': path.join( __dirname, 'src', 'media-kit', 'index.js' ),
 };
 
-const webpackConfig = getBaseWebpackConfig(
-	{
-		entry: {
-			// Combines all the different blocks into one editor.js script
-			editor: [
-				editorSetup,
-				...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ),
-			],
-			...entry,
-			...viewBlocksScripts,
-		},
-	}
-);
+const webpackConfig = getBaseWebpackConfig( {
+	entry: {
+		// Combines all the different blocks into one editor.js script
+		editor: [ editorSetup, ...blockScripts( 'editor', path.join( __dirname, 'src' ), blocks ) ],
+		...entry,
+		...viewBlocksScripts,
+	},
+} );
 
 /**
  * Custom babel config for Prebid.js.
