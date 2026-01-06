@@ -208,7 +208,7 @@ final class Providers {
 		if ( ! is_string( $provider_id ) || empty( $providers ) || ! isset( $providers[ $provider_id ] ) ) {
 			return false;
 		}
-		return $providers[ $provider_id ];
+		return self::$providers[ $provider_id ];
 	}
 
 	/**
