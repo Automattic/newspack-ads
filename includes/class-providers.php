@@ -205,10 +205,10 @@ final class Providers {
 	 */
 	public static function get_provider( $provider_id ) {
 		$providers = self::get_providers();
-		if ( ! isset( $providers[ $provider_id ] ) ) {
+		if ( ! is_string( $provider_id ) || empty( $providers ) || ! isset( $providers[ $provider_id ] ) ) {
 			return false;
 		}
-		return self::$providers[ $provider_id ];
+		return $providers[ $provider_id ];
 	}
 
 	/**
