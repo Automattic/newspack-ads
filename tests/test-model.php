@@ -23,7 +23,9 @@ class ModelTest extends WP_UnitTestCase {
 	}
 
 	public function set_up() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
-		wp_delete_post( self::$legacy_ad_id );
+		if ( self::$legacy_ad_id ) {
+			wp_delete_post( self::$legacy_ad_id );
+		}
 
 		// Create a legacy ad unit (a CPT).
 		self::$legacy_ad_id = self::factory()->post->create(
