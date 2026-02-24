@@ -32,39 +32,6 @@ npm run fix:php          # Auto-fix PHP issues (PHPCBF)
 
 ## PHP Backend
 
-### Bootstrap & Autoloading
-
-- **`newspack-ads.php`**: Main plugin file, defines constants (`NEWSPACK_ADS_VERSION`, `NEWSPACK_ADS_PLUGIN_FILE`, `NEWSPACK_ADS_ABSPATH`, `NEWSPACK_ADS_BLOCKS_PATH`, `NEWSPACK_ADS_COMPOSER_ABSPATH`), requires Composer autoloader, initializes `Core::instance()`.
-- **`includes/class-core.php`**: Singleton main class. The `includes()` method manually `include_once`s 29 files in a specific order. Adding a new file requires adding it here.
-
-### Class Initialization Patterns
-
-Two patterns:
-
-1. **`Core`**: Singleton via `Core::instance()` (only the main class).
-
-2. **Static `init()`**: Dominant pattern, used by most classes:
-
-```php
-namespace Newspack_Ads;
-
-class My_Feature {
-    public static function init() {
-        add_action( 'init', [ __CLASS__, 'register_things' ] );
-    }
-}
-My_Feature::init();
-```
-
-### Namespace Map
-
-| Namespace | Directory |
-|-----------|-----------|
-| `Newspack_Ads` | `includes/` (root, most classes) |
-| `Newspack_Ads\Providers` | `includes/providers/` |
-| `Newspack_Ads\Integrations` | `includes/integrations/` |
-| `Newspack_Ads\Bidders` | `includes/bidders/` |
-
 ### Core Entities
 
 **Providers** -- the ad server abstraction:
@@ -242,84 +209,6 @@ Key prefixes:
 | `newspack_ads_before_placement_ad` / `newspack_ads_after_placement_ad` | Before/after a placement renders |
 | `newspack_ads_before_update_setting` / `newspack_ads_after_update_setting` | Before/after a setting is updated |
 | `newspack_ads_setup_gam` | GAM provider setup complete |
-
-## Directory Structure
-
-```
-newspack-ads/
-├── newspack-ads.php              # Main plugin file: constants, bootstrap
-├── webpack.config.js             # Webpack config (extends newspack-scripts)
-├── includes/
-│   ├── class-core.php            # Singleton main class, includes all files
-│   ├── class-settings.php        # REST API settings management
-│   ├── class-placements.php      # Placement registration and rendering
-│   ├── class-providers.php       # Provider registry
-│   ├── class-bidding.php         # Header bidding (Prebid.js) configuration
-│   ├── class-suppression.php     # Ad suppression rules
-│   ├── class-custom-label.php    # Custom "Advertisement" labels
-│   ├── class-fixed-height.php    # Fixed height ad support
-│   ├── class-sidebar-placements.php # Sidebar-specific placements
-│   ├── class-widget.php          # Ad widget
-│   ├── utils.php                 # Utility functions
-│   ├── functions.php             # Public API functions (register_bidder, etc.)
-│   ├── providers/
-│   │   ├── interface-provider.php          # Provider interface
-│   │   ├── class-provider.php              # Abstract provider base class
-│   │   ├── gam/                            # Google Ad Manager provider
-│   │   │   ├── class-gam-provider.php      # GAM provider implementation
-│   │   │   ├── class-gam-model.php         # Data model, size mapping, targeting
-│   │   │   ├── class-gam-scripts.php       # GPT script rendering
-│   │   │   ├── class-gam-lazy-load.php     # Lazy loading
-│   │   │   ├── class-gam-ad-block-recovery.php # Ad blocker recovery
-│   │   │   └── api/                        # GAM SOAP API wrappers
-│   │   │       ├── class-api.php           # Main API client
-│   │   │       ├── class-api-object.php   # Abstract base for entity classes
-│   │   │       ├── class-ad-units.php
-│   │   │       ├── class-line-items.php
-│   │   │       ├── class-orders.php
-│   │   │       ├── class-creatives.php
-│   │   │       ├── class-advertisers.php
-│   │   │       └── class-targeting-keys.php
-│   │   └── broadstreet/
-│   │       └── class-broadstreet-provider.php
-│   ├── bidders/                  # Header bidding adapters
-│   │   ├── class-medianet.php
-│   │   ├── class-openx.php
-│   │   ├── class-pubmatic.php
-│   │   └── class-sovrn.php
-│   ├── integrations/
-│   │   ├── class-scaip.php              # SCAIP integration
-│   │   ├── class-bidding-gam.php        # Prebid + GAM automation
-│   │   ├── class-complianz.php          # Cookie consent
-│   │   ├── class-ad-refresh-control.php # Ad refresh
-│   │   └── class-side-rail-placements.php
-│   ├── blocks/
-│   │   ├── class-ad-unit-block.php
-│   │   ├── class-tabs-block.php
-│   │   └── class-tabs-item-block.php
-│   ├── customizer/
-│   │   └── class-customizer.php
-│   └── media-kit/
-│       └── class-media-kit.php
-├── src/
-│   ├── blocks/                   # Block editor and frontend code
-│   │   ├── ad-unit/
-│   │   ├── tabs/
-│   │   ├── tabs-item/
-│   │   └── utils/                # Shared block utilities
-│   ├── frontend/                 # Frontend scripts and styles
-│   ├── setup/                    # Editor and view setup scripts
-│   ├── placements/               # Placement control scripts
-│   ├── prebid/                   # Prebid.js with bidder adapter imports
-│   ├── wizard-settings/          # GAM header bidding settings script
-│   ├── suppress-ads/             # Ad suppression frontend
-│   ├── customizer/               # Customizer control and preview
-│   └── media-kit/                # Media kit frontend
-├── tests/                        # PHPUnit tests
-├── dist/                         # Compiled output (gitignored)
-├── vendor/                       # Composer dependencies (gitignored)
-└── languages/                    # Translation files
-```
 
 ## Recipes
 
