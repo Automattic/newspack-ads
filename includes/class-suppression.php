@@ -27,7 +27,7 @@ final class Suppression {
 	public static function init() {
 		\add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		\add_action( 'init', [ __CLASS__, 'register_post_meta' ] );
-		\add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		\add_action( 'enqueue_block_assets', [ __CLASS__, 'enqueue_block_assets' ] );
 	}
 
 	/**
@@ -199,7 +199,10 @@ final class Suppression {
 	 * Enqueue block editor ad suppression assets for any post type considered
 	 * "viewable".
 	 */
-	public static function enqueue_block_editor_assets() {
+	public static function enqueue_block_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
 		$post_type = \get_current_screen()->post_type;
 		if ( ! empty( $post_type ) && \is_post_type_viewable( $post_type ) && \post_type_supports( $post_type, 'custom-fields' ) ) {
 			\wp_enqueue_script( 'newspack-ads-suppress-ads', Core::plugin_url( 'dist/suppress-ads.js' ), [], NEWSPACK_ADS_VERSION, true );

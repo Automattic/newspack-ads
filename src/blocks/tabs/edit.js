@@ -8,12 +8,12 @@ import PropTypes from 'prop-types';
  * WordPress dependencies
  */
 import { createBlock } from '@wordpress/blocks';
-import { compose, ifCondition } from '@wordpress/compose';
-import { useState, useEffect, Fragment } from '@wordpress/element';
+import { compose, ifCondition, useRefEffect } from '@wordpress/compose';
+import { useState, useEffect, useCallback, Fragment } from '@wordpress/element';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Button, NavigableMenu } from '@wordpress/components';
 import { plus } from '@wordpress/icons';
-import { InnerBlocks } from '@wordpress/block-editor';
+import { InnerBlocks, useBlockProps } from '@wordpress/block-editor';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 
@@ -27,15 +27,39 @@ const FilterableTabsHeader = createFilterableComponent( 'newspack.tabs.header' )
 const FilterableTabsFooter = createFilterableComponent( 'newspack.tabs.footer' );
 
 const TabsEdit = props => {
-	const { isSelected, className, clientId, block, selectBlock, insertBlock, removeBlock, activeClass = 'is-active' } = props;
+	const { isSelected, clientId, block, selectBlock, insertBlock, removeBlock, activeClass = 'is-active' } = props;
 	const { innerBlocks } = block;
 	const [ tabCount, setTabCount ] = useState( innerBlocks.length );
 	const [ editTab, setEditTab ] = useState( '' );
+	const [ blockElement, setBlockElement ] = useState( null );
 
-	const classes = classnames( {
-		border: ! isSelected,
-		'components-tab-panel__tabs-item-is-editing': editTab,
+	const ref = useRefEffect( ( element ) => {
+		setBlockElement( element );
+		return () => setBlockElement( null );
+	}, [] );
+
+	const blockProps = useBlockProps( {
+		ref,
+		className: classnames( 'tabs-horizontal', {
+			border: ! isSelected,
+			'components-tab-panel__tabs-item-is-editing': editTab,
+		} ),
 	} );
+
+	const resetEditing = useCallback( () => {
+		if ( ! blockElement ) {
+			return;
+		}
+		const isEditing = blockElement.querySelectorAll( '.wp-block[data-is-tab-header-editing]' );
+		if ( isEditing ) {
+			isEditing.forEach( _block => _block.removeAttribute( 'data-is-tab-header-editing' ) );
+		}
+	}, [ blockElement ] );
+
+	const onSelect = useCallback( tabName => {
+		setEditTab( tabName );
+		selectBlock( tabName );
+	}, [ selectBlock ] );
 
 	useEffect( () => {
 		const firstBlock = innerBlocks.length > 0 ? innerBlocks[ 0 ].clientId : null;
@@ -54,71 +78,68 @@ const TabsEdit = props => {
 		}
 
 		// Hacky but required in order to select which is the innerblocks assigned to header
-		if ( editTab ) {
-			document.getElementById( `block-${ clientId }` ).classList.add( 'is-tab-editing' );
-			if ( document.getElementById( `block-${ editTab }` ) ) {
-				document.getElementById( `block-${ editTab }` ).setAttribute( 'data-is-tab-header-editing', 1 );
+		if ( editTab && blockElement ) {
+			blockElement.classList.add( 'is-tab-editing' );
+			const editTabEl = blockElement.ownerDocument.getElementById( `block-${ editTab }` );
+			if ( editTabEl ) {
+				editTabEl.setAttribute( 'data-is-tab-header-editing', 1 );
 			}
 		}
-	}, [ selectBlock, clientId, tabCount, setTabCount, editTab, block, innerBlocks, removeBlock, activeClass ] );
+	}, [ selectBlock, clientId, tabCount, setTabCount, editTab, block, innerBlocks, removeBlock, activeClass, blockElement ] );
 
-	const onSelect = tabName => {
-		// Set selected tab
-		setEditTab( tabName );
-		selectBlock( tabName );
-	};
-
-	const resetEditing = () => {
-		const isEditing = document.querySelectorAll( `#block-${ clientId } > .wp-block-newspack-tabs .wp-block[data-is-tab-header-editing]` );
-		if ( isEditing ) {
-			isEditing.forEach( _block => _block.removeAttribute( 'data-is-tab-header-editing' ) );
+	/**
+	 * Hacky solution to positioning the tab header in the correct place
+	 */
+	useEffect( () => {
+		if ( ! blockElement ) {
+			return;
 		}
-	};
+		innerBlocks.forEach( innerBlock => {
+			const tabHeaderButton = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
 
-	const TabPanel = () => {
-		const tabPanels = innerBlocks.map( innerBlock => {
-			// eslint-disable-next-line @typescript-eslint/no-shadow
-			const { attributes, clientId } = innerBlock;
-			const { header } = attributes;
-			return (
-				<Fragment key={ clientId }>
-					<Button
-						orientation="horizontal"
-						data-tab-block={ clientId }
-						className={ classnames( 'newspack-ads__tab-item', { untitled: ! header }, 'components-tab-panel__tabs-item' ) }
-						label={ header || __( 'Tab Header', 'newspack-ads' ) }
-						onClick={ () => {
-							resetEditing();
-							onSelect( clientId );
-							document.getElementById( `block-${ clientId }` ).setAttribute( 'data-is-tab-header-editing', 1 );
-						} }
-					>
-						{ decodeEntities( header ) || __( 'Tab Header', 'newspack-ads' ) }
-					</Button>
-				</Fragment>
-			);
+			if ( ! tabHeaderButton ) {
+				return;
+			}
+			const tabHeader = blockElement.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
+
+			if ( tabHeader && tabHeaderButton ) {
+				tabHeader.style.left = `${ tabHeaderButton.offsetLeft }px`;
+				tabHeader.style.top = `-${ tabHeader.offsetHeight }px`;
+			}
 		} );
+	} );
 
-		/**
-		 * Hacky solution to positioning the tab header in the correct place
-		 */
-		useEffect( () => {
-			innerBlocks.forEach( innerBlock => {
-				const tabHeaderButton = document.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
-
-				if ( ! tabHeaderButton ) {
-					return;
-				}
-				const tabHeader = document.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
-
-				if ( tabHeader && tabHeaderButton ) {
-					tabHeader.style.left = `${ tabHeaderButton.offsetLeft }px`;
-					tabHeader.style.top = `-${ tabHeader.offsetHeight }px`;
-				}
-			} );
-		} );
-
+	const tabPanels = innerBlocks.map( innerBlock => {
+		// eslint-disable-next-line @typescript-eslint/no-shadow
+		const { attributes, clientId: innerBlockClientId } = innerBlock;
+		const { header } = attributes;
 		return (
+			<Fragment key={ innerBlockClientId }>
+				<Button
+					orientation="horizontal"
+					data-tab-block={ innerBlockClientId }
+					className={ classnames( 'newspack-ads__tab-item', { untitled: ! header }, 'components-tab-panel__tabs-item' ) }
+					label={ header || __( 'Tab Header', 'newspack-ads' ) }
+					onClick={ () => {
+						resetEditing();
+						onSelect( innerBlockClientId );
+						if ( blockElement ) {
+							const innerBlockEl = blockElement.ownerDocument.getElementById( `block-${ innerBlockClientId }` );
+							if ( innerBlockEl ) {
+								innerBlockEl.setAttribute( 'data-is-tab-header-editing', 1 );
+							}
+						}
+					} }
+				>
+					{ decodeEntities( header ) || __( 'Tab Header', 'newspack-ads' ) }
+				</Button>
+			</Fragment>
+		);
+	} );
+
+	return (
+		<div { ...blockProps }>
+			<FilterableTabsHeader blockProps={ props } />
 			<div className="tab-control">
 				<div className="tabs-header">
 					<NavigableMenu
@@ -153,26 +174,17 @@ const TabsEdit = props => {
 					</NavigableMenu>
 				</div>
 			</div>
-		);
-	};
-
-	return (
-		<>
-			<div className={ `${ className } ${ classes } tabs-horizontal` }>
-				<FilterableTabsHeader blockProps={ props } />
-				<TabPanel />
-				<div className="newspack-ads__tab-group">
-					<InnerBlocks
-						orientation="horizontal"
-						allowedBlocks={ [ 'newspack/tabs-item' ] }
-						template={ [ [ 'newspack/tabs-item', { header: '' }, [ [ 'core/paragraph', {} ] ] ] ] }
-						templateInsertUpdatesSelection
-						__experimentalCaptureToolbars
-					/>
-				</div>
-				<FilterableTabsFooter blockProps={ props } />
+			<div className="newspack-ads__tab-group">
+				<InnerBlocks
+					orientation="horizontal"
+					allowedBlocks={ [ 'newspack/tabs-item' ] }
+					template={ [ [ 'newspack/tabs-item', { header: '' }, [ [ 'core/paragraph', {} ] ] ] ] }
+					templateInsertUpdatesSelection
+					__experimentalCaptureToolbars
+				/>
 			</div>
-		</>
+			<FilterableTabsFooter blockProps={ props } />
+		</div>
 	);
 };
 

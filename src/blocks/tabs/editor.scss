@@ -143,6 +143,7 @@
 	display: none !important;
 }
 
+.editor-styles-wrapper[class*="theme-newspack-theme/newspack-theme"],
 body[class*="theme-newspack-theme/newspack-theme"] {
 	& .wp-block[data-type="newspack/tabs"] {
 		& .tab-header {
