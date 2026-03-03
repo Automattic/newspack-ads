@@ -159,6 +159,10 @@ final class Ad_Unit_Block {
 		if ( ! is_admin() ) {
 			return;
 		}
+		$screen = get_current_screen();
+		if ( ! $screen || ! $screen->is_block_editor() ) {
+			return;
+		}
 		wp_enqueue_script(
 			'newspack-ads-editor',
 			Core::plugin_url( 'dist/editor.js' ),
