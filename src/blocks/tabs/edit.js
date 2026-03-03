@@ -97,20 +97,23 @@ const TabsEdit = props => {
 		if ( ! blockElement ) {
 			return;
 		}
-		innerBlocks.forEach( innerBlock => {
-			const tabHeaderButton = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
+		const rafId = requestAnimationFrame( () => {
+			innerBlocks.forEach( innerBlock => {
+				const tabHeaderButton = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
 
-			if ( ! tabHeaderButton ) {
-				return;
-			}
-			const tabHeader = blockElement.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
+				if ( ! tabHeaderButton ) {
+					return;
+				}
+				const tabHeader = blockElement.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
 
-			if ( tabHeader && tabHeaderButton ) {
-				tabHeader.style.left = `${ tabHeaderButton.offsetLeft }px`;
-				tabHeader.style.top = `-${ tabHeader.offsetHeight }px`;
-			}
+				if ( tabHeader && tabHeaderButton ) {
+					tabHeader.style.left = `${ tabHeaderButton.offsetLeft }px`;
+					tabHeader.style.top = `-${ tabHeader.offsetHeight }px`;
+				}
+			} );
 		} );
-	} );
+		return () => cancelAnimationFrame( rafId );
+	}, [ blockElement, innerBlocks ] );
 
 	const tabPanels = innerBlocks.map( innerBlock => {
 		// eslint-disable-next-line @typescript-eslint/no-shadow
