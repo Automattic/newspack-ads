@@ -33,7 +33,7 @@ const TabsEdit = props => {
 	const [ editTab, setEditTab ] = useState( '' );
 	const [ blockElement, setBlockElement ] = useState( null );
 
-	const ref = useRefEffect( ( element ) => {
+	const ref = useRefEffect( element => {
 		setBlockElement( element );
 		return () => setBlockElement( null );
 	}, [] );
@@ -56,10 +56,12 @@ const TabsEdit = props => {
 		}
 	}, [ blockElement ] );
 
-	const onSelect = useCallback( tabName => {
-		setEditTab( tabName );
-		selectBlock( tabName );
-	}, [ selectBlock ] );
+	const onSelect = useCallback(
+		tabName => {
+			setEditTab( tabName );
+			selectBlock( tabName );
+		},
+	[ selectBlock ] );
 
 	useEffect( () => {
 		const firstBlock = innerBlocks.length > 0 ? innerBlocks[ 0 ].clientId : null;
