@@ -61,7 +61,8 @@ const TabsEdit = props => {
 			setEditTab( tabName );
 			selectBlock( tabName );
 		},
-	[ selectBlock ] );
+		[ selectBlock ]
+	);
 
 	useEffect( () => {
 		const firstBlock = innerBlocks.length > 0 ? innerBlocks[ 0 ].clientId : null;
