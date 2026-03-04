@@ -196,7 +196,7 @@ final class Suppression {
 	}
 
 	/**
-	 * Enqueue block editor ad suppression assets for any post type considered
+	 * Enqueue block ad suppression assets for any post type considered
 	 * "viewable".
 	 */
 	public static function enqueue_block_assets() {
