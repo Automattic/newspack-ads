@@ -200,14 +200,10 @@ final class Suppression {
 	 * "viewable".
 	 */
 	public static function enqueue_block_assets() {
-		if ( ! is_admin() ) {
+		if ( ! \wp_should_load_block_editor_scripts_and_styles() ) {
 			return;
 		}
-		$screen = \get_current_screen();
-		if ( ! $screen || ! $screen->is_block_editor() ) {
-			return;
-		}
-		$post_type = $screen->post_type;
+		$post_type = \get_current_screen()->post_type;
 		if ( ! empty( $post_type ) && \is_post_type_viewable( $post_type ) && \post_type_supports( $post_type, 'custom-fields' ) ) {
 			\wp_enqueue_script( 'newspack-ads-suppress-ads', Core::plugin_url( 'dist/suppress-ads.js' ), [], NEWSPACK_ADS_VERSION, true );
 			$placements = Placements::get_placements();

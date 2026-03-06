@@ -156,11 +156,7 @@ final class Ad_Unit_Block {
 	 * Enqueue block scripts and styles for editor.
 	 */
 	public static function enqueue_block_assets() {
-		if ( ! is_admin() ) {
-			return;
-		}
-		$screen = get_current_screen();
-		if ( ! $screen || ! $screen->is_block_editor() ) {
+		if ( ! wp_should_load_block_editor_scripts_and_styles() ) {
 			return;
 		}
 		wp_enqueue_script(
