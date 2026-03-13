@@ -82,7 +82,6 @@ const TabsEdit = props => {
 
 		// Hacky but required in order to select which is the innerblocks assigned to header
 		if ( editTab && blockElement ) {
-			blockElement.classList.add( 'is-tab-editing' );
 			const editTabEl = blockElement.ownerDocument.getElementById( `block-${ editTab }` );
 			if ( editTabEl ) {
 				editTabEl.setAttribute( 'data-is-tab-header-editing', 1 );
