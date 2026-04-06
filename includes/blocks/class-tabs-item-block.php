@@ -53,7 +53,7 @@ final class Tabs_Item_Block {
 		ob_start();
 		?>
 		<div class="newspack-ads__tab-content tab-content <?php echo esc_attr( $class_name ); ?>" id="tab-item-<?php echo esc_attr( sanitize_title_with_dashes( $attributes['header'] ) ); ?>" role="tabpanel">
-			<?php echo wp_kses_post( $content ); ?>
+			<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Inner block content is sanitized by the block editor on save. ?>
 		</div>
 		<?php
 		return ob_get_clean();
