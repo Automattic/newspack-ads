@@ -50,6 +50,7 @@ export const settings = {
 			text: false,
 			background: true,
 		},
+		visibility: false,
 	},
 	edit,
 	save: () => null, // to use Newspack_Ads_Blocks::render_block()

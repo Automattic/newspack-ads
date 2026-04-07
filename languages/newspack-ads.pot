@@ -2,14 +2,14 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Ads 3.10.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
+"Project-Id-Version: Newspack Ads 3.10.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/newspack-ads\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-06T20:56:26+00:00\n"
+"POT-Creation-Date: 2026-02-19T21:37:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-ads\n"
@@ -42,11 +42,11 @@ msgstr ""
 msgid "Your customer ID provided by Media.net"
 msgstr ""
 
-#: includes/bidders/class-openx.php:43
+#: includes/bidders/class-openx.php:52
 msgid "OpenX Platform ID"
 msgstr ""
 
-#: includes/bidders/class-openx.php:44
+#: includes/bidders/class-openx.php:53
 msgid "Platform id provided by your OpenX representative. E.g.: 555not5a-real-plat-form-id0123456789"
 msgstr ""
 
@@ -417,19 +417,19 @@ msgstr ""
 msgid "Choose an ad unit to display in position #%s within your article content."
 msgstr ""
 
-#: includes/integrations/class-side-rail-placements.php:37
+#: includes/integrations/class-side-rail-placements.php:48
 msgid "Left Side Rail"
 msgstr ""
 
-#: includes/integrations/class-side-rail-placements.php:38
+#: includes/integrations/class-side-rail-placements.php:49
 msgid "Choose an ad unit to display in the left side rail."
 msgstr ""
 
-#: includes/integrations/class-side-rail-placements.php:46
+#: includes/integrations/class-side-rail-placements.php:57
 msgid "Right Side Rail"
 msgstr ""
 
-#: includes/integrations/class-side-rail-placements.php:47
+#: includes/integrations/class-side-rail-placements.php:58
 msgid "Choose an ad unit to display in the right side rail."
 msgstr ""
 
