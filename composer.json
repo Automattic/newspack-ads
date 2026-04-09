@@ -44,10 +44,10 @@
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		},
 		"audit": {
-			"ignore": [
-				"PKSA-y2cr-5h3j-g3ys",
-				"PKSA-2kqm-ps5x-s4f5"
-			]
+			"ignore": {
+				"PKSA-y2cr-5h3j-g3ys": "firebase/php-jwt advisory does not affect this package (transitive dependency of googleads-php-lib)",
+				"PKSA-2kqm-ps5x-s4f5": "firebase/php-jwt advisory does not affect this package (transitive dependency of googleads-php-lib)"
+			}
 		}
 	}
 }
