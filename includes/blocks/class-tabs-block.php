@@ -58,7 +58,7 @@ final class Tabs_Block {
 		<div class="<?php echo esc_attr( implode( ' ', array_filter( $class_names ) ) ); ?>">
 			<!-- Tabs Placeholder -->
 			<div class="newspack-ads__tab-group tab-group">
-				<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Inner block content is sanitized by the block editor on save. ?>
+				<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized by block rendering pipeline as in core; raw output to support embeds. ?>
 			</div> <!-- /.newspack-ads__tab-group -->
 		</div> <!-- /.tabs -->
 		<?php
