@@ -1,3 +1,10 @@
+## [3.10.2](https://github.com/Automattic/newspack-ads/compare/v3.10.1...v3.10.2) (2026-04-13)
+
+
+### Bug Fixes
+
+* remove ability to hide ad blocks ([#1046](https://github.com/Automattic/newspack-ads/issues/1046)) ([d37ea17](https://github.com/Automattic/newspack-ads/commit/d37ea17d817e8a961c0d566f8c0f91a27eb2e478))
+
 ## [3.10.1](https://github.com/Automattic/newspack-ads/compare/v3.10.0...v3.10.1) (2026-01-19)
 
 
