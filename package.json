@@ -48,6 +48,6 @@
 	},
 	"devDependencies": {
 		"classnames": "^2.5.1",
-		"newspack-scripts": "github:Automattic/newspack-scripts#chore/refresh-dependencies"
+		"newspack-scripts": "^5.9.7"
 	}
 }
