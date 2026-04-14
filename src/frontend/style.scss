@@ -141,3 +141,12 @@
 		}
 	}
 }
+
+// Don't allow hiding blocks containing ad blocks.
+.wp-block-hidden-desktop,
+.wp-block-hidden-tablet,
+.wp-block-hidden-mobile {
+	&:has(.wp-block-newspack-blocks-wp-block-newspack-ads-blocks-ad-unit) {
+		display: block !important;
+	}
+}
