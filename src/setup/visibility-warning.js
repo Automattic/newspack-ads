@@ -31,7 +31,7 @@ const AdVisibilityWarning = () => {
 		if ( hasHiddenAdContainer ) {
 			createWarningNotice(
 				__(
-					'One or more hidden blocks contain an ad unit. Ad blocks and their containers will remain visible on all screen sizes — hiding ads with CSS may result in penalties. To control which ads appear at different breakpoints, use your ad provider settings. To find the hidden block, go to Document Overview > List view.',
+					'A hidden block contains an ad unit. Ads and their containers must stay visible at all breakpoints to avoid penalties — use your ad provider settings to control ad visibility. Find hidden blocks in Document Overview > List view.',
 					'newspack-ads'
 				),
 				{ id: NOTICE_ID, isDismissible: true }
