@@ -30,18 +30,11 @@ const AdVisibilityWarning = () => {
 	useEffect( () => {
 		if ( hasHiddenAdContainer ) {
 			createWarningNotice(
-				'<p>' +
-					__(
-						'One or more hidden blocks contain an ad unit. Ad blocks and their containers will remain visible on all screen sizes — hiding ads with CSS may result in penalties.',
-						'newspack-ads'
-					) +
-					'</p><p>' +
-					__(
-						'To control which ads appear at different breakpoints, use your ad provider settings. To find the hidden block, go to Document Overview > List view.',
-						'newspack-ads'
-					) +
-					'</p>',
-				{ id: NOTICE_ID, isDismissible: true, __unstableHTML: true }
+				__(
+					'One or more hidden blocks contain an ad unit. Ad blocks and their containers will remain visible on all screen sizes — hiding ads with CSS may result in penalties. To control which ads appear at different breakpoints, use your ad provider settings. To find the hidden block, go to Document Overview > List view.',
+					'newspack-ads'
+				),
+				{ id: NOTICE_ID, isDismissible: true }
 			);
 		} else {
 			removeNotice( NOTICE_ID );
