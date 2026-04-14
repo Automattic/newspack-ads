@@ -11,8 +11,7 @@ const NOTICE_ID = 'newspack-ads/ad-visibility-warning';
 
 const AdVisibilityWarning = () => {
 	const hasHiddenAdContainer = useSelect( select => {
-		const { getClientIdsWithDescendants, getBlockName, getBlockParents, getBlockAttributes } =
-			select( 'core/block-editor' );
+		const { getClientIdsWithDescendants, getBlockName, getBlockParents, getBlockAttributes } = select( 'core/block-editor' );
 		const isHidden = clientId => {
 			const viewport = getBlockAttributes( clientId )?.metadata?.blockVisibility?.viewport;
 			return viewport && Object.values( viewport ).some( visible => visible === false );
