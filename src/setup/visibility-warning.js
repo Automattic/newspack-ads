@@ -33,7 +33,7 @@ const AdVisibilityWarning = () => {
 					'A hidden block contains an ad unit. Ads and their containers must stay visible at all breakpoints to avoid penalties — use your ad provider settings to control ad visibility. Find hidden blocks in Document Overview > List view.',
 					'newspack-ads'
 				),
-				{ id: NOTICE_ID, isDismissible: true }
+				{ id: NOTICE_ID, isDismissible: false }
 			);
 		} else {
 			removeNotice( NOTICE_ID );
