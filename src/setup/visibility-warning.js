@@ -20,7 +20,7 @@ const AdVisibilityWarning = () => {
 			if ( getBlockName( id ) !== AD_BLOCK ) {
 				return false;
 			}
-			return getBlockParents( id ).some( isHidden );
+			return [ id, ...getBlockParents( id ) ].some( isHidden );
 		} );
 	}, [] );
 
