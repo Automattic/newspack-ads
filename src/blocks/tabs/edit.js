@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
  */
 import { createBlock } from '@wordpress/blocks';
 import { compose, ifCondition, useRefEffect } from '@wordpress/compose';
-import { useState, useEffect, useCallback, Fragment } from '@wordpress/element';
+import { useState, useEffect, useLayoutEffect, useCallback, Fragment } from '@wordpress/element';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Button, NavigableMenu } from '@wordpress/components';
 import { plus } from '@wordpress/icons';
@@ -90,29 +90,58 @@ const TabsEdit = props => {
 	}, [ selectBlock, clientId, tabCount, setTabCount, editTab, block, innerBlocks, removeBlock, activeClass, blockElement ] );
 
 	/**
-	 * Hacky solution to positioning the tab header in the correct place
+	 * Position each `.tab-header` overlay precisely on top of its corresponding tab
+	 * button. The overlay lives inside `.newspack-ads__tab-group` (a different
+	 * positioning context than the buttons), so we translate the button's viewport
+	 * rect into the overlay's containing block. A ResizeObserver keeps the overlays
+	 * in sync when buttons reflow (e.g. text wrap on viewport resize) without
+	 * waiting for a React render.
 	 */
-	useEffect( () => {
+	useLayoutEffect( () => {
 		if ( ! blockElement ) {
 			return;
 		}
-		const rafId = requestAnimationFrame( () => {
-			innerBlocks.forEach( innerBlock => {
-				const tabHeaderButton = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
 
-				if ( ! tabHeaderButton ) {
-					return;
-				}
-				const tabHeader = blockElement.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
+		const positionTabHeader = innerBlock => {
+			const tabHeaderButton = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
+			if ( ! tabHeaderButton ) {
+				return;
+			}
+			const tabHeader = blockElement.querySelector( `.tab-header[data-tab-block="${ innerBlock.clientId }"]` );
+			// `offsetParent` is null while the tab is hidden (display:none); we
+			// reposition once it becomes visible (editTab change re-runs this effect).
+			const containingBlock = tabHeader && tabHeader.offsetParent;
+			if ( ! containingBlock ) {
+				return;
+			}
+			const containerRect = containingBlock.getBoundingClientRect();
+			const buttonRect = tabHeaderButton.getBoundingClientRect();
+			tabHeader.style.left = `${ buttonRect.left - containerRect.left }px`;
+			tabHeader.style.top = `${ buttonRect.top - containerRect.top }px`;
+			tabHeader.style.width = `${ buttonRect.width }px`;
+			tabHeader.style.height = `${ buttonRect.height }px`;
+		};
 
-				if ( tabHeader && tabHeaderButton ) {
-					tabHeader.style.left = `${ tabHeaderButton.offsetLeft }px`;
-					tabHeader.style.top = `-${ tabHeader.offsetHeight }px`;
-				}
-			} );
+		const positionAll = () => innerBlocks.forEach( positionTabHeader );
+
+		positionAll();
+
+		// Track size changes of the block and each button (covers viewport resizes,
+		// text wrapping mid-edit, font loading, etc. — anything that shifts the
+		// button's rect without triggering a React render of this component).
+		if ( typeof ResizeObserver === 'undefined' ) {
+			return;
+		}
+		const observer = new ResizeObserver( positionAll );
+		observer.observe( blockElement );
+		innerBlocks.forEach( innerBlock => {
+			const button = blockElement.querySelector( `.components-tab-panel__tabs-item[data-tab-block="${ innerBlock.clientId }"]` );
+			if ( button ) {
+				observer.observe( button );
+			}
 		} );
-		return () => cancelAnimationFrame( rafId );
-	}, [ blockElement, innerBlocks ] );
+		return () => observer.disconnect();
+	}, [ blockElement, innerBlocks, editTab ] );
 
 	const tabPanels = innerBlocks.map( innerBlock => {
 		// eslint-disable-next-line @typescript-eslint/no-shadow
