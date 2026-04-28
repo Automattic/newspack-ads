@@ -30,7 +30,7 @@ const AdVisibilityWarning = () => {
 		if ( hasHiddenAdContainer ) {
 			createWarningNotice(
 				__(
-					'A hidden block contains an ad unit. Ads and their containers must stay visible at all breakpoints to avoid penalties — use your ad provider settings to control ad visibility. Find hidden blocks in Document Overview > List view.',
+					'A hidden block contains an ad unit. Ads and their containers must stay visible at all breakpoints to avoid penalties — use your ad provider settings to control ad visibility instead.',
 					'newspack-ads'
 				),
 				{ id: NOTICE_ID, isDismissible: false }
