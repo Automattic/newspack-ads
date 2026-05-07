@@ -291,8 +291,16 @@ final class SCAIP {
 	 * registered, so any value already saved is still respected.
 	 */
 	public static function dequeue_scaip_document_panel() {
-		wp_dequeue_script( 'scaip-document-panel' );
-		wp_deregister_script( 'scaip-document-panel' );
+		if ( ! defined( 'SCAIP_PLUGIN_FILE' ) ) {
+			return;
+		}
+		if (
+			wp_script_is( 'scaip-document-panel', 'registered' ) ||
+			wp_script_is( 'scaip-document-panel', 'enqueued' )
+		) {
+			wp_dequeue_script( 'scaip-document-panel' );
+			wp_deregister_script( 'scaip-document-panel' );
+		}
 	}
 }
 SCAIP::init();
