@@ -24,7 +24,7 @@ class NewspackSuppressAdsPanel extends Component {
 		const placements = window.newspackAdsSuppressAds?.placements || {};
 		const { newspack_ads_suppress_ads, newspack_ads_suppress_ads_placements, updateSuppressAds, updateSuppressPlacements } = this.props;
 		return (
-			<PluginDocumentSettingPanel name="newspack-ad-free" title={ __( 'Newspack Ads Settings', 'newspack-ads' ) } className="newspack-ads-suppress-ads">
+			<PluginDocumentSettingPanel name="newspack-ad-free" title={ __( 'Newspack Ads Settings', 'newspack-ads' ) } className="newspack-ads-settings">
 				<ToggleControl
 					label={ __( "Don't show ads on this content", 'newspack-ads' ) }
 					checked={ newspack_ads_suppress_ads }
