@@ -1,3 +1,10 @@
+## [3.11.1](https://github.com/Automattic/newspack-ads/compare/v3.11.0...v3.11.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **suppression:** guard get_current_screen() in customizer preview ([#1072](https://github.com/Automattic/newspack-ads/issues/1072)) ([520240e](https://github.com/Automattic/newspack-ads/commit/520240e34d35f0e13a0487fd0793a79cc2d48430))
+
 # [3.11.0](https://github.com/Automattic/newspack-ads/compare/v3.10.4...v3.11.0) (2026-05-18)
 
 
