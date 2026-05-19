@@ -1,3 +1,10 @@
+## [3.11.2](https://github.com/Automattic/newspack-ads/compare/v3.11.1...v3.11.2) (2026-05-19)
+
+
+### Bug Fixes
+
+* correct spacing between ad suppression toggles for WP 7.0 ([#1066](https://github.com/Automattic/newspack-ads/issues/1066)) ([e184999](https://github.com/Automattic/newspack-ads/commit/e1849995d16ad945e6ca56ff585a4834bef7dbbb))
+
 ## [3.11.1](https://github.com/Automattic/newspack-ads/compare/v3.11.0...v3.11.1) (2026-05-18)
 
 
