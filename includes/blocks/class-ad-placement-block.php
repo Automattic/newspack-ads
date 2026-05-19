@@ -58,15 +58,33 @@ final class Ad_Placement_Block {
 	/**
 	 * Render the block on the front-end.
 	 *
-	 * Stub: returns empty string. Implementation lands in a follow-up task.
+	 * Looks up the registered placement by the `placement` attribute and fires
+	 * its hook, which routes through inject_placement_ad() and the standard
+	 * Providers::render_placement_ad_code() pipeline. Returns empty string when
+	 * no placement is selected, the placement is not registered, the placement
+	 * has no hook_name, or the hook produces no output (no ad unit bound,
+	 * suppressed, provider not active).
 	 *
 	 * @param array $attrs Block attributes.
 	 *
 	 * @return string Rendered HTML.
 	 */
 	public static function render_block( $attrs ) {
-		unset( $attrs );
-		return '';
+		if ( empty( $attrs['placement'] ) ) {
+			return '';
+		}
+		$placement_key = $attrs['placement'];
+		$placements    = Placements::get_placements();
+		if ( ! isset( $placements[ $placement_key ] ) ) {
+			return '';
+		}
+		$hook_name = $placements[ $placement_key ]['hook_name'] ?? '';
+		if ( empty( $hook_name ) ) {
+			return '';
+		}
+		ob_start();
+		do_action( $hook_name );
+		return ob_get_clean();
 	}
 }
 Ad_Placement_Block::init();
