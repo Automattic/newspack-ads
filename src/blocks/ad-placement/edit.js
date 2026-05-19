@@ -97,6 +97,8 @@ export default function Edit( { attributes, setAttributes } ) {
 					) }
 				>
 					<SelectControl
+						label={ __( 'Placement', 'newspack-ads' ) }
+						hideLabelFromVision
 						value={ placement }
 						options={ optionsForSelect }
 						onChange={ value => setAttributes( { placement: value } ) }
