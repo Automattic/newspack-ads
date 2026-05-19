@@ -37,4 +37,30 @@ class PlacementsTest extends WP_UnitTestCase {
 		self::assertArrayHasKey( 'global_above_footer', $placements );
 		self::assertArrayHasKey( 'sticky', $placements );
 	}
+
+	/**
+	 * Block-rendered placements register with the expected keys and synthetic hook names.
+	 */
+	public function test_register_block_placements() {
+		Placements::register_block_placements();
+		$placements = Placements::get_placements();
+
+		$expected_keys = [
+			'above_header',
+			'below_header',
+			'above_footer',
+			'sticky_footer',
+			'above_content',
+			'below_content',
+		];
+
+		foreach ( $expected_keys as $key ) {
+			self::assertArrayHasKey( $key, $placements, "Missing placement: $key" );
+			self::assertSame(
+				'newspack_ads_block_placement_' . $key,
+				$placements[ $key ]['hook_name'],
+				"Wrong hook_name for placement: $key"
+			);
+		}
+	}
 }

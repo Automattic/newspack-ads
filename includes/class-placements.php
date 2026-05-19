@@ -393,6 +393,47 @@ final class Placements {
 	}
 
 	/**
+	 * Register the placements that are rendered by the newspack-ads/ad-placement block.
+	 *
+	 * Each placement is given a synthetic hook_name; nothing in WordPress core fires
+	 * these hooks. The newspack-ads/ad-placement block fires the hook via
+	 * do_action() when rendered, which routes through inject_placement_ad() and
+	 * the standard Providers::render_placement_ad_code() pipeline.
+	 */
+	public static function register_block_placements() {
+		$placements = array(
+			'above_header'  => array(
+				'name'        => __( 'Above Header', 'newspack-ads' ),
+				'description' => __( 'Renders above the site header.', 'newspack-ads' ),
+			),
+			'below_header'  => array(
+				'name'        => __( 'Below Header', 'newspack-ads' ),
+				'description' => __( 'Renders below the site header.', 'newspack-ads' ),
+			),
+			'above_footer'  => array(
+				'name'        => __( 'Above Footer', 'newspack-ads' ),
+				'description' => __( 'Renders above the site footer.', 'newspack-ads' ),
+			),
+			'sticky_footer' => array(
+				'name'        => __( 'Sticky Footer', 'newspack-ads' ),
+				'description' => __( 'Renders as a sticky footer ad (recommended sizes 728x90, 320x50, 300x50).', 'newspack-ads' ),
+			),
+			'above_content' => array(
+				'name'        => __( 'Above Content', 'newspack-ads' ),
+				'description' => __( 'Renders above the post content.', 'newspack-ads' ),
+			),
+			'below_content' => array(
+				'name'        => __( 'Below Content', 'newspack-ads' ),
+				'description' => __( 'Renders below the post content.', 'newspack-ads' ),
+			),
+		);
+		foreach ( $placements as $placement_key => $placement_config ) {
+			$placement_config['hook_name'] = 'newspack_ads_block_placement_' . $placement_key;
+			self::register_placement( $placement_key, $placement_config );
+		}
+	}
+
+	/**
 	 * Register a new ad placement.
 	 *
 	 * @param string $key    The placement key.
