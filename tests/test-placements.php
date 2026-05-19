@@ -61,6 +61,10 @@ class PlacementsTest extends WP_UnitTestCase {
 				$placements[ $key ]['hook_name'],
 				"Wrong hook_name for placement: $key"
 			);
+			self::assertTrue(
+				$placements[ $key ]['block_rendered'],
+				"Missing block_rendered flag for placement: $key"
+			);
 		}
 	}
 

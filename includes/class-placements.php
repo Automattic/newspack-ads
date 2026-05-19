@@ -443,7 +443,8 @@ final class Placements {
 			),
 		);
 		foreach ( $placements as $placement_key => $placement_config ) {
-			$placement_config['hook_name'] = 'newspack_ads_block_placement_' . $placement_key;
+			$placement_config['hook_name']      = 'newspack_ads_block_placement_' . $placement_key;
+			$placement_config['block_rendered'] = true;
 			self::register_placement( $placement_key, $placement_config );
 		}
 	}

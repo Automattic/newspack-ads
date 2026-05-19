@@ -35,7 +35,7 @@ function usePlacementOptions() {
 				}
 				// `placements` is keyed by placement key; convert to options.
 				const opts = Object.entries( placements || {} )
-					.filter( ( [ , config ] ) => config?.show_ui !== false )
+					.filter( ( [ , config ] ) => config?.show_ui !== false && config?.block_rendered === true )
 					.map( ( [ key, config ] ) => ( {
 						value: key,
 						label: config?.name || key,
