@@ -63,4 +63,31 @@ class PlacementsTest extends WP_UnitTestCase {
 			);
 		}
 	}
+
+	/**
+	 * When the active theme is a block theme, register_default_placements() registers
+	 * the block-rendered placements and does not register the classic ones.
+	 */
+	public function test_register_default_placements_block_theme() {
+		add_filter( 'newspack_ads_is_block_theme', '__return_true' );
+
+		Placements::register_default_placements();
+		$placements = Placements::get_placements();
+
+		// Block-rendered placements present.
+		self::assertArrayHasKey( 'above_header', $placements );
+		self::assertArrayHasKey( 'below_header', $placements );
+		self::assertArrayHasKey( 'above_footer', $placements );
+		self::assertArrayHasKey( 'sticky_footer', $placements );
+		self::assertArrayHasKey( 'above_content', $placements );
+		self::assertArrayHasKey( 'below_content', $placements );
+
+		// Classic placements absent.
+		self::assertArrayNotHasKey( 'global_above_header', $placements );
+		self::assertArrayNotHasKey( 'global_below_header', $placements );
+		self::assertArrayNotHasKey( 'global_above_footer', $placements );
+		self::assertArrayNotHasKey( 'sticky', $placements );
+
+		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
+	}
 }

@@ -365,6 +365,21 @@ final class Placements {
 	 * Register default placements.
 	 */
 	public static function register_default_placements() {
+		/**
+		 * Filter the result of wp_is_block_theme() for placement registration.
+		 *
+		 * Allows tests and edge cases to force the block-theme registration path
+		 * without changing the active theme. Defaults to the WP core value.
+		 *
+		 * @param bool $is_block_theme Whether the active theme is a block theme.
+		 */
+		$is_block_theme = apply_filters( 'newspack_ads_is_block_theme', wp_is_block_theme() );
+
+		if ( $is_block_theme ) {
+			self::register_block_placements();
+			return;
+		}
+
 		$placements = array(
 			'global_above_header' => array(
 				'name'        => __( 'Global: Above Header', 'newspack-ads' ),
