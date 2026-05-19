@@ -145,6 +145,8 @@ final class Ad_Unit_Block {
 				$styles[] = sprintf( '--wp--style--position-sticky-top:%s', $sticky_top );
 			}
 		}
+		// Sanitize the inline style so user-supplied attribute values can't inject arbitrary CSS declarations.
+		$style_attr = safecss_filter_attr( implode( ';', $styles ) );
 		ob_start();
 		do_action( $placement_config['hook_name'] );
 		$content = ob_get_clean();
@@ -154,7 +156,7 @@ final class Ad_Unit_Block {
 		return sprintf(
 			'<div class="%1$s" style="%2$s">%3$s</div>',
 			esc_attr( $classes ),
-			esc_attr( implode( ';', $styles ) ),
+			esc_attr( $style_attr ),
 			$content
 		);
 	}
