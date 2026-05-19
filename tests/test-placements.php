@@ -90,4 +90,37 @@ class PlacementsTest extends WP_UnitTestCase {
 
 		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
 	}
+
+	/**
+	 * Sidebar (widget-area) placements should NOT register when the active theme
+	 * is a block theme. Block themes don't have classic widget areas.
+	 */
+	public function test_sidebar_placements_skipped_on_block_theme() {
+		add_filter( 'newspack_ads_is_block_theme', '__return_true' );
+		register_sidebar(
+			[
+				'id'   => 'test-sidebar',
+				'name' => 'Test Sidebar',
+			]
+		);
+
+		// Reset the static $placements registry so we observe a clean run.
+		$ref  = new \ReflectionClass( \Newspack_Ads\Placements::class );
+		$prop = $ref->getProperty( 'placements' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, [] );
+
+		\Newspack_Ads\Sidebar_Placements::register_placements();
+		$keys = array_keys( \Newspack_Ads\Placements::get_placements() );
+
+		$sidebar_keys = array_filter( $keys, fn( $k ) => str_starts_with( $k, 'sidebar_' ) );
+		self::assertSame(
+			[],
+			array_values( $sidebar_keys ),
+			'No sidebar_* placements should be registered on a block theme'
+		);
+
+		unregister_sidebar( 'test-sidebar' );
+		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
+	}
 }
