@@ -102,7 +102,7 @@ export default function Edit( { attributes, setAttributes } ) {
 	return (
 		<div { ...blockProps }>
 			{ inspector }
-			<div className="newspack-ads-ad-block-placeholder" style={ { minHeight: 100 } }>
+			<div className="newspack-ads-ad-block-placeholder">
 				<svg className="newspack-ads-ad-block-mock" width="100%" height="100%">
 					<rect width="100%" height="100%" />
 					<line x1="0" y1="0" x2="100%" y2="100%" />
