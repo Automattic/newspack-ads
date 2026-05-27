@@ -82,7 +82,7 @@ export default function Edit( { attributes, setAttributes } ) {
 				{ inspector }
 				<Placeholder
 					icon={ icon }
-					label={ __( 'Ad Placement', 'newspack-ads' ) }
+					label={ __( 'Ad Slot', 'newspack-ads' ) }
 					instructions={ __( 'Pick the placement this block represents. The wizard binds an ad unit to each placement.', 'newspack-ads' ) }
 				>
 					<SelectControl

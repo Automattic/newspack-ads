@@ -1,14 +1,14 @@
 <?php
 /**
- * Tests for the Ad Placement block.
+ * Tests for the Ad Slot block.
  *
  * @package Newspack_Ads\Tests
  */
 
 /**
- * Ad Placement block tests.
+ * Ad Slot block tests.
  */
-class AdPlacementBlockTest extends WP_UnitTestCase {
+class AdSlotBlockTest extends WP_UnitTestCase {
 
 	/**
 	 * The block should be registered with WordPress.
@@ -16,8 +16,8 @@ class AdPlacementBlockTest extends WP_UnitTestCase {
 	public function test_block_is_registered() {
 		$registry = WP_Block_Type_Registry::get_instance();
 		self::assertTrue(
-			$registry->is_registered( 'newspack-ads/ad-placement' ),
-			'newspack-ads/ad-placement block should be registered'
+			$registry->is_registered( 'newspack-ads/ad-slot' ),
+			'newspack-ads/ad-slot block should be registered'
 		);
 	}
 
@@ -25,7 +25,7 @@ class AdPlacementBlockTest extends WP_UnitTestCase {
 	 * An empty placement attribute renders nothing.
 	 */
 	public function test_render_with_empty_placement() {
-		$html = \Newspack_Ads\Ad_Placement_Block::render_block( [ 'placement' => '' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => '' ] );
 		self::assertSame( '', $html );
 	}
 
@@ -33,7 +33,7 @@ class AdPlacementBlockTest extends WP_UnitTestCase {
 	 * An unknown placement key renders nothing.
 	 */
 	public function test_render_with_unknown_placement() {
-		$html = \Newspack_Ads\Ad_Placement_Block::render_block( [ 'placement' => 'does_not_exist' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'does_not_exist' ] );
 		self::assertSame( '', $html );
 	}
 
@@ -51,7 +51,7 @@ class AdPlacementBlockTest extends WP_UnitTestCase {
 		$prop->setValue( null, [] );
 		\Newspack_Ads\Placements::register_default_placements();
 
-		$html = \Newspack_Ads\Ad_Placement_Block::render_block( [ 'placement' => 'above_header' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'above_header' ] );
 		self::assertSame( '', $html );
 
 		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
@@ -81,7 +81,7 @@ class AdPlacementBlockTest extends WP_UnitTestCase {
 		};
 		add_action( 'newspack_ads_block_placement_above_header', $listener, 999 );
 
-		$html = \Newspack_Ads\Ad_Placement_Block::render_block( [ 'placement' => 'above_header' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'above_header' ] );
 		self::assertStringContainsString( $marker, $html );
 
 		remove_action( 'newspack_ads_block_placement_above_header', $listener, 999 );

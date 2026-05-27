@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Ads Ad Placement Block
+ * Newspack Ads Ad Slot Block
  *
  * @package Newspack
  */
@@ -12,14 +12,14 @@ use Newspack_Ads\Placements;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Newspack Ads Ad Placement Block.
+ * Newspack Ads Ad Slot Block.
  *
  * Renders a wizard-managed ad unit bound to a named placement, intended for
  * insertion into block-theme template parts (header, footer, single-post).
  */
-final class Ad_Placement_Block {
+final class Ad_Slot_Block {
 
-	const BLOCK_NAME = 'newspack-ads/ad-placement';
+	const BLOCK_NAME = 'newspack-ads/ad-slot';
 
 	/**
 	 * Initialize hooks.
@@ -87,4 +87,4 @@ final class Ad_Placement_Block {
 		return ob_get_clean();
 	}
 }
-Ad_Placement_Block::init();
+Ad_Slot_Block::init();

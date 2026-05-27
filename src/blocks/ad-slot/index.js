@@ -15,8 +15,8 @@ import edit from './edit';
  */
 import './editor.scss';
 
-export const name = 'ad-placement';
-export const title = __( 'Ad Placement', 'newspack-ads' );
+export const name = 'ad-slot';
+export const title = __( 'Ad Slot', 'newspack-ads' );
 
 export const settings = {
 	apiVersion: 3,
@@ -26,7 +26,7 @@ export const settings = {
 		foreground: '#406ebc',
 	},
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
-	keywords: [ __( 'ad', 'newspack-ads' ), __( 'placement', 'newspack-ads' ), __( 'ads', 'newspack-ads' ) ],
+	keywords: [ __( 'ad', 'newspack-ads' ), __( 'slot', 'newspack-ads' ), __( 'placement', 'newspack-ads' ), __( 'ads', 'newspack-ads' ) ],
 	description: __( 'Render an ad in a wizard-managed global placement (above header, sticky footer, etc.).', 'newspack-ads' ),
 	attributes: {
 		placement: {

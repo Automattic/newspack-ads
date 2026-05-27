@@ -408,10 +408,10 @@ final class Placements {
 	}
 
 	/**
-	 * Register the placements that are rendered by the newspack-ads/ad-placement block.
+	 * Register the placements that are rendered by the newspack-ads/ad-slot block.
 	 *
 	 * Each placement is given a synthetic hook_name; nothing in WordPress core fires
-	 * these hooks. The newspack-ads/ad-placement block fires the hook via
+	 * these hooks. The newspack-ads/ad-slot block fires the hook via
 	 * do_action() when rendered, which routes through inject_placement_ad() and
 	 * the standard Providers::render_placement_ad_code() pipeline.
 	 */
