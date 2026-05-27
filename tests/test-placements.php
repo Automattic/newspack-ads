@@ -26,9 +26,13 @@ class PlacementsTest extends WP_UnitTestCase {
 
 	/**
 	 * When the active theme is a classic theme, classic global placements are registered.
-	 * The test bootstrap's default theme is classic, so wp_is_block_theme() naturally returns false.
+	 *
+	 * Explicitly forces the classic branch via the newspack_ads_is_block_theme filter
+	 * so the test is stable regardless of which theme WP ships as the bootstrap default.
 	 */
 	public function test_register_default_placements_classic_theme() {
+		add_filter( 'newspack_ads_is_block_theme', '__return_false' );
+
 		Placements::register_default_placements();
 		$placements = Placements::get_placements();
 
@@ -36,6 +40,11 @@ class PlacementsTest extends WP_UnitTestCase {
 		self::assertArrayHasKey( 'global_below_header', $placements );
 		self::assertArrayHasKey( 'global_above_footer', $placements );
 		self::assertArrayHasKey( 'sticky', $placements );
+
+		// Classic placements should NOT have the synthetic block hook.
+		self::assertNotSame( 'newspack_ads_block_placement_sticky', $placements['sticky']['hook_name'] );
+
+		remove_filter( 'newspack_ads_is_block_theme', '__return_false' );
 	}
 
 	/**
