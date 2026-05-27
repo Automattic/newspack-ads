@@ -46,10 +46,10 @@ class PlacementsTest extends WP_UnitTestCase {
 		$placements = Placements::get_placements();
 
 		$expected_keys = [
-			'above_header',
-			'below_header',
-			'above_footer',
-			'sticky_footer',
+			'global_above_header',
+			'global_below_header',
+			'global_above_footer',
+			'sticky',
 			'above_content',
 			'below_content',
 		];
@@ -70,7 +70,8 @@ class PlacementsTest extends WP_UnitTestCase {
 
 	/**
 	 * When the active theme is a block theme, register_default_placements() registers
-	 * the block-rendered placements and does not register the classic ones.
+	 * the four classic-paired keys with synthetic block hook_names (so saved settings
+	 * survive theme switches) plus two block-only content placements.
 	 */
 	public function test_register_default_placements_block_theme() {
 		add_filter( 'newspack_ads_is_block_theme', '__return_true' );
@@ -78,19 +79,22 @@ class PlacementsTest extends WP_UnitTestCase {
 		Placements::register_default_placements();
 		$placements = Placements::get_placements();
 
-		// Block-rendered placements present.
-		self::assertArrayHasKey( 'above_header', $placements );
-		self::assertArrayHasKey( 'below_header', $placements );
-		self::assertArrayHasKey( 'above_footer', $placements );
-		self::assertArrayHasKey( 'sticky_footer', $placements );
-		self::assertArrayHasKey( 'above_content', $placements );
-		self::assertArrayHasKey( 'below_content', $placements );
-
-		// Classic placements absent.
-		self::assertArrayNotHasKey( 'global_above_header', $placements );
-		self::assertArrayNotHasKey( 'global_below_header', $placements );
-		self::assertArrayNotHasKey( 'global_above_footer', $placements );
-		self::assertArrayNotHasKey( 'sticky', $placements );
+		$expected = [
+			'global_above_header' => 'newspack_ads_block_placement_global_above_header',
+			'global_below_header' => 'newspack_ads_block_placement_global_below_header',
+			'global_above_footer' => 'newspack_ads_block_placement_global_above_footer',
+			'sticky'              => 'newspack_ads_block_placement_sticky',
+			'above_content'       => 'newspack_ads_block_placement_above_content',
+			'below_content'       => 'newspack_ads_block_placement_below_content',
+		];
+		foreach ( $expected as $key => $hook_name ) {
+			self::assertArrayHasKey( $key, $placements, "Missing placement: $key" );
+			self::assertSame(
+				$hook_name,
+				$placements[ $key ]['hook_name'],
+				"Wrong hook_name for placement: $key (should be synthetic block hook, not the classic one)"
+			);
+		}
 
 		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
 	}

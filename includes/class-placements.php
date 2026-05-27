@@ -417,27 +417,27 @@ final class Placements {
 	 */
 	public static function register_block_placements() {
 		$placements = array(
-			'above_header'  => array(
+			'global_above_header' => array(
 				'name'        => __( 'Above Header', 'newspack-ads' ),
 				'description' => __( 'Renders above the site header.', 'newspack-ads' ),
 			),
-			'below_header'  => array(
+			'global_below_header' => array(
 				'name'        => __( 'Below Header', 'newspack-ads' ),
 				'description' => __( 'Renders below the site header.', 'newspack-ads' ),
 			),
-			'above_footer'  => array(
+			'global_above_footer' => array(
 				'name'        => __( 'Above Footer', 'newspack-ads' ),
 				'description' => __( 'Renders above the site footer.', 'newspack-ads' ),
 			),
-			'sticky_footer' => array(
+			'sticky'              => array(
 				'name'        => __( 'Sticky Footer', 'newspack-ads' ),
 				'description' => __( 'Renders as a sticky footer ad (recommended sizes 728x90, 320x50, 300x50).', 'newspack-ads' ),
 			),
-			'above_content' => array(
+			'above_content'       => array(
 				'name'        => __( 'Above Content', 'newspack-ads' ),
 				'description' => __( 'Renders above the post content.', 'newspack-ads' ),
 			),
-			'below_content' => array(
+			'below_content'       => array(
 				'name'        => __( 'Below Content', 'newspack-ads' ),
 				'description' => __( 'Renders below the post content.', 'newspack-ads' ),
 			),

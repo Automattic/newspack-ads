@@ -51,7 +51,7 @@ class AdSlotBlockTest extends WP_UnitTestCase {
 		$prop->setValue( null, [] );
 		\Newspack_Ads\Placements::register_default_placements();
 
-		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'above_header' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'global_above_header' ] );
 		self::assertSame( '', $html );
 
 		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
@@ -72,19 +72,19 @@ class AdSlotBlockTest extends WP_UnitTestCase {
 		$prop->setValue( null, [] );
 		\Newspack_Ads\Placements::register_default_placements();
 
-		// Plant a known-output hook listener on the synthetic hook for `above_header`.
+		// Plant a known-output hook listener on the synthetic hook for `global_above_header`.
 		// This stands in for whatever inject_placement_ad would normally emit when
 		// an ad unit is bound and a provider is active.
 		$marker   = 'PLACEMENT_RENDERED_MARKER';
 		$listener = function () use ( $marker ) {
 			echo esc_html( $marker );
 		};
-		add_action( 'newspack_ads_block_placement_above_header', $listener, 999 );
+		add_action( 'newspack_ads_block_placement_global_above_header', $listener, 999 );
 
-		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'above_header' ] );
+		$html = \Newspack_Ads\Ad_Slot_Block::render_block( [ 'placement' => 'global_above_header' ] );
 		self::assertStringContainsString( $marker, $html );
 
-		remove_action( 'newspack_ads_block_placement_above_header', $listener, 999 );
+		remove_action( 'newspack_ads_block_placement_global_above_header', $listener, 999 );
 		remove_filter( 'newspack_ads_is_block_theme', '__return_true' );
 	}
 }
