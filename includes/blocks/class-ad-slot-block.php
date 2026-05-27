@@ -58,12 +58,12 @@ final class Ad_Slot_Block {
 	/**
 	 * Render the block on the front-end.
 	 *
-	 * Looks up the registered placement by the `placement` attribute and fires
-	 * its hook, which routes through inject_placement_ad() and the standard
-	 * Providers::render_placement_ad_code() pipeline. Returns empty string when
-	 * no placement is selected, the placement is not registered, the placement
-	 * has no hook_name, or the hook produces no output (no ad unit bound,
-	 * suppressed, provider not active).
+	 * Derives the synthetic hook name from the `placement` attribute and fires it,
+	 * which routes through inject_placement_ad() and the standard
+	 * Providers::render_placement_ad_code() pipeline. Returns empty string when no
+	 * placement is selected, no listener is subscribed for that placement (e.g.,
+	 * classic-theme context, or unknown key), or the hook produces no output
+	 * (no ad unit bound, suppressed, provider not active).
 	 *
 	 * @param array $attrs Block attributes.
 	 *
@@ -73,13 +73,8 @@ final class Ad_Slot_Block {
 		if ( empty( $attrs['placement'] ) ) {
 			return '';
 		}
-		$placement_key = $attrs['placement'];
-		$placements    = Placements::get_placements();
-		if ( ! isset( $placements[ $placement_key ] ) ) {
-			return '';
-		}
-		$hook_name = $placements[ $placement_key ]['hook_name'] ?? '';
-		if ( empty( $hook_name ) ) {
+		$hook_name = Placements::get_block_hook_name( $attrs['placement'] );
+		if ( ! has_action( $hook_name ) ) {
 			return '';
 		}
 		ob_start();

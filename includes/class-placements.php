@@ -443,10 +443,25 @@ final class Placements {
 			),
 		);
 		foreach ( $placements as $placement_key => $placement_config ) {
-			$placement_config['hook_name']      = 'newspack_ads_block_placement_' . $placement_key;
+			$placement_config['hook_name']      = self::get_block_hook_name( $placement_key );
 			$placement_config['block_rendered'] = true;
 			self::register_placement( $placement_key, $placement_config );
 		}
+	}
+
+	/**
+	 * Build the synthetic hook name fired by the newspack-ads/ad-slot block for a
+	 * given placement key.
+	 *
+	 * Centralizes the naming convention so the render callback can derive the hook
+	 * directly without loading placement data.
+	 *
+	 * @param string $placement_key Placement key.
+	 *
+	 * @return string Hook name.
+	 */
+	public static function get_block_hook_name( $placement_key ) {
+		return 'newspack_ads_block_placement_' . $placement_key;
 	}
 
 	/**
