@@ -2,11 +2,7 @@
  * WordPress dependencies
  */
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import {
-	PanelBody,
-	Placeholder,
-	SelectControl,
-} from '@wordpress/components';
+import { PanelBody, Placeholder, SelectControl } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -61,13 +57,9 @@ export default function Edit( { attributes, setAttributes } ) {
 	const blockProps = useBlockProps( { className: 'newspack-ads-ad-block' } );
 
 	const isLoading = options === null;
-	const optionsForSelect = [
-		{ value: '', label: __( '— Select a placement —', 'newspack-ads' ) },
-		...( options || [] ),
-	];
+	const optionsForSelect = [ { value: '', label: __( '— Select a placement —', 'newspack-ads' ) }, ...( options || [] ) ];
 
-	const selectedLabel =
-		options?.find( opt => opt.value === placement )?.label || placement;
+	const selectedLabel = options?.find( opt => opt.value === placement )?.label || placement;
 
 	const inspector = (
 		<InspectorControls>
@@ -91,10 +83,7 @@ export default function Edit( { attributes, setAttributes } ) {
 				<Placeholder
 					icon={ icon }
 					label={ __( 'Ad Placement', 'newspack-ads' ) }
-					instructions={ __(
-						'Pick the placement this block represents. The wizard binds an ad unit to each placement.',
-						'newspack-ads'
-					) }
+					instructions={ __( 'Pick the placement this block represents. The wizard binds an ad unit to each placement.', 'newspack-ads' ) }
 				>
 					<SelectControl
 						label={ __( 'Placement', 'newspack-ads' ) }
@@ -118,9 +107,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					<rect width="100%" height="100%" />
 					<line x1="0" y1="0" x2="100%" y2="100%" />
 				</svg>
-				<div className="newspack-ads-ad-block-ad-label">
-					{ selectedLabel }
-				</div>
+				<div className="newspack-ads-ad-block-ad-label">{ selectedLabel }</div>
 			</div>
 		</div>
 	);

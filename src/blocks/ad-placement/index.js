@@ -26,15 +26,8 @@ export const settings = {
 		foreground: '#406ebc',
 	},
 	category: getCategories().some( ( { slug } ) => slug === 'newspack' ) ? 'newspack' : 'common',
-	keywords: [
-		__( 'ad', 'newspack-ads' ),
-		__( 'placement', 'newspack-ads' ),
-		__( 'ads', 'newspack-ads' ),
-	],
-	description: __(
-		'Render an ad in a wizard-managed global placement (above header, sticky footer, etc.).',
-		'newspack-ads'
-	),
+	keywords: [ __( 'ad', 'newspack-ads' ), __( 'placement', 'newspack-ads' ), __( 'ads', 'newspack-ads' ) ],
+	description: __( 'Render an ad in a wizard-managed global placement (above header, sticky footer, etc.).', 'newspack-ads' ),
 	attributes: {
 		placement: {
 			type: 'string',
