@@ -33,24 +33,17 @@ final class Ad_Slot_Block {
 	/**
 	 * Register the block type with WordPress.
 	 *
+	 * Block metadata (name, attributes, supports, etc.) is defined in
+	 * src/blocks/ad-slot/block.json — the single source of truth shared with the
+	 * editor script. Only the dynamic render callback is supplied here.
+	 *
 	 * @return void
 	 */
 	public static function register_block() {
-		register_block_type(
-			self::BLOCK_NAME,
+		register_block_type_from_metadata(
+			NEWSPACK_ADS_BLOCKS_PATH . '/ad-slot', // Directory where block.json is found.
 			[
-				'api_version'     => 3,
-				'attributes'      => [
-					'placement' => [
-						'type'    => 'string',
-						'default' => '',
-					],
-				],
 				'render_callback' => [ __CLASS__, 'render_block' ],
-				'supports'        => [
-					'html'       => false,
-					'visibility' => false,
-				],
 			]
 		);
 	}
