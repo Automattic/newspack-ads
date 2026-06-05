@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import { unregisterBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -24,11 +23,19 @@ const labels = {
 	description: __( 'Render an ad in a wizard-managed global placement (above header, sticky footer, etc.).', 'newspack-ads' ),
 };
 
+// Only insertable in the Site Editor. The block stays registered everywhere so
+// persisted instances remain valid; it's just hidden from the post-editor inserter.
+const isSiteEditor = window.location.pathname.endsWith( '/wp-admin/site-editor.php' );
+
 const adSlot = {
 	name,
 	settings: {
 		...metadata,
 		...labels,
+		supports: {
+			...metadata.supports,
+			inserter: isSiteEditor,
+		},
 		icon: {
 			src: icon,
 			foreground: '#406ebc',
@@ -42,11 +49,4 @@ const adSlot = {
 // See https://github.com/WordPress/gutenberg/issues/9757.
 wp.domReady( () => {
 	registerBlock( adSlot );
-
-	// Restrict the Ad Slot block to the Site Editor. The `editor` bundle is
-	// enqueued in both the post editor and the Site Editor, so unregister it
-	// when we're not in the Site Editor.
-	if ( ! window.location.pathname.endsWith( '/wp-admin/site-editor.php' ) ) {
-		unregisterBlockType( name );
-	}
 } );
