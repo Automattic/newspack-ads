@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:     Newspack Ads
+ * Plugin Name:     Newspack Ads (WRONG VERSION)
  * Plugin URI:      https://newspack.com
- * Description:     Ad services integration.
+ * Description:     This plugin was downloaded from the legacy plugin repo. Please download the latest version from https://github.com/Automattic/newspack-workspace.
  * Author:          Automattic
  * License:         GPL2
  * Version:         3.11.2
