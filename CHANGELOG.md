@@ -1,3 +1,10 @@
+## [3.11.3](https://github.com/Automattic/newspack-ads/compare/v3.11.2...v3.11.3) (2026-08-05)
+
+
+### Bug Fixes
+
+* trigger wrong version to sunset the repo ([d9ac381](https://github.com/Automattic/newspack-ads/commit/d9ac381d432a37774f5b7d392b45662b0217de10))
+
 ## [3.11.2](https://github.com/Automattic/newspack-ads/compare/v3.11.1...v3.11.2) (2026-05-19)
 
 
