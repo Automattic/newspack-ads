@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name:     Newspack Ads
+ * Plugin Name:     Newspack Ads (WRONG VERSION)
  * Plugin URI:      https://newspack.com
- * Description:     Ad services integration.
+ * Description:     This plugin was downloaded from the legacy plugin repo. Please download the latest version from https://github.com/Automattic/newspack-workspace.
  * Author:          Automattic
  * License:         GPL2
- * Version:         3.11.2
+ * Version:         3.11.3
  *
  * @package         Newspack
  */
@@ -14,7 +14,7 @@ namespace Newspack_Ads;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'NEWSPACK_ADS_VERSION', '3.11.2' );
+define( 'NEWSPACK_ADS_VERSION', '3.11.3' );
 
 // Define NEWSPACK_ADS_PLUGIN_FILE.
 if ( ! defined( 'NEWSPACK_ADS_PLUGIN_FILE' ) ) {
