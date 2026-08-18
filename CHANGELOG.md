@@ -1,3 +1,10 @@
+## [3.11.4](https://github.com/Automattic/newspack-ads/compare/v3.11.3...v3.11.4) (2026-08-18)
+
+
+### Bug Fixes
+
+* soften sunset plugin name and add migration notice ([5a7f9b2](https://github.com/Automattic/newspack-ads/commit/5a7f9b2f4e756de333f5e331326c8a401d9b3ad0))
+
 ## [3.11.3](https://github.com/Automattic/newspack-ads/compare/v3.11.2...v3.11.3) (2026-08-05)
 
 
